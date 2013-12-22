@@ -65,7 +65,7 @@ public class MainActivity extends Activity {
         final View contentView = findViewById(android.R.id.content);
         contentView.setBackgroundColor(Color.BLACK);
 
-        setContentView(R.layout.main);
+        setContentView(R.layout.splash);
 
         final ImageView imageView = (ImageView) findViewById(R.id.splash);
         sequentialAnimator.start(new FadedSequentialAnimator.Action() {
