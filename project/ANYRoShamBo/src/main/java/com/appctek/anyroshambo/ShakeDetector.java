@@ -1,6 +1,5 @@
 package com.appctek.anyroshambo;
 
-import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -21,7 +20,9 @@ public class ShakeDetector implements SensorEventListener {
     }
 
     private ShakeListener listener = null;
-    private Context context;
+
+    private SensorManager sensorManager;
+    private DateTimeService dateTimeService;
 
     private float sensitivity = 10f;
     private int maxMoveCount = 5;
@@ -84,7 +85,7 @@ public class ShakeDetector implements SensorEventListener {
         // direction of phone changed..
         accelDir = accelDiff.identity();
 
-        final long currentTime = System.currentTimeMillis();
+        final long currentTime = dateTimeService.getTimeInMillis();
         if (moveCount > 0 && currentTime - lastMoveTime > shakeTimeout) {
             moveCount = 0;
         }
@@ -97,8 +98,9 @@ public class ShakeDetector implements SensorEventListener {
 
     }
 
-    public ShakeDetector(Context context, DateTimeService dateTimeService) {
-        this.context = context;
+    public ShakeDetector(SensorManager sensorManager, DateTimeService dateTimeService) {
+        this.dateTimeService = dateTimeService;
+        this.sensorManager = sensorManager;
     }
 
     public void pause() {
@@ -124,7 +126,7 @@ public class ShakeDetector implements SensorEventListener {
     }
 
     private SensorManager getSensorManager() {
-        return (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
+        return sensorManager;
     }
 
     private boolean isNoise(float coord) {
@@ -139,8 +141,5 @@ public class ShakeDetector implements SensorEventListener {
         }
         return true;
     }
-
-
-
 
 }

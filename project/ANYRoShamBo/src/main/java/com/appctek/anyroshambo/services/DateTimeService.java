@@ -7,7 +7,7 @@ package com.appctek.anyroshambo.services;
  */
 public class DateTimeService {
 
-    public long getCurrentTime() {
+    public long getTimeInMillis() {
         return System.currentTimeMillis();
     }
 
