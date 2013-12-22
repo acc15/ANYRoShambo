@@ -1,6 +1,7 @@
 package com.appctek.anyroshambo;
 
 import android.app.Activity;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -159,6 +160,11 @@ public class MainActivity extends Activity {
                                }, new Runnable() {
                                    public void run() {
                                        imageView.setImageResource(R.drawable.gamescreen);
+
+                                       final Drawable drawable = imageView.getDrawable();
+                                       logger.debug("drawable: " + drawable);
+
+
                                    }
                                }
                 );
