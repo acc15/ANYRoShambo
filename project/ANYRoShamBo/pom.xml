@@ -8,7 +8,7 @@
     <packaging>apk</packaging>
 
     <properties>
-        <android.version>4.1.1.4</android.version>
+        <android.version>2.2.1</android.version>
         <android.platform>8</android.platform>
     </properties>
 
