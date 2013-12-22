@@ -1,7 +1,6 @@
 package com.appctek.anyroshambo.services;
 
 import android.content.Context;
-import android.hardware.SensorManager;
 import com.appctek.anyroshambo.FadedSequentialAnimator;
 import com.appctek.anyroshambo.ShakeDetector;
 
@@ -10,6 +9,11 @@ import com.appctek.anyroshambo.ShakeDetector;
  * @since 2013-23-12
  */
 public class ServiceRepository {
+
+
+    public FadedSequentialAnimator getSequentialAnimator() {
+        return new FadedSequentialAnimator();
+    }
 
     private static class DefaultServiceRepositoryFactory implements ServiceRepositoryFactory {
         private static ServiceRepository repository = new ServiceRepository();
@@ -47,13 +51,10 @@ public class ServiceRepository {
         return dateTimeService;
     }
 
-    public FadedSequentialAnimator getSequentialAnimator() {
-        return new FadedSequentialAnimator();
+    public ShakeDetector getShakeDetector(Context context) {
+        return new ShakeDetector(context, getDateTimeService());
     }
 
-    public ShakeDetector getShakeDetector(Context context) {
-        final SensorManager sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        return new ShakeDetector(sensorManager, getDateTimeService());
-    }
+
 
 }

@@ -1,5 +1,6 @@
 package com.appctek.anyroshambo;
 
+import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -21,7 +22,7 @@ public class ShakeDetector implements SensorEventListener {
 
     private ShakeListener listener = null;
 
-    private SensorManager sensorManager;
+    private Context context;
     private DateTimeService dateTimeService;
 
     private float sensitivity = 10f;
@@ -98,9 +99,9 @@ public class ShakeDetector implements SensorEventListener {
 
     }
 
-    public ShakeDetector(SensorManager sensorManager, DateTimeService dateTimeService) {
+    public ShakeDetector(Context context, DateTimeService dateTimeService) {
         this.dateTimeService = dateTimeService;
-        this.sensorManager = sensorManager;
+        this.context = context;
     }
 
     public void pause() {
@@ -126,7 +127,7 @@ public class ShakeDetector implements SensorEventListener {
     }
 
     private SensorManager getSensorManager() {
-        return sensorManager;
+        return (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
     }
 
     private boolean isNoise(float coord) {
