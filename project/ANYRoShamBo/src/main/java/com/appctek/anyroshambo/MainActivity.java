@@ -1,6 +1,7 @@
 package com.appctek.anyroshambo;
 
 import android.app.Activity;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
@@ -127,8 +128,16 @@ public class MainActivity extends Activity {
         logger.debug("Initializing main activity...");
 
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+        getWindow().setFlags(
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
+        // enable hardware acceleration
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+            getWindow().setFlags(
+                    WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+                    WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
+        }
 
         final DisplayMetrics metrics = getResources().getDisplayMetrics();
         int width = metrics.widthPixels;
@@ -137,7 +146,6 @@ public class MainActivity extends Activity {
 
         setContentView(R.layout.main);
 
-        final View rootView = findViewById(android.R.id.content);
         final ImageView imageView = (ImageView) findViewById(R.id.splash);
         final SplashAction splashActions = SplashAction.
                 createSequence(new Runnable() {
@@ -155,7 +163,7 @@ public class MainActivity extends Activity {
                                }
                 );
 
-        scheduleDelayedActions(rootView, splashActions);
+        scheduleDelayedActions(imageView, splashActions);
 
     }
 
