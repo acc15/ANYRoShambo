@@ -139,6 +139,9 @@ public class MainActivity extends Activity {
                     WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
         }
 
+        final View decorView = getWindow().getDecorView();
+        decorView.setBackgroundColor(0);
+
         final DisplayMetrics metrics = getResources().getDisplayMetrics();
         int width = metrics.widthPixels;
         int height = metrics.heightPixels;
@@ -146,6 +149,7 @@ public class MainActivity extends Activity {
 
         setContentView(R.layout.main);
 
+        final View rootView = findViewById(R.id.main);
         final ImageView imageView = (ImageView) findViewById(R.id.splash);
         final SplashAction splashActions = SplashAction.
                 createSequence(new Runnable() {
@@ -154,16 +158,12 @@ public class MainActivity extends Activity {
                                    }
                                }, new Runnable() {
                                    public void run() {
-                                       imageView.setImageResource(R.drawable.splashscreen);
-                                   }
-                               }, new Runnable() {
-                                   public void run() {
                                        imageView.setImageResource(R.drawable.gamescreen);
                                    }
                                }
                 );
 
-        scheduleDelayedActions(imageView, splashActions);
+        scheduleDelayedActions(rootView, splashActions);
 
     }
 
