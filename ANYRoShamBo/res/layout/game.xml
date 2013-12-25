@@ -13,31 +13,30 @@
                  android:layout_marginLeft="280sp"
                  android:layout_marginTop="50sp"/>
 
-    <ImageView android:id="@+id/triangle" android:src="@drawable/triangle"
+    <ImageView android:id="@+id/triangle"
+               android:src="@drawable/triangle"
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
-               android:contentDescription="@string/triangle_description"
                android:layout_centerHorizontal="true"
-               android:layout_centerVertical="true"/>
-    <ImageView android:src="@drawable/icon_walk_normal"
+               android:layout_marginTop="180sp"
+               android:contentDescription="@string/triangle_description"
+               />
+
+    <ImageView android:id="@+id/walk"
+               android:src="@drawable/icon_walk_normal"
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
-               android:contentDescription="@string/walk_description"
-               android:layout_marginTop="320sp"
-               android:layout_marginLeft="210sp"/>
-    <ImageView android:src="@drawable/icon_drink_normal"
+               android:contentDescription="@string/walk_description"/>
+    <ImageView android:id="@+id/drink"
+               android:src="@drawable/icon_drink_normal"
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
-               android:contentDescription="@string/drink_description"
-               android:layout_marginTop="320sp"
-               android:layout_marginLeft="30sp"/>
-    <ImageView android:src="@drawable/icon_party_normal"
+               android:contentDescription="@string/drink_description"/>
+    <ImageView android:id="@+id/party"
+               android:src="@drawable/icon_party_normal"
                android:layout_width="wrap_content"
                android:layout_height="wrap_content"
-               android:contentDescription="@string/party_description"
-               android:layout_alignParentTop="false"
-               android:layout_marginTop="160sp"
-               android:layout_marginLeft="120sp"/>
+               android:contentDescription="@string/party_description"/>
 
 
     <ImageButton android:layout_width="wrap_content"

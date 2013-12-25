@@ -11,10 +11,6 @@ import com.appctek.anyroshambo.ShakeDetector;
 public class ServiceRepository {
 
 
-    public FadedSequentialAnimator getSequentialAnimator() {
-        return new FadedSequentialAnimator();
-    }
-
     private static class DefaultServiceRepositoryFactory implements ServiceRepositoryFactory {
         private static ServiceRepository repository = new ServiceRepository();
         public ServiceRepository getServiceRepository() {
@@ -47,8 +43,16 @@ public class ServiceRepository {
 
     private DateTimeService dateTimeService = new DateTimeService();
 
+    public FadedSequentialAnimator getSequentialAnimator() {
+        return new FadedSequentialAnimator();
+    }
+
     public DateTimeService getDateTimeService() {
         return dateTimeService;
+    }
+
+    public VibrationService getVibrationService(Context context) {
+        return new VibrationService(context);
     }
 
     public ShakeDetector getShakeDetector(Context context) {

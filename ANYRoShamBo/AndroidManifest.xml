@@ -6,6 +6,7 @@
 
     <uses-feature android:name="android.hardware.sensor.accelerometer"
                   android:required="true"/>
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application android:icon="@drawable/icon" android:label="@string/app_name">
         <activity android:name=".anyroshambo.MainActivity" android:screenOrientation="portrait">
