@@ -3,6 +3,15 @@
     <string name="hello">Hello ANYRoShamBo!</string>
     <string name="app_name">ANYRoShamBo</string>
     <string name="splash_content_description">ANYRoShamBo splash</string>
+    <string name="info_button_description">info</string>
+    <string name="vkontakte_button_description">vkontakte</string>
+    <string name="odnoklassniki_button_description">odnoklassniki</string>
+    <string name="facebook_button_description">facebook</string>
+    <string name="twitter_button_description">twitter</string>
+    <string name="triangle_description">triangle</string>
+    <string name="walk_description">walk</string>
+    <string name="drink_description">drink</string>
+    <string name="party_description">party</string>
 
 
 </resources>

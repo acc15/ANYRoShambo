@@ -2,9 +2,69 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
                 android:background="@drawable/gamescreen"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_gravity="center|left">
+
+    <ImageButton android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:contentDescription="@string/info_button_description"
+                 android:src="@drawable/info_button"
+                 android:background="@null"
+                 android:layout_marginLeft="280sp"
+                 android:layout_marginTop="50sp"/>
+
+    <ImageView android:id="@+id/triangle" android:src="@drawable/triangle"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:contentDescription="@string/triangle_description"
+               android:layout_centerHorizontal="true"
+               android:layout_centerVertical="true"/>
+    <ImageView android:src="@drawable/icon_walk_normal"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:contentDescription="@string/walk_description"
+               android:layout_marginTop="320sp"
+               android:layout_marginLeft="210sp"/>
+    <ImageView android:src="@drawable/icon_drink_normal"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:contentDescription="@string/drink_description"
+               android:layout_marginTop="320sp"
+               android:layout_marginLeft="30sp"/>
+    <ImageView android:src="@drawable/icon_party_normal"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:contentDescription="@string/party_description"
+               android:layout_alignParentTop="false"
+               android:layout_marginTop="160sp"
+               android:layout_marginLeft="120sp"/>
 
 
-
-
+    <ImageButton android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:contentDescription="@string/vkontakte_button_description"
+                 android:src="@drawable/vk_button"
+                 android:background="@null"
+                 android:layout_alignParentBottom="true"/>
+    <ImageButton android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:contentDescription="@string/odnoklassniki_button_description"
+                 android:src="@drawable/ok_button"
+                 android:background="@null"
+                 android:layout_alignParentBottom="true"
+                 android:layout_marginLeft="80sp"/>
+    <ImageButton android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:contentDescription="@string/facebook_button_description"
+                 android:src="@drawable/fb_button"
+                 android:background="@null"
+                 android:layout_alignParentBottom="true"
+                 android:layout_marginLeft="160sp"/>
+    <ImageButton android:layout_width="wrap_content"
+                 android:layout_height="wrap_content"
+                 android:contentDescription="@string/twitter_button_description"
+                 android:src="@drawable/tw_button"
+                 android:layout_alignParentBottom="true"
+                 android:layout_marginLeft="240sp"
+                 android:background="@null"/>
 </RelativeLayout>
