@@ -51,6 +51,7 @@ public class MainActivity extends Activity {
 
     private static final long MIN_DURATION = 3000;
     private static final long MAX_DURATION = 15000;
+    private static final float INITIAL_ANGLE = PI / 2;
 
     private float generateDecelerateFactor() {
         return MIN_DECECELATE_FACTOR + random.nextFloat() * (MAX_DECELERATE_FACTOR-MIN_DECECELATE_FACTOR);
@@ -73,6 +74,22 @@ public class MainActivity extends Activity {
 
     private float calculateFinalAngle(int rotationCount, int selectedIcon) {
         return 360 * rotationCount + (360f/icons.length)*selectedIcon;
+    }
+
+    private float computeRotationAngleInRadians(float degrees) {
+        return INITIAL_ANGLE - (float)Math.toRadians(degrees);
+    }
+
+    private float computeInterpolation(Animation animation) {
+        final long currentTime = dateTimeService.getAnimationTimeMillis();
+        final long startTime = animation.getStartTime();
+        final long duration = animation.getDuration();
+        final long time = currentTime - startTime;
+
+        final float timePosition = (float)time/duration;
+        final Interpolator interpolator = animation.getInterpolator();
+        final float interpolation = interpolator.getInterpolation(timePosition);
+        return interpolation;
     }
 
     private void setIconPositions(View triangle, float angle) {
@@ -113,8 +130,7 @@ public class MainActivity extends Activity {
         final ImageView triangle = (ImageView)findViewById(R.id.triangle);
         icons = new View[] {findViewById(R.id.walk), findViewById(R.id.drink), findViewById(R.id.party)};
 
-        final float initialAngle = PI/2;
-        setIconPositions(triangle, initialAngle);
+        setIconPositions(triangle, INITIAL_ANGLE);
 
         shakeDetector.start(new ShakeDetector.ShakeListener() {
             public void onShake() {
@@ -135,12 +151,13 @@ public class MainActivity extends Activity {
                         RotateAnimation.RELATIVE_TO_SELF, HALF,
                         RotateAnimation.RELATIVE_TO_SELF, TWO_DIV_THREE);
 
-                rotateAnimation.setFillEnabled(true);
-                rotateAnimation.setFillAfter(true);
                 rotateAnimation.setInterpolator(new DecelerateInterpolator(decelerateFactor));
                 rotateAnimation.setDuration(duration);
+                rotateAnimation.setFillEnabled(true);
+                rotateAnimation.setFillAfter(true);
+
                 rotateAnimation.setAnimationListener(new Animation.AnimationListener() {
-                    public void onAnimationStart(Animation animation) {
+                    public void onAnimationStart(final Animation animation) {
                         final ViewTreeObserver observer = triangle.getViewTreeObserver();
                         observer.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
                             public boolean onPreDraw() {
@@ -149,24 +166,18 @@ public class MainActivity extends Activity {
                                     return true;
                                 }
 
-                                final long currentTime = dateTimeService.getAnimationTimeMillis();
-                                final long startTime = rotateAnimation.getStartTime();
-                                final long duration = rotateAnimation.getDuration();
-                                final long time = currentTime - startTime;
-
-                                final float timePosition = (float)time/duration;
-                                final Interpolator interpolator = rotateAnimation.getInterpolator();
-                                final float interpolation = interpolator.getInterpolation(timePosition);
-
-                                float degrees = (fromAngle + (toAngle-fromAngle) * interpolation) % 360; // degrees
-                                final float angle = initialAngle - (float)Math.toRadians(degrees);
+                                final float interpolation = computeInterpolation(animation);
+                                final float degrees = (fromAngle + (toAngle-fromAngle) * interpolation) % 360; // degrees
+                                final float angle = computeRotationAngleInRadians(degrees);
                                 setIconPositions(triangle, angle);
+
                                 return true;
                             }
                         });
                     }
 
                     public void onAnimationEnd(Animation animation) {
+                        setIconPositions(triangle, computeRotationAngleInRadians(toAngle));
                         shakeDetector.resume();
                     }
 
