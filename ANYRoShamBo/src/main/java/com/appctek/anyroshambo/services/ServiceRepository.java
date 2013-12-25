@@ -4,6 +4,8 @@ import android.content.Context;
 import com.appctek.anyroshambo.FadedSequentialAnimator;
 import com.appctek.anyroshambo.ShakeDetector;
 
+import java.util.Random;
+
 /**
  * @author Vyacheslav Mayorov
  * @since 2013-23-12
@@ -59,6 +61,9 @@ public class ServiceRepository {
         return new ShakeDetector(context, getDateTimeService());
     }
 
+    public Random getRandom() {
+        return new Random();
+    }
 
 
 }

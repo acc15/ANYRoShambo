@@ -8,10 +8,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.DecelerateInterpolator;
-import android.view.animation.Interpolator;
-import android.view.animation.RotateAnimation;
+import android.view.animation.*;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import com.appctek.R;
@@ -20,6 +17,8 @@ import com.appctek.anyroshambo.services.ServiceRepository;
 import com.appctek.anyroshambo.services.VibrationService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Random;
 
 public class MainActivity extends Activity {
 
@@ -32,12 +31,49 @@ public class MainActivity extends Activity {
     private static final int FLAG_HARDWARE_ACCELERATED = 0x01000000;
     private static final int SDK_VERSION_HONEYCOMB = 11;
 
+    private static final float MIN_DECECELATE_FACTOR = 1f;
+    private static final float MAX_DECELERATE_FACTOR = 3f;
+
+    private static final float TWO_DIV_THREE = 2f/3;
+    private static final float HALF = 0.5f;
+
+
     private ShakeDetector shakeDetector = ServiceRepository.getRepository().getShakeDetector(this);
     private FadedSequentialAnimator sequentialAnimator = ServiceRepository.getRepository().getSequentialAnimator();
     private DateTimeService dateTimeService = ServiceRepository.getRepository().getDateTimeService();
     private VibrationService vibrationService = ServiceRepository.getRepository().getVibrationService(this);
+    private Random random = ServiceRepository.getRepository().getRandom();
 
     private View[] icons;
+
+    private static final int MIN_ROTATION_COUNT = 5;
+    private static final int MAX_ROTATION_COUNT = 10;
+
+    private static final long MIN_DURATION = 3000;
+    private static final long MAX_DURATION = 15000;
+
+    private float generateDecelerateFactor() {
+        return MIN_DECECELATE_FACTOR + random.nextFloat() * (MAX_DECELERATE_FACTOR-MIN_DECECELATE_FACTOR);
+    }
+
+    private long generateDuration() {
+        final long randomLong = random.nextLong();
+        final long duration = MIN_DURATION + Math.abs(randomLong) % (MAX_DURATION-MIN_DURATION+1);
+        return duration;
+    }
+
+    private int generateRotationCount() {
+        final int fullRotations = random.nextInt((MAX_ROTATION_COUNT-MIN_ROTATION_COUNT)*2+1);
+        return fullRotations <= MIN_ROTATION_COUNT ? fullRotations - MAX_ROTATION_COUNT : fullRotations;
+    }
+
+    private int generateSelectedIcon() {
+        return random.nextInt(icons.length);
+    }
+
+    private float calculateFinalAngle(int rotationCount, int selectedIcon) {
+        return 360 * rotationCount + (360f/icons.length)*selectedIcon;
+    }
 
     private void setIconPositions(View triangle, float angle) {
 
@@ -46,7 +82,7 @@ public class MainActivity extends Activity {
 
         // angle between icons
         final float iconAngle = 2*PI/icons.length;
-        final float radius = height*2f/3;
+        final float radius = height*TWO_DIV_THREE;
 
         final float centerX = triangle.getLeft() + width/2,
                     centerY = triangle.getTop() + radius;
@@ -86,16 +122,23 @@ public class MainActivity extends Activity {
                 shakeDetector.pause();
                 vibrationService.feedback();
 
+                final int rotationCount = generateRotationCount();
+                final int selectedIcon = generateSelectedIcon();
+                final long duration = generateDuration();
+                final float decelerateFactor = generateDecelerateFactor();
+
                 final float fromAngle = 0;
-                final float toAngle = 3600;
+                final float toAngle = calculateFinalAngle(rotationCount, selectedIcon);
 
                 final ImageView triangle = (ImageView)findViewById(R.id.triangle);
                 final RotateAnimation rotateAnimation = new RotateAnimation(fromAngle, toAngle,
-                        RotateAnimation.RELATIVE_TO_SELF, 0.5f,
-                        RotateAnimation.RELATIVE_TO_SELF, 2f/3);
-                rotateAnimation.setDuration(10000);
-                rotateAnimation.setInterpolator(new DecelerateInterpolator(2f));
+                        RotateAnimation.RELATIVE_TO_SELF, HALF,
+                        RotateAnimation.RELATIVE_TO_SELF, TWO_DIV_THREE);
 
+                rotateAnimation.setFillEnabled(true);
+                rotateAnimation.setFillAfter(true);
+                rotateAnimation.setInterpolator(new DecelerateInterpolator(decelerateFactor));
+                rotateAnimation.setDuration(duration);
                 rotateAnimation.setAnimationListener(new Animation.AnimationListener() {
                     public void onAnimationStart(Animation animation) {
                         final ViewTreeObserver observer = triangle.getViewTreeObserver();
