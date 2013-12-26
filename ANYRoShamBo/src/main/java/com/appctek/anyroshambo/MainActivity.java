@@ -164,7 +164,7 @@ public class MainActivity extends Activity implements ShakeDetector.ShakeListene
         triangle.startAnimation(rotateAnimation);
     }
 
-    private void setupGame() {
+    private void initGame() {
 
         final ImageView triangle = (ImageView)findViewById(R.id.triangle);
         glow = (ImageView)findViewById(R.id.glow);
@@ -173,6 +173,7 @@ public class MainActivity extends Activity implements ShakeDetector.ShakeListene
         icons = new View[] {findViewById(R.id.drink), findViewById(R.id.walk), findViewById(R.id.party)};
         setIconPositions(triangle, INITIAL_ANGLE);
         shakeDetector.start(this);
+
     }
 
     @Override
@@ -221,7 +222,7 @@ public class MainActivity extends Activity implements ShakeDetector.ShakeListene
                 final View gameView = getLayoutInflater().inflate(R.layout.game, null);
                 gameView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                     public void onGlobalLayout() {
-                        setupGame();
+                        initGame();
                         gameView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
                     }
                 });
