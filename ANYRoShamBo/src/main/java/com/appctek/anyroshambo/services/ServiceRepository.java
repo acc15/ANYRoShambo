@@ -1,8 +1,8 @@
 package com.appctek.anyroshambo.services;
 
 import android.content.Context;
-import com.appctek.anyroshambo.FadedSequentialAnimator;
-import com.appctek.anyroshambo.ShakeDetector;
+import com.appctek.anyroshambo.util.AnimationHelper;
+import com.appctek.anyroshambo.util.ShakeDetector;
 
 import java.util.Random;
 
@@ -45,10 +45,6 @@ public class ServiceRepository {
 
     private DateTimeService dateTimeService = new DateTimeService();
 
-    public FadedSequentialAnimator getSequentialAnimator() {
-        return new FadedSequentialAnimator();
-    }
-
     public DateTimeService getDateTimeService() {
         return dateTimeService;
     }
@@ -59,6 +55,14 @@ public class ServiceRepository {
 
     public ShakeDetector getShakeDetector(Context context) {
         return new ShakeDetector(context, getDateTimeService());
+    }
+
+    public GameService getGameService() {
+        return new GameService(getRandom());
+    }
+
+    public AnimationHelper getAnimationHelper() {
+        return new AnimationHelper(getDateTimeService());
     }
 
     public Random getRandom() {

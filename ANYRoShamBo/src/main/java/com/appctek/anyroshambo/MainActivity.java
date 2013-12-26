@@ -8,17 +8,20 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.*;
+import android.view.animation.Animation;
+import android.view.animation.DecelerateInterpolator;
+import android.view.animation.RotateAnimation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import com.appctek.R;
-import com.appctek.anyroshambo.services.DateTimeService;
+import com.appctek.anyroshambo.model.GameModel;
+import com.appctek.anyroshambo.services.GameService;
 import com.appctek.anyroshambo.services.ServiceRepository;
 import com.appctek.anyroshambo.services.VibrationService;
+import com.appctek.anyroshambo.util.AnimationHelper;
+import com.appctek.anyroshambo.util.ShakeDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Random;
 
 public class MainActivity extends Activity {
 
@@ -31,65 +34,25 @@ public class MainActivity extends Activity {
     private static final int FLAG_HARDWARE_ACCELERATED = 0x01000000;
     private static final int SDK_VERSION_HONEYCOMB = 11;
 
-    private static final float MIN_DECECELATE_FACTOR = 1f;
-    private static final float MAX_DECELERATE_FACTOR = 3f;
-
     private static final float TWO_DIV_THREE = 2f/3;
     private static final float HALF = 0.5f;
 
-
     private ShakeDetector shakeDetector = ServiceRepository.getRepository().getShakeDetector(this);
-    private FadedSequentialAnimator sequentialAnimator = ServiceRepository.getRepository().getSequentialAnimator();
-    private DateTimeService dateTimeService = ServiceRepository.getRepository().getDateTimeService();
     private VibrationService vibrationService = ServiceRepository.getRepository().getVibrationService(this);
-    private Random random = ServiceRepository.getRepository().getRandom();
+    private AnimationHelper animationHelper = ServiceRepository.getRepository().getAnimationHelper();
+    private GameService gameService = ServiceRepository.getRepository().getGameService();
 
     private View[] icons;
 
-    private static final int MIN_ROTATION_COUNT = 5;
-    private static final int MAX_ROTATION_COUNT = 10;
-
-    private static final long MIN_DURATION = 3000;
-    private static final long MAX_DURATION = 15000;
     private static final float INITIAL_ANGLE = PI / 2;
 
-    private float generateDecelerateFactor() {
-        return MIN_DECECELATE_FACTOR + random.nextFloat() * (MAX_DECELERATE_FACTOR-MIN_DECECELATE_FACTOR);
-    }
 
-    private long generateDuration() {
-        final long randomLong = random.nextLong();
-        final long duration = MIN_DURATION + Math.abs(randomLong) % (MAX_DURATION-MIN_DURATION+1);
-        return duration;
-    }
-
-    private int generateRotationCount() {
-        final int fullRotations = random.nextInt((MAX_ROTATION_COUNT-MIN_ROTATION_COUNT)*2+1);
-        return fullRotations <= MIN_ROTATION_COUNT ? fullRotations - MAX_ROTATION_COUNT : fullRotations;
-    }
-
-    private int generateSelectedIcon() {
-        return random.nextInt(icons.length);
-    }
-
-    private float calculateFinalAngle(int rotationCount, int selectedIcon) {
-        return 360 * rotationCount + (360f/icons.length)*selectedIcon;
+    private float calculateFinalAngle(GameModel model) {
+        return 360 * model.getRotationCount() + (360f/icons.length)*model.getSelectedIcon();
     }
 
     private float computeRotationAngleInRadians(float degrees) {
         return INITIAL_ANGLE - (float)Math.toRadians(degrees);
-    }
-
-    private float computeInterpolation(Animation animation) {
-        final long currentTime = dateTimeService.getAnimationTimeMillis();
-        final long startTime = animation.getStartTime();
-        final long duration = animation.getDuration();
-        final long time = currentTime - startTime;
-
-        final float timePosition = (float)time/duration;
-        final Interpolator interpolator = animation.getInterpolator();
-        final float interpolation = interpolator.getInterpolation(timePosition);
-        return interpolation;
     }
 
     private void setIconPositions(View triangle, float angle) {
@@ -138,24 +101,20 @@ public class MainActivity extends Activity {
                 shakeDetector.pause();
                 vibrationService.feedback();
 
-                final int rotationCount = generateRotationCount();
-                final int selectedIcon = generateSelectedIcon();
-                final long duration = generateDuration();
-                final float decelerateFactor = generateDecelerateFactor();
+                final GameModel gameModel = gameService.generateGameModel();
 
                 final float fromAngle = 0;
-                final float toAngle = calculateFinalAngle(rotationCount, selectedIcon);
+                final float toAngle = calculateFinalAngle(gameModel);
 
-                final ImageView triangle = (ImageView)findViewById(R.id.triangle);
+                final ImageView triangle = (ImageView) findViewById(R.id.triangle);
                 final RotateAnimation rotateAnimation = new RotateAnimation(fromAngle, toAngle,
                         RotateAnimation.RELATIVE_TO_SELF, HALF,
                         RotateAnimation.RELATIVE_TO_SELF, TWO_DIV_THREE);
 
-                rotateAnimation.setInterpolator(new DecelerateInterpolator(decelerateFactor));
-                rotateAnimation.setDuration(duration);
+                rotateAnimation.setInterpolator(new DecelerateInterpolator(gameModel.getDecelerateFactor()));
+                rotateAnimation.setDuration(gameModel.getDuration());
                 rotateAnimation.setFillEnabled(true);
                 rotateAnimation.setFillAfter(true);
-
                 rotateAnimation.setAnimationListener(new Animation.AnimationListener() {
                     public void onAnimationStart(final Animation animation) {
                         final ViewTreeObserver observer = triangle.getViewTreeObserver();
@@ -166,11 +125,10 @@ public class MainActivity extends Activity {
                                     return true;
                                 }
 
-                                final float interpolation = computeInterpolation(animation);
-                                final float degrees = (fromAngle + (toAngle-fromAngle) * interpolation) % 360; // degrees
+                                final float interpolation = animationHelper.computeInterpolation(animation);
+                                final float degrees = (fromAngle + (toAngle - fromAngle) * interpolation) % 360; // degrees
                                 final float angle = computeRotationAngleInRadians(degrees);
                                 setIconPositions(triangle, angle);
-
                                 return true;
                             }
                         });
@@ -184,11 +142,7 @@ public class MainActivity extends Activity {
                     public void onAnimationRepeat(Animation animation) {
                     }
                 });
-
-                if (triangle.getAnimation() != null && !triangle.getAnimation().hasEnded()) {
-                    triangle.getAnimation().cancel();
-                }
-                triangle.startAnimation(rotateAnimation);
+                animationHelper.restartAnimation(triangle, rotateAnimation);
             }
         });
     }
@@ -229,12 +183,12 @@ public class MainActivity extends Activity {
         setContentView(R.layout.splash);
 
         final ImageView imageView = (ImageView) findViewById(R.id.splash);
-        sequentialAnimator.start(new FadedSequentialAnimator.Action() {
+        animationHelper.start(new AnimationHelper.Action() {
             public View execute() {
                 imageView.setImageResource(R.drawable.logoscreen);
                 return imageView;
             }
-        }, new FadedSequentialAnimator.Action() {
+        }, new AnimationHelper.Action() {
             public View execute() {
                 final View gameView = getLayoutInflater().inflate(R.layout.game, null);
 

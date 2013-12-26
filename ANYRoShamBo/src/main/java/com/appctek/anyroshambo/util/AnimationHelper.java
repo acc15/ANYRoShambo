@@ -1,18 +1,15 @@
-package com.appctek.anyroshambo;
+package com.appctek.anyroshambo.util;
 
 import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.view.animation.Transformation;
+import android.view.animation.*;
 import com.appctek.R;
+import com.appctek.anyroshambo.services.DateTimeService;
 
 /**
  * @author Vyacheslav Mayorov
- * @since 2013-23-12
+ * @since 2013-26-12
  */
-public class FadedSequentialAnimator {
-
+public class AnimationHelper {
 
     public static interface Action {
 
@@ -23,13 +20,13 @@ public class FadedSequentialAnimator {
         View execute();
     }
 
-    private static class ActionEntry {
+    static class ActionEntry {
         private Action action;
         private ActionEntry next;
         private boolean scheduled;
     }
 
-    private static ActionEntry createLinkedEntries(Action... actions) {
+    static ActionEntry createLinkedEntries(Action... actions) {
         final ActionEntry head = new ActionEntry();
         ActionEntry current = head;
         for (int i = 0; i < actions.length; i++) {
@@ -42,11 +39,41 @@ public class FadedSequentialAnimator {
         return head;
     }
 
-    public void start(Action... actions) {
-        executeAction(createLinkedEntries(actions));
+
+    private DateTimeService dateTimeService;
+
+    public AnimationHelper(DateTimeService dateTimeService) {
+        this.dateTimeService = dateTimeService;
     }
 
-    private void executeAction(final ActionEntry entry) {
+    public float computeInterpolation(Animation animation) {
+        final long currentTime = dateTimeService.getAnimationTimeMillis();
+        final long startTime = animation.getStartTime();
+        final long duration = animation.getDuration();
+        final long time = currentTime - startTime;
+        final float timePosition = (float)time/duration;
+        final Interpolator interpolator = animation.getInterpolator();
+        return interpolator.getInterpolation(timePosition);
+    }
+
+    /**
+     * Cancels current animation and starts new
+     * @param view view to restart animation
+     * @param newAnimation new animation to start
+     */
+    public void restartAnimation(View view, Animation newAnimation) {
+        // cancel previous animation
+        if (view.getAnimation() != null && !view.getAnimation().hasEnded()) {
+            view.getAnimation().cancel();
+        }
+        view.startAnimation(newAnimation);
+    }
+
+    public void start(AnimationHelper.Action... actions) {
+        executeAction(AnimationHelper.createLinkedEntries(actions));
+    }
+
+    private void executeAction(final AnimationHelper.ActionEntry entry) {
         final View view = entry.action.execute();
 
         final Animation fadeIn = AnimationUtils.loadAnimation(view.getContext(), R.anim.fade_in);
@@ -79,7 +106,7 @@ public class FadedSequentialAnimator {
         view.startAnimation(fadeIn);
     }
 
-    private void setFadeOutAnimation(final View view, final ActionEntry entry) {
+    private void setFadeOutAnimation(final View view, final AnimationHelper.ActionEntry entry) {
 
         if (entry.scheduled) {
             return;
@@ -123,5 +150,4 @@ public class FadedSequentialAnimator {
         view.startAnimation(fadeOut);
 
     }
-
 }

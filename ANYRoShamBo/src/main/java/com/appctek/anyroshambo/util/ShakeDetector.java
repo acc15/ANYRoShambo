@@ -1,4 +1,4 @@
-package com.appctek.anyroshambo;
+package com.appctek.anyroshambo.util;
 
 import android.content.Context;
 import android.hardware.Sensor;
