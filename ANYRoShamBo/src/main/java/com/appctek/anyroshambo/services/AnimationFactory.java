@@ -1,6 +1,7 @@
 package com.appctek.anyroshambo.services;
 
 import android.view.animation.*;
+import com.appctek.anyroshambo.math.GeometryUtils;
 import com.appctek.anyroshambo.model.GameModel;
 
 /**
@@ -9,8 +10,7 @@ import com.appctek.anyroshambo.model.GameModel;
  */
 public class AnimationFactory {
 
-    public static final float TWO_DIV_THREE = 2f/3;
-    public static final float HALF = 0.5f;
+    private static final float ICON_SCALE_FACTOR = 1.4f;
 
     private static Animation enableFillAfter(Animation animation) {
         animation.setFillEnabled(true);
@@ -20,26 +20,26 @@ public class AnimationFactory {
 
     public Animation createRotate(GameModel gameModel) {
         final RotateAnimation rotateAnimation = new RotateAnimation(gameModel.getFromDegrees(), gameModel.getToDegrees(),
-                RotateAnimation.RELATIVE_TO_SELF, HALF,
-                RotateAnimation.RELATIVE_TO_SELF, TWO_DIV_THREE);
+                RotateAnimation.RELATIVE_TO_SELF, GeometryUtils.HALF,
+                RotateAnimation.RELATIVE_TO_SELF, GeometryUtils.TWO_DIV_THREE);
         rotateAnimation.setInterpolator(new DecelerateInterpolator(gameModel.getDecelerateFactor()));
         rotateAnimation.setDuration(gameModel.getDuration());
         return enableFillAfter(rotateAnimation);
     }
 
     public Animation createIconScaleOut() {
-        final ScaleAnimation scaleAnimation = new ScaleAnimation(1.4f, 1, 1.4f, 1,
-                Animation.RELATIVE_TO_SELF, HALF,
-                Animation.RELATIVE_TO_SELF, HALF);
+        final ScaleAnimation scaleAnimation = new ScaleAnimation(ICON_SCALE_FACTOR, 1, ICON_SCALE_FACTOR, 1,
+                Animation.RELATIVE_TO_SELF, GeometryUtils.HALF,
+                Animation.RELATIVE_TO_SELF, GeometryUtils.HALF);
         scaleAnimation.setDuration(200);
         scaleAnimation.setInterpolator(new LinearInterpolator());
         return enableFillAfter(scaleAnimation);
     }
 
     public Animation createIconScaleIn() {
-        final ScaleAnimation scaleAnimation = new ScaleAnimation(1, 1.4f, 1, 1.4f,
-                Animation.RELATIVE_TO_SELF, HALF,
-                Animation.RELATIVE_TO_SELF, HALF);
+        final ScaleAnimation scaleAnimation = new ScaleAnimation(1, ICON_SCALE_FACTOR, 1, ICON_SCALE_FACTOR,
+                Animation.RELATIVE_TO_SELF, GeometryUtils.HALF,
+                Animation.RELATIVE_TO_SELF, GeometryUtils.HALF);
         scaleAnimation.setDuration(500);
         scaleAnimation.setInterpolator(new BounceInterpolator());
         return enableFillAfter(scaleAnimation);

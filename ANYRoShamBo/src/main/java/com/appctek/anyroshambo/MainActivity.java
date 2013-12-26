@@ -1,17 +1,13 @@
 package com.appctek.anyroshambo;
 
-import android.app.Activity;
-import android.graphics.Color;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewTreeObserver;
-import android.view.Window;
-import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import com.appctek.R;
+import com.appctek.anyroshambo.math.GeometryUtils;
 import com.appctek.anyroshambo.model.GameModel;
 import com.appctek.anyroshambo.services.AnimationFactory;
 import com.appctek.anyroshambo.services.GameService;
@@ -23,16 +19,9 @@ import com.appctek.anyroshambo.util.ShakeDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MainActivity extends Activity implements ShakeDetector.ShakeListener {
+public class MainActivity extends HardwareAcceleratedActivity implements ShakeDetector.ShakeListener {
 
     private static final Logger logger = LoggerFactory.getLogger(MainActivity.class);
-
-    private static final float PI = (float)Math.PI;
-
-
-    // to make sure it compiles using old android SDK jars
-    private static final int FLAG_HARDWARE_ACCELERATED = 0x01000000;
-    private static final int SDK_VERSION_HONEYCOMB = 11;
 
     private ShakeDetector shakeDetector = ServiceRepository.getRepository().getShakeDetector(this);
     private VibrationService vibrationService = ServiceRepository.getRepository().getVibrationService(this);
@@ -52,7 +41,7 @@ public class MainActivity extends Activity implements ShakeDetector.ShakeListene
 
     private GameModel gameModel = new GameModel();
 
-    private static final float INITIAL_ANGLE = PI / 2;
+    private static final float INITIAL_ANGLE = GeometryUtils.HALF_PI;
 
     private float computeRotationAngleInRadians(float degrees) {
         return INITIAL_ANGLE - (float)Math.toRadians(degrees);
@@ -64,8 +53,8 @@ public class MainActivity extends Activity implements ShakeDetector.ShakeListene
         final int height = triangle.getHeight();
 
         // angle between icons
-        final float iconAngle = 2*PI/icons.length;
-        final float radius = height* AnimationFactory.TWO_DIV_THREE;
+        final float iconAngle = GeometryUtils.TWO_PI/icons.length;
+        final float radius = GeometryUtils.calculateTriangleCenterY(height);
 
         final float centerX = triangle.getLeft() + width/2,
                     centerY = triangle.getTop() + radius;
@@ -189,22 +178,6 @@ public class MainActivity extends Activity implements ShakeDetector.ShakeListene
         super.onCreate(savedInstanceState);
 
         logger.debug("Initializing main activity...");
-
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
-        getWindow().setFlags(
-                WindowManager.LayoutParams.FLAG_FULLSCREEN,
-                WindowManager.LayoutParams.FLAG_FULLSCREEN);
-
-        // enable hardware acceleration
-        if (Build.VERSION.SDK_INT >= SDK_VERSION_HONEYCOMB) {
-            getWindow().setFlags(
-                    FLAG_HARDWARE_ACCELERATED,
-                    FLAG_HARDWARE_ACCELERATED);
-        }
-
-        final View contentView = findViewById(android.R.id.content);
-        contentView.setBackgroundColor(Color.BLACK);
-
         setContentView(R.layout.splash);
 
         final ImageView imageView = (ImageView) findViewById(R.id.splash);
