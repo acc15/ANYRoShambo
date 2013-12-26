@@ -1,4 +1,4 @@
-package com.appctek.anyroshambo.util;
+package com.appctek.anyroshambo.services;
 
 import android.content.Context;
 import android.hardware.Sensor;
@@ -6,7 +6,6 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import com.appctek.anyroshambo.math.Point;
-import com.appctek.anyroshambo.services.DateTimeService;
 
 /**
  * Not perfect and sometimes

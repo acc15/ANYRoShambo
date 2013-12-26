@@ -2,7 +2,6 @@ package com.appctek.anyroshambo.services;
 
 import android.content.Context;
 import com.appctek.anyroshambo.util.AnimationHelper;
-import com.appctek.anyroshambo.util.ShakeDetector;
 
 import java.util.Random;
 

@@ -15,7 +15,7 @@ import com.appctek.anyroshambo.services.ServiceRepository;
 import com.appctek.anyroshambo.services.VibrationService;
 import com.appctek.anyroshambo.util.AnimationHandler;
 import com.appctek.anyroshambo.util.AnimationHelper;
-import com.appctek.anyroshambo.util.ShakeDetector;
+import com.appctek.anyroshambo.services.ShakeDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
