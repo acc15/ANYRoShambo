@@ -120,26 +120,22 @@ public class MainActivity extends Activity implements ShakeDetector.ShakeListene
 
         final ImageView triangle = (ImageView) findViewById(R.id.triangle);
         final Animation rotateAnimation = animationFactory.createRotate(gameModel);
-        rotateAnimation.setAnimationListener(new AnimationHandler() {
-            public void onAnimationStart(final Animation animation) {
-                final ViewTreeObserver observer = triangle.getViewTreeObserver();
-                observer.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                    public boolean onPreDraw() {
-                        if (rotateAnimation.hasEnded()) {
-                            observer.removeOnPreDrawListener(this);
-                            return true;
-                        }
+        triangle.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            public boolean onPreDraw() {
+                if (rotateAnimation.hasEnded()) {
+                    triangle.getViewTreeObserver().removeOnPreDrawListener(this);
+                    return true;
+                }
 
-                        final float interpolation = animationHelper.computeInterpolation(animation);
-                        final float degrees = (gameModel.getFromDegrees() +
-                                (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
-                        final float angle = computeRotationAngleInRadians(degrees);
-                        setIconPositions(triangle, angle);
-                        return true;
-                    }
-                });
+                final float interpolation = animationHelper.computeInterpolation(rotateAnimation);
+                final float degrees = (gameModel.getFromDegrees() +
+                        (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
+                final float angle = computeRotationAngleInRadians(degrees);
+                setIconPositions(triangle, angle);
+                return true;
             }
-
+        });
+        rotateAnimation.setAnimationListener(new AnimationHandler() {
             public void onAnimationEnd(Animation animation) {
                 setIconPositions(triangle, computeRotationAngleInRadians(gameModel.getToDegrees()));
                 final Animation scaleAnimation = animationFactory.createIconScaleIn();
