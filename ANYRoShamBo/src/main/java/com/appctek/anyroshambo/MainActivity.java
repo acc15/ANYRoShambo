@@ -8,13 +8,12 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.Animation;
-import android.view.animation.DecelerateInterpolator;
-import android.view.animation.RotateAnimation;
+import android.view.animation.*;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import com.appctek.R;
 import com.appctek.anyroshambo.model.GameModel;
+import com.appctek.anyroshambo.services.AnimationFactory;
 import com.appctek.anyroshambo.services.GameService;
 import com.appctek.anyroshambo.services.ServiceRepository;
 import com.appctek.anyroshambo.services.VibrationService;
@@ -34,22 +33,25 @@ public class MainActivity extends Activity {
     private static final int FLAG_HARDWARE_ACCELERATED = 0x01000000;
     private static final int SDK_VERSION_HONEYCOMB = 11;
 
-    private static final float TWO_DIV_THREE = 2f/3;
-    private static final float HALF = 0.5f;
-
     private ShakeDetector shakeDetector = ServiceRepository.getRepository().getShakeDetector(this);
     private VibrationService vibrationService = ServiceRepository.getRepository().getVibrationService(this);
     private AnimationHelper animationHelper = ServiceRepository.getRepository().getAnimationHelper();
     private GameService gameService = ServiceRepository.getRepository().getGameService();
+    private AnimationFactory animationFactory = ServiceRepository.getRepository().getAnimationFactory();
 
     private View[] icons;
+    private ImageView glow;
+    private ImageView goFor;
+
+    private static final int[] goForResIds = new int[] {
+            R.drawable.text_gocelebrate,
+            R.drawable.text_goforawalk,
+            R.drawable.text_goparty
+    };
+
+    private GameModel gameModel = new GameModel();
 
     private static final float INITIAL_ANGLE = PI / 2;
-
-
-    private float calculateFinalAngle(GameModel model) {
-        return 360 * model.getRotationCount() + (360f/icons.length)*model.getSelectedIcon();
-    }
 
     private float computeRotationAngleInRadians(float degrees) {
         return INITIAL_ANGLE - (float)Math.toRadians(degrees);
@@ -62,7 +64,7 @@ public class MainActivity extends Activity {
 
         // angle between icons
         final float iconAngle = 2*PI/icons.length;
-        final float radius = height*TWO_DIV_THREE;
+        final float radius = height* AnimationFactory.TWO_DIV_THREE;
 
         final float centerX = triangle.getLeft() + width/2,
                     centerY = triangle.getTop() + radius;
@@ -84,37 +86,49 @@ public class MainActivity extends Activity {
             angle += iconAngle;
 
         }
+    }
 
+    private void setIconGlow(View icon) {
+        final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)glow.getLayoutParams();
 
+        final float glowScale = 2f;
+        final float scaledWidth = icon.getWidth() * glowScale;
+        final float scaledHeight = icon.getHeight() * glowScale;
+        final float x = icon.getLeft() - (scaledWidth - icon.getWidth())/2;
+        final float y = icon.getTop() - (scaledHeight - icon.getHeight())/2;
+
+        layoutParams.leftMargin = (int)x;
+        layoutParams.topMargin = (int)y;
+        layoutParams.width = (int)scaledWidth;
+        layoutParams.height = (int)scaledHeight;
+        glow.setLayoutParams(layoutParams);
+        glow.startAnimation(animationFactory.createGlowAnimationIn());
     }
 
     private void setupGame() {
 
         final ImageView triangle = (ImageView)findViewById(R.id.triangle);
-        icons = new View[] {findViewById(R.id.walk), findViewById(R.id.drink), findViewById(R.id.party)};
+        glow = (ImageView)findViewById(R.id.glow);
+        goFor = (ImageView)findViewById(R.id.go_for);
 
+        icons = new View[] {findViewById(R.id.drink), findViewById(R.id.walk), findViewById(R.id.party)};
         setIconPositions(triangle, INITIAL_ANGLE);
 
         shakeDetector.start(new ShakeDetector.ShakeListener() {
             public void onShake() {
 
                 shakeDetector.pause();
+                if (gameModel.getSelectedIcon() >= 0) {
+                    goFor.startAnimation(animationFactory.createGoForAnimationOut());
+                    glow.startAnimation(animationFactory.createGlowAnimationOut());
+                    icons[gameModel.getSelectedIcon()].startAnimation(animationFactory.createIconScaleOut());
+                }
+
                 vibrationService.feedback();
-
-                final GameModel gameModel = gameService.generateGameModel();
-
-                final float fromAngle = 0;
-                final float toAngle = calculateFinalAngle(gameModel);
+                gameService.initGame(gameModel);
 
                 final ImageView triangle = (ImageView) findViewById(R.id.triangle);
-                final RotateAnimation rotateAnimation = new RotateAnimation(fromAngle, toAngle,
-                        RotateAnimation.RELATIVE_TO_SELF, HALF,
-                        RotateAnimation.RELATIVE_TO_SELF, TWO_DIV_THREE);
-
-                rotateAnimation.setInterpolator(new DecelerateInterpolator(gameModel.getDecelerateFactor()));
-                rotateAnimation.setDuration(gameModel.getDuration());
-                rotateAnimation.setFillEnabled(true);
-                rotateAnimation.setFillAfter(true);
+                final Animation rotateAnimation = animationFactory.createRotate(gameModel);
                 rotateAnimation.setAnimationListener(new Animation.AnimationListener() {
                     public void onAnimationStart(final Animation animation) {
                         final ViewTreeObserver observer = triangle.getViewTreeObserver();
@@ -126,7 +140,8 @@ public class MainActivity extends Activity {
                                 }
 
                                 final float interpolation = animationHelper.computeInterpolation(animation);
-                                final float degrees = (fromAngle + (toAngle - fromAngle) * interpolation) % 360; // degrees
+                                final float degrees = (gameModel.getFromDegrees() +
+                                        (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
                                 final float angle = computeRotationAngleInRadians(degrees);
                                 setIconPositions(triangle, angle);
                                 return true;
@@ -135,14 +150,42 @@ public class MainActivity extends Activity {
                     }
 
                     public void onAnimationEnd(Animation animation) {
-                        setIconPositions(triangle, computeRotationAngleInRadians(toAngle));
-                        shakeDetector.resume();
+                        setIconPositions(triangle, computeRotationAngleInRadians(gameModel.getToDegrees()));
+                        final Animation scaleAnimation = animationFactory.createIconScaleIn();
+                        scaleAnimation.setAnimationListener(new Animation.AnimationListener() {
+                            public void onAnimationStart(Animation animation) {
+                            }
+
+                            public void onAnimationEnd(Animation animation) {
+                                final Animation goForAnimation = animationFactory.createGoForAnimationIn();
+                                goForAnimation.setAnimationListener(new Animation.AnimationListener() {
+                                    public void onAnimationStart(Animation animation) {
+                                    }
+
+                                    public void onAnimationEnd(Animation animation) {
+                                        shakeDetector.resume();
+                                    }
+
+                                    public void onAnimationRepeat(Animation animation) {
+                                    }
+                                });
+                                goFor.setImageResource(goForResIds[gameModel.getSelectedIcon()]);
+                                goFor.startAnimation(goForAnimation);
+                            }
+
+                            public void onAnimationRepeat(Animation animation) {
+                            }
+                        });
+
+                        final View selectedIcon = icons[gameModel.getSelectedIcon()];
+                        setIconGlow(selectedIcon);
+                        selectedIcon.startAnimation(scaleAnimation);
                     }
 
                     public void onAnimationRepeat(Animation animation) {
                     }
                 });
-                animationHelper.restartAnimation(triangle, rotateAnimation);
+                triangle.startAnimation(rotateAnimation);
             }
         });
     }
@@ -191,7 +234,6 @@ public class MainActivity extends Activity {
         }, new AnimationHelper.Action() {
             public View execute() {
                 final View gameView = getLayoutInflater().inflate(R.layout.game, null);
-
                 gameView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                     public void onGlobalLayout() {
                         setupGame();

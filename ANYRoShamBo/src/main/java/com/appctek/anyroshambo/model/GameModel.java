@@ -7,9 +7,11 @@ package com.appctek.anyroshambo.model;
 public class GameModel {
 
     private int rotationCount;
-    private int selectedIcon;
+    private int selectedIcon = -1;
     private long duration;
     private float decelerateFactor;
+    private float fromDegrees;
+    private float toDegrees;
 
     public int getRotationCount() {
         return rotationCount;
@@ -41,5 +43,21 @@ public class GameModel {
 
     public void setDecelerateFactor(float decelerateFactor) {
         this.decelerateFactor = decelerateFactor;
+    }
+
+    public float getFromDegrees() {
+        return fromDegrees;
+    }
+
+    public void setFromDegrees(float fromDegrees) {
+        this.fromDegrees = fromDegrees;
+    }
+
+    public float getToDegrees() {
+        return toDegrees;
+    }
+
+    public void setToDegrees(float toDegrees) {
+        this.toDegrees = toDegrees;
     }
 }

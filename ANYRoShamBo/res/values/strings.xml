@@ -12,6 +12,8 @@
     <string name="walk_description">walk</string>
     <string name="drink_description">drink</string>
     <string name="party_description">party</string>
+    <string name="glow_description">glow</string>
+    <string name="go_for_description">go_for</string>
 
 
 </resources>

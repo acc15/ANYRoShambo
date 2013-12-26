@@ -13,8 +13,8 @@ public class GameService {
     private static final int ICON_COUNT = 3;
     private static final int MIN_ROTATION_COUNT = 8;
     private static final int MAX_ROTATION_COUNT = 10;
-    private static final long MIN_DURATION = 8000;
-    private static final long MAX_DURATION = 10000;
+    private static final long MIN_DURATION = 5000;
+    private static final long MAX_DURATION = 8000;
     private static final float MIN_DECELERATE_FACTOR = 1f;
     private static final float MAX_DECELERATE_FACTOR = 1f;
 
@@ -55,15 +55,13 @@ public class GameService {
         this.random = random;
     }
 
-    public GameModel generateGameModel() {
-
-        final GameModel gameModel = new GameModel();
-        gameModel.setRotationCount(generateRotationCount());
-        gameModel.setSelectedIcon(generateSelectedIcon());
-        gameModel.setDuration(generateDuration());
-        gameModel.setDecelerateFactor(generateDecelerateFactor());
-        return gameModel;
-
+    public void initGame(GameModel model) {
+        model.setRotationCount(generateRotationCount());
+        model.setSelectedIcon(generateSelectedIcon());
+        model.setDuration(generateDuration());
+        model.setDecelerateFactor(generateDecelerateFactor());
+        model.setFromDegrees(model.getToDegrees()%360);
+        model.setToDegrees(360 * model.getRotationCount() + (360/ICON_COUNT) * model.getSelectedIcon());
     }
 
 }

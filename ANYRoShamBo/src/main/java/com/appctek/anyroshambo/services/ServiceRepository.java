@@ -13,6 +13,9 @@ import java.util.Random;
 public class ServiceRepository {
 
 
+    private AnimationFactory animationFactory;
+
+
     private static class DefaultServiceRepositoryFactory implements ServiceRepositoryFactory {
         private static ServiceRepository repository = new ServiceRepository();
         public ServiceRepository getServiceRepository() {
@@ -63,6 +66,10 @@ public class ServiceRepository {
 
     public AnimationHelper getAnimationHelper() {
         return new AnimationHelper(getDateTimeService());
+    }
+
+    public AnimationFactory getAnimationFactory() {
+        return new AnimationFactory();
     }
 
     public Random getRandom() {

@@ -56,19 +56,6 @@ public class AnimationHelper {
         return interpolator.getInterpolation(timePosition);
     }
 
-    /**
-     * Cancels current animation and starts new
-     * @param view view to restart animation
-     * @param newAnimation new animation to start
-     */
-    public void restartAnimation(View view, Animation newAnimation) {
-        // cancel previous animation
-        if (view.getAnimation() != null && !view.getAnimation().hasEnded()) {
-            view.getAnimation().cancel();
-        }
-        view.startAnimation(newAnimation);
-    }
-
     public void start(AnimationHelper.Action... actions) {
         executeAction(AnimationHelper.createLinkedEntries(actions));
     }

@@ -1,0 +1,75 @@
+package com.appctek.anyroshambo.services;
+
+import android.view.animation.*;
+import com.appctek.anyroshambo.model.GameModel;
+
+/**
+ * @author Vyacheslav Mayorov
+ * @since 2013-26-12
+ */
+public class AnimationFactory {
+
+    public static final float TWO_DIV_THREE = 2f/3;
+    public static final float HALF = 0.5f;
+
+    private static Animation enableFillAfter(Animation animation) {
+        animation.setFillEnabled(true);
+        animation.setFillAfter(true);
+        return animation;
+    }
+
+    public Animation createRotate(GameModel gameModel) {
+        final RotateAnimation rotateAnimation = new RotateAnimation(gameModel.getFromDegrees(), gameModel.getToDegrees(),
+                RotateAnimation.RELATIVE_TO_SELF, HALF,
+                RotateAnimation.RELATIVE_TO_SELF, TWO_DIV_THREE);
+        rotateAnimation.setInterpolator(new DecelerateInterpolator(gameModel.getDecelerateFactor()));
+        rotateAnimation.setDuration(gameModel.getDuration());
+        return enableFillAfter(rotateAnimation);
+    }
+
+    public Animation createIconScaleOut() {
+        final ScaleAnimation scaleAnimation = new ScaleAnimation(1.4f, 1, 1.4f, 1,
+                Animation.RELATIVE_TO_SELF, HALF,
+                Animation.RELATIVE_TO_SELF, HALF);
+        scaleAnimation.setDuration(200);
+        scaleAnimation.setInterpolator(new LinearInterpolator());
+        return enableFillAfter(scaleAnimation);
+    }
+
+    public Animation createIconScaleIn() {
+        final ScaleAnimation scaleAnimation = new ScaleAnimation(1, 1.4f, 1, 1.4f,
+                Animation.RELATIVE_TO_SELF, HALF,
+                Animation.RELATIVE_TO_SELF, HALF);
+        scaleAnimation.setDuration(500);
+        scaleAnimation.setInterpolator(new BounceInterpolator());
+        return enableFillAfter(scaleAnimation);
+    }
+
+    public Animation createGlowAnimationIn() {
+        final AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1f);
+        alphaAnimation.setDuration(500);
+        alphaAnimation.setInterpolator(new DecelerateInterpolator());
+        return enableFillAfter(alphaAnimation);
+    }
+
+    public Animation createGlowAnimationOut() {
+        final AlphaAnimation alphaAnimation = new AlphaAnimation(1f, 0);
+        alphaAnimation.setDuration(50);
+        alphaAnimation.setInterpolator(new LinearInterpolator());
+        return enableFillAfter(alphaAnimation);
+    }
+
+    public Animation createGoForAnimationIn() {
+        final AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1f);
+        alphaAnimation.setDuration(500);
+        alphaAnimation.setInterpolator(new BounceInterpolator());
+        return enableFillAfter(alphaAnimation);
+    }
+
+    public Animation createGoForAnimationOut() {
+        final AlphaAnimation alphaAnimation = new AlphaAnimation(1f, 0);
+        alphaAnimation.setDuration(50);
+        alphaAnimation.setInterpolator(new LinearInterpolator());
+        return enableFillAfter(alphaAnimation);
+    }
+}
