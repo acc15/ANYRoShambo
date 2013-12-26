@@ -11,28 +11,40 @@ import java.util.Random;
 public class GameService {
 
     private static final int ICON_COUNT = 3;
-    private static final int MIN_ROTATION_COUNT = 5;
+    private static final int MIN_ROTATION_COUNT = 8;
     private static final int MAX_ROTATION_COUNT = 10;
-    private static final long MIN_DURATION = 3000;
-    private static final long MAX_DURATION = 15000;
-    private static final float MIN_DECECELATE_FACTOR = 1f;
-    private static final float MAX_DECELERATE_FACTOR = 3f;
+    private static final long MIN_DURATION = 8000;
+    private static final long MAX_DURATION = 10000;
+    private static final float MIN_DECELERATE_FACTOR = 1f;
+    private static final float MAX_DECELERATE_FACTOR = 1f;
 
     private final Random random;
 
+    public static float nextFloat(Random random, float min, float max) {
+        return min + random.nextFloat() * (max - min);
+    }
+
+    public static long nextLong(Random random, long min, long max) {
+        final long randomValue = random.nextLong();
+        return min + Math.abs(randomValue) % (max-min+1);
+    }
+
+    public static int nextPositiveOrNegative(Random random, int min, int max) {
+        final int values = max - min + 1;
+        final int randomValue = random.nextInt(values*2);
+        return randomValue < values ? min + randomValue : -(min + randomValue - values);
+    }
+
     private float generateDecelerateFactor() {
-        return MIN_DECECELATE_FACTOR + random.nextFloat() * (MAX_DECELERATE_FACTOR-MIN_DECECELATE_FACTOR);
+        return nextFloat(random, MIN_DECELERATE_FACTOR, MAX_DECELERATE_FACTOR);
     }
 
     private long generateDuration() {
-        final long randomLong = random.nextLong();
-        final long duration = MIN_DURATION + Math.abs(randomLong) % (MAX_DURATION-MIN_DURATION+1);
-        return duration;
+        return nextLong(random, MIN_DURATION, MAX_DURATION);
     }
 
     private int generateRotationCount() {
-        final int fullRotations = random.nextInt((MAX_ROTATION_COUNT-MIN_ROTATION_COUNT)*2+1);
-        return fullRotations <= MIN_ROTATION_COUNT ? fullRotations - MAX_ROTATION_COUNT : fullRotations;
+        return nextPositiveOrNegative(random, MIN_ROTATION_COUNT, MAX_ROTATION_COUNT);
     }
 
     private int generateSelectedIcon() {
