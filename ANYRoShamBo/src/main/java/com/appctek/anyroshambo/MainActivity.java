@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.animation.*;
+import android.view.animation.Animation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import com.appctek.R;
@@ -17,12 +17,13 @@ import com.appctek.anyroshambo.services.AnimationFactory;
 import com.appctek.anyroshambo.services.GameService;
 import com.appctek.anyroshambo.services.ServiceRepository;
 import com.appctek.anyroshambo.services.VibrationService;
+import com.appctek.anyroshambo.util.AnimationHandler;
 import com.appctek.anyroshambo.util.AnimationHelper;
 import com.appctek.anyroshambo.util.ShakeDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements ShakeDetector.ShakeListener {
 
     private static final Logger logger = LoggerFactory.getLogger(MainActivity.class);
 
@@ -105,6 +106,64 @@ public class MainActivity extends Activity {
         glow.startAnimation(animationFactory.createGlowAnimationIn());
     }
 
+    public void onShake() {
+
+        shakeDetector.pause();
+        if (gameModel.getSelectedIcon() >= 0) {
+            goFor.startAnimation(animationFactory.createGoForAnimationOut());
+            glow.startAnimation(animationFactory.createGlowAnimationOut());
+            icons[gameModel.getSelectedIcon()].startAnimation(animationFactory.createIconScaleOut());
+        }
+
+        vibrationService.feedback();
+        gameService.initGame(gameModel);
+
+        final ImageView triangle = (ImageView) findViewById(R.id.triangle);
+        final Animation rotateAnimation = animationFactory.createRotate(gameModel);
+        rotateAnimation.setAnimationListener(new AnimationHandler() {
+            public void onAnimationStart(final Animation animation) {
+                final ViewTreeObserver observer = triangle.getViewTreeObserver();
+                observer.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                    public boolean onPreDraw() {
+                        if (rotateAnimation.hasEnded()) {
+                            observer.removeOnPreDrawListener(this);
+                            return true;
+                        }
+
+                        final float interpolation = animationHelper.computeInterpolation(animation);
+                        final float degrees = (gameModel.getFromDegrees() +
+                                (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
+                        final float angle = computeRotationAngleInRadians(degrees);
+                        setIconPositions(triangle, angle);
+                        return true;
+                    }
+                });
+            }
+
+            public void onAnimationEnd(Animation animation) {
+                setIconPositions(triangle, computeRotationAngleInRadians(gameModel.getToDegrees()));
+                final Animation scaleAnimation = animationFactory.createIconScaleIn();
+                scaleAnimation.setAnimationListener(new AnimationHandler() {
+                    public void onAnimationEnd(Animation animation) {
+                        final Animation goForAnimation = animationFactory.createGoForAnimationIn();
+                        goForAnimation.setAnimationListener(new AnimationHandler() {
+                            public void onAnimationEnd(Animation animation) {
+                                shakeDetector.resume();
+                            }
+                        });
+                        goFor.setImageResource(goForResIds[gameModel.getSelectedIcon()]);
+                        goFor.startAnimation(goForAnimation);
+                    }
+                });
+
+                final View selectedIcon = icons[gameModel.getSelectedIcon()];
+                setIconGlow(selectedIcon);
+                selectedIcon.startAnimation(scaleAnimation);
+            }
+        });
+        triangle.startAnimation(rotateAnimation);
+    }
+
     private void setupGame() {
 
         final ImageView triangle = (ImageView)findViewById(R.id.triangle);
@@ -113,81 +172,7 @@ public class MainActivity extends Activity {
 
         icons = new View[] {findViewById(R.id.drink), findViewById(R.id.walk), findViewById(R.id.party)};
         setIconPositions(triangle, INITIAL_ANGLE);
-
-        shakeDetector.start(new ShakeDetector.ShakeListener() {
-            public void onShake() {
-
-                shakeDetector.pause();
-                if (gameModel.getSelectedIcon() >= 0) {
-                    goFor.startAnimation(animationFactory.createGoForAnimationOut());
-                    glow.startAnimation(animationFactory.createGlowAnimationOut());
-                    icons[gameModel.getSelectedIcon()].startAnimation(animationFactory.createIconScaleOut());
-                }
-
-                vibrationService.feedback();
-                gameService.initGame(gameModel);
-
-                final ImageView triangle = (ImageView) findViewById(R.id.triangle);
-                final Animation rotateAnimation = animationFactory.createRotate(gameModel);
-                rotateAnimation.setAnimationListener(new Animation.AnimationListener() {
-                    public void onAnimationStart(final Animation animation) {
-                        final ViewTreeObserver observer = triangle.getViewTreeObserver();
-                        observer.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                            public boolean onPreDraw() {
-                                if (rotateAnimation.hasEnded()) {
-                                    observer.removeOnPreDrawListener(this);
-                                    return true;
-                                }
-
-                                final float interpolation = animationHelper.computeInterpolation(animation);
-                                final float degrees = (gameModel.getFromDegrees() +
-                                        (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
-                                final float angle = computeRotationAngleInRadians(degrees);
-                                setIconPositions(triangle, angle);
-                                return true;
-                            }
-                        });
-                    }
-
-                    public void onAnimationEnd(Animation animation) {
-                        setIconPositions(triangle, computeRotationAngleInRadians(gameModel.getToDegrees()));
-                        final Animation scaleAnimation = animationFactory.createIconScaleIn();
-                        scaleAnimation.setAnimationListener(new Animation.AnimationListener() {
-                            public void onAnimationStart(Animation animation) {
-                            }
-
-                            public void onAnimationEnd(Animation animation) {
-                                final Animation goForAnimation = animationFactory.createGoForAnimationIn();
-                                goForAnimation.setAnimationListener(new Animation.AnimationListener() {
-                                    public void onAnimationStart(Animation animation) {
-                                    }
-
-                                    public void onAnimationEnd(Animation animation) {
-                                        shakeDetector.resume();
-                                    }
-
-                                    public void onAnimationRepeat(Animation animation) {
-                                    }
-                                });
-                                goFor.setImageResource(goForResIds[gameModel.getSelectedIcon()]);
-                                goFor.startAnimation(goForAnimation);
-                            }
-
-                            public void onAnimationRepeat(Animation animation) {
-                            }
-                        });
-
-                        final View selectedIcon = icons[gameModel.getSelectedIcon()];
-                        setIconGlow(selectedIcon);
-                        selectedIcon.startAnimation(scaleAnimation);
-                    }
-
-                    public void onAnimationRepeat(Animation animation) {
-                    }
-                });
-                triangle.startAnimation(rotateAnimation);
-            }
-        });
+        shakeDetector.start(this);
     }
 
     @Override
