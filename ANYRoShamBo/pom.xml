@@ -10,6 +10,7 @@
     <properties>
         <android.version>2.2.1</android.version>
         <android.platform>8</android.platform>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
     <dependencies>
