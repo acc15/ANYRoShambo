@@ -6,6 +6,10 @@ package com.appctek.anyroshambo.math;
  */
 public class Point {
 
+    public static final int X = 0;
+    public static final int Y = 1;
+    public static final int Z = 2;
+
     private float[] components;
 
     private Point(float[] components) {
@@ -96,8 +100,8 @@ public class Point {
     }
 
     /**
-     * Calculates squared length of <code>this</code> vector
-     * @return squared length of <code>this</code> vector
+     * Calculates squared length of vector
+     * @return squared length of vector
      */
     public float moduleSquare() {
         float sum = 0f;
@@ -108,8 +112,8 @@ public class Point {
     }
 
     /**
-     * Calculates length of <code>this</code> vector
-     * @return length of <code>this</code> vector
+     * Calculates length of vector
+     * @return length of vector
      */
     public float module() {
         return (float)Math.sqrt(moduleSquare());

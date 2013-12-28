@@ -16,4 +16,16 @@ public class GeometryUtils {
         return height * TWO_DIV_THREE;
     }
 
+    private static float sign(Point p1, Point p2, Point p3) {
+        return (p1.get(Point.X) - p3.get(Point.X)) * (p2.get(Point.Y) - p3.get(Point.Y)) -
+               (p2.get(Point.X) - p3.get(Point.X)) * (p1.get(Point.Y) - p3.get(Point.Y));
+    }
+
+    public static boolean ptInTriangle(Point pt, Point t1, Point t2, Point t3) {
+        final boolean b1 = sign(pt, t1, t2) < 0.0f,
+                      b2 = sign(pt, t2, t3) < 0.0f,
+                      b3 = sign(pt, t3, t1) < 0.0f;
+        return ((b1 == b2) && (b2 == b3));
+    }
+
 }
