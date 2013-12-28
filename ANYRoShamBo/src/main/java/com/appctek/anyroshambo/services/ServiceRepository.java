@@ -11,10 +11,6 @@ import java.util.Random;
  */
 public class ServiceRepository {
 
-
-    private AnimationFactory animationFactory;
-
-
     private static class DefaultServiceRepositoryFactory implements ServiceRepositoryFactory {
         private static ServiceRepository repository = new ServiceRepository();
         public ServiceRepository getServiceRepository() {

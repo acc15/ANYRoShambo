@@ -12,6 +12,7 @@ public class GameModel {
     private float decelerateFactor;
     private float fromDegrees;
     private float toDegrees;
+    private boolean inProgress;
 
     public int getRotationCount() {
         return rotationCount;
@@ -59,5 +60,14 @@ public class GameModel {
 
     public void setToDegrees(float toDegrees) {
         this.toDegrees = toDegrees;
+    }
+
+
+    public boolean isInProgress() {
+        return inProgress;
+    }
+
+    public void setInProgress(boolean inProgress) {
+        this.inProgress = inProgress;
     }
 }

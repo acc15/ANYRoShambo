@@ -15,11 +15,9 @@ import com.appctek.anyroshambo.math.Point;
  */
 public class ShakeDetector implements SensorEventListener {
 
-    public static interface ShakeListener {
+    public interface OnShakeListener {
         void onShake();
     }
-
-    private ShakeListener listener = null;
 
     private Context context;
     private DateTimeService dateTimeService;
@@ -31,6 +29,8 @@ public class ShakeDetector implements SensorEventListener {
     private Point prevAccel, accelDir;
     private int moveCount = 0;
     private long lastMoveTime = 0;
+
+    private OnShakeListener onShakeListener;
 
     public int getMaxMoveCount() {
         return maxMoveCount;
@@ -92,7 +92,9 @@ public class ShakeDetector implements SensorEventListener {
 
         lastMoveTime = currentTime;
         if (++moveCount >= maxMoveCount) {
-            listener.onShake();
+            if (onShakeListener != null) {
+                onShakeListener.onShake();
+            }
             moveCount = 0;
         }
 
@@ -103,20 +105,13 @@ public class ShakeDetector implements SensorEventListener {
         this.context = context;
     }
 
-    public void pause() {
-        if (listener != null) {
-            getSensorManager().unregisterListener(this);
-        }
+    public void stop() {
+        this.onShakeListener = null;
+        getSensorManager().unregisterListener(this);
     }
 
-    public void resume() {
-        if (listener != null) {
-            start(listener);
-        }
-    }
-
-    public void start(ShakeListener listener) {
-        this.listener = listener;
+    public void start(OnShakeListener shakeListener) {
+        this.onShakeListener = shakeListener;
         final SensorManager sensorManager = getSensorManager();
         final Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);

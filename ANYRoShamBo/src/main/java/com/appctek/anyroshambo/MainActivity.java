@@ -1,6 +1,7 @@
 package com.appctek.anyroshambo;
 
 import android.os.Bundle;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
@@ -8,30 +9,17 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import com.appctek.R;
 import com.appctek.anyroshambo.math.GeometryUtils;
+import com.appctek.anyroshambo.math.Point;
 import com.appctek.anyroshambo.model.GameModel;
-import com.appctek.anyroshambo.services.AnimationFactory;
-import com.appctek.anyroshambo.services.GameService;
-import com.appctek.anyroshambo.services.ServiceRepository;
-import com.appctek.anyroshambo.services.VibrationService;
+import com.appctek.anyroshambo.services.*;
 import com.appctek.anyroshambo.util.AnimationHandler;
 import com.appctek.anyroshambo.util.AnimationHelper;
-import com.appctek.anyroshambo.services.ShakeDetector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class MainActivity extends HardwareAcceleratedActivity implements ShakeDetector.ShakeListener {
+public class MainActivity extends HardwareAcceleratedActivity {
 
     private static final Logger logger = LoggerFactory.getLogger(MainActivity.class);
-
-    private ShakeDetector shakeDetector = ServiceRepository.getRepository().getShakeDetector(this);
-    private VibrationService vibrationService = ServiceRepository.getRepository().getVibrationService(this);
-    private AnimationHelper animationHelper = ServiceRepository.getRepository().getAnimationHelper();
-    private GameService gameService = ServiceRepository.getRepository().getGameService();
-    private AnimationFactory animationFactory = ServiceRepository.getRepository().getAnimationFactory();
-
-    private View[] icons;
-    private ImageView glow;
-    private ImageView goFor;
 
     private static final int[] goForResIds = new int[] {
             R.drawable.text_gocelebrate,
@@ -39,6 +27,45 @@ public class MainActivity extends HardwareAcceleratedActivity implements ShakeDe
             R.drawable.text_goparty
     };
 
+    private ShakeDetector shakeDetector = ServiceRepository.getRepository().getShakeDetector(this);
+    private VibrationService vibrationService = ServiceRepository.getRepository().getVibrationService(this);
+    private AnimationHelper animationHelper = ServiceRepository.getRepository().getAnimationHelper();
+    private GameService gameService = ServiceRepository.getRepository().getGameService();
+    private AnimationFactory animationFactory = ServiceRepository.getRepository().getAnimationFactory();
+
+    private void stopListeners() {
+        gameModel.setInProgress(true);
+        triangle.setOnTouchListener(null);
+        shakeDetector.stop();
+    }
+
+    private void initListeners() {
+        triangle.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                final Point pt = Point.fromArray(event.getX(), event.getY());
+                final Point t1 = Point.fromArray(v.getWidth()/2, 0),
+                        t2 = Point.fromArray(v.getWidth(), v.getHeight()),
+                        t3 = Point.fromArray(0, v.getHeight());
+                if (GeometryUtils.ptInTriangle(pt, t1, t2, t3)) {
+                    runOnUiThread(startGameAction);
+                    return true;
+                }
+                return false;
+            }
+        });
+        shakeDetector.start(new ShakeDetector.OnShakeListener() {
+            public void onShake() {
+                runOnUiThread(startGameAction);
+            }
+        });
+        gameModel.setInProgress(false);
+    }
+
+
+    private View triangle;
+    private View[] icons;
+    private ImageView glow;
+    private ImageView goFor;
     private GameModel gameModel = new GameModel();
 
     private static final float INITIAL_ANGLE = GeometryUtils.HALF_PI;
@@ -47,7 +74,7 @@ public class MainActivity extends HardwareAcceleratedActivity implements ShakeDe
         return INITIAL_ANGLE - (float)Math.toRadians(degrees);
     }
 
-    private void setIconPositions(View triangle, float angle) {
+    private void setIconPositions(float angle) {
 
         final int width = triangle.getWidth();
         final int height = triangle.getHeight();
@@ -95,82 +122,84 @@ public class MainActivity extends HardwareAcceleratedActivity implements ShakeDe
         glow.startAnimation(animationFactory.createGlowAnimationIn());
     }
 
-    public void onShake() {
+    private Runnable startGameAction = new Runnable() {
+        public void run() {
+            if (gameModel.isInProgress()) {
+                return;
+            }
+            stopListeners();
 
-        shakeDetector.pause();
-        if (gameModel.getSelectedIcon() >= 0) {
-            goFor.startAnimation(animationFactory.createGoForAnimationOut());
-            glow.startAnimation(animationFactory.createGlowAnimationOut());
-            icons[gameModel.getSelectedIcon()].startAnimation(animationFactory.createIconScaleOut());
-        }
+            if (gameModel.getSelectedIcon() >= 0) {
+                goFor.startAnimation(animationFactory.createGoForAnimationOut());
+                glow.startAnimation(animationFactory.createGlowAnimationOut());
+                icons[gameModel.getSelectedIcon()].startAnimation(animationFactory.createIconScaleOut());
+            }
 
-        vibrationService.feedback();
-        gameService.initGame(gameModel);
+            vibrationService.feedback();
+            gameService.initGame(gameModel);
 
-        final ImageView triangle = (ImageView) findViewById(R.id.triangle);
-        final Animation rotateAnimation = animationFactory.createRotate(gameModel);
-        triangle.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            public boolean onPreDraw() {
-                if (rotateAnimation.hasEnded()) {
-                    triangle.getViewTreeObserver().removeOnPreDrawListener(this);
+            final Animation rotateAnimation = animationFactory.createRotate(gameModel);
+            final ViewTreeObserver viewTreeObserver = triangle.getViewTreeObserver();
+            viewTreeObserver.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+                public boolean onPreDraw() {
+                    if (rotateAnimation.hasEnded()) {
+                        viewTreeObserver.removeOnPreDrawListener(this);
+                        return true;
+                    }
+
+                    final float interpolation = animationHelper.computeInterpolation(rotateAnimation);
+                    final float degrees = (gameModel.getFromDegrees() +
+                            (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
+                    final float angle = computeRotationAngleInRadians(degrees);
+                    setIconPositions(angle);
                     return true;
                 }
+            });
+            rotateAnimation.setAnimationListener(new AnimationHandler() {
+                public void onAnimationEnd(Animation animation) {
+                    setIconPositions(computeRotationAngleInRadians(gameModel.getToDegrees()));
+                    final Animation scaleAnimation = animationFactory.createIconScaleIn();
+                    scaleAnimation.setAnimationListener(new AnimationHandler() {
+                        public void onAnimationEnd(Animation animation) {
+                            final Animation goForAnimation = animationFactory.createGoForAnimationIn();
+                            goForAnimation.setAnimationListener(new AnimationHandler() {
+                                public void onAnimationEnd(Animation animation) {
+                                    initListeners();
+                                }
+                            });
+                            goFor.setImageResource(goForResIds[gameModel.getSelectedIcon()]);
+                            goFor.startAnimation(goForAnimation);
+                        }
+                    });
 
-                final float interpolation = animationHelper.computeInterpolation(rotateAnimation);
-                final float degrees = (gameModel.getFromDegrees() +
-                        (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
-                final float angle = computeRotationAngleInRadians(degrees);
-                setIconPositions(triangle, angle);
-                return true;
-            }
-        });
-        rotateAnimation.setAnimationListener(new AnimationHandler() {
-            public void onAnimationEnd(Animation animation) {
-                setIconPositions(triangle, computeRotationAngleInRadians(gameModel.getToDegrees()));
-                final Animation scaleAnimation = animationFactory.createIconScaleIn();
-                scaleAnimation.setAnimationListener(new AnimationHandler() {
-                    public void onAnimationEnd(Animation animation) {
-                        final Animation goForAnimation = animationFactory.createGoForAnimationIn();
-                        goForAnimation.setAnimationListener(new AnimationHandler() {
-                            public void onAnimationEnd(Animation animation) {
-                                shakeDetector.resume();
-                            }
-                        });
-                        goFor.setImageResource(goForResIds[gameModel.getSelectedIcon()]);
-                        goFor.startAnimation(goForAnimation);
-                    }
-                });
-
-                final View selectedIcon = icons[gameModel.getSelectedIcon()];
-                setIconGlow(selectedIcon);
-                selectedIcon.startAnimation(scaleAnimation);
-            }
-        });
-        triangle.startAnimation(rotateAnimation);
-    }
+                    final View selectedIcon = icons[gameModel.getSelectedIcon()];
+                    setIconGlow(selectedIcon);
+                    selectedIcon.startAnimation(scaleAnimation);
+                }
+            });
+            triangle.startAnimation(rotateAnimation);
+        }
+    };
 
     private void initGame() {
-
-        final ImageView triangle = (ImageView)findViewById(R.id.triangle);
+        triangle = findViewById(R.id.triangle);
         glow = (ImageView)findViewById(R.id.glow);
         goFor = (ImageView)findViewById(R.id.go_for);
-
         icons = new View[] {findViewById(R.id.drink), findViewById(R.id.walk), findViewById(R.id.party)};
-        setIconPositions(triangle, INITIAL_ANGLE);
-        shakeDetector.start(this);
-
+        setIconPositions(INITIAL_ANGLE);
+        initListeners();
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        shakeDetector.pause();
+        shakeDetector.stop();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        shakeDetector.resume();
+        initListeners();
     }
 
     @Override

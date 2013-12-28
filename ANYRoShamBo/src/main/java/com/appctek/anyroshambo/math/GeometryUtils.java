@@ -25,7 +25,7 @@ public class GeometryUtils {
         final boolean b1 = sign(pt, t1, t2) < 0.0f,
                       b2 = sign(pt, t2, t3) < 0.0f,
                       b3 = sign(pt, t3, t1) < 0.0f;
-        return ((b1 == b2) && (b2 == b3));
+        return ((b1 == b2) && (b1 == b3));
     }
 
 }
