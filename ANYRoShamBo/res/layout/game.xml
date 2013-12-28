@@ -41,11 +41,13 @@
                android:layout_width="@dimen/icon_size"
                android:layout_height="@dimen/icon_size"
                android:contentDescription="@string/walk_description"/>
+
     <ImageView android:id="@+id/drink"
                android:src="@drawable/icon_drink_normal"
                android:layout_width="@dimen/icon_size"
                android:layout_height="@dimen/icon_size"
                android:contentDescription="@string/drink_description"/>
+
     <ImageView android:id="@+id/party"
                android:src="@drawable/icon_party_normal"
                android:layout_width="@dimen/icon_size"
@@ -58,6 +60,7 @@
                  android:src="@drawable/vk_button"
                  android:background="@null"
                  android:layout_alignParentBottom="true"/>
+
     <ImageButton android:layout_width="wrap_content"
                  android:layout_height="wrap_content"
                  android:contentDescription="@string/odnoklassniki_button_description"
@@ -65,6 +68,7 @@
                  android:background="@null"
                  android:layout_alignParentBottom="true"
                  android:layout_marginLeft="80dp"/>
+
     <ImageButton android:layout_width="wrap_content"
                  android:layout_height="wrap_content"
                  android:contentDescription="@string/facebook_button_description"
@@ -72,6 +76,7 @@
                  android:background="@null"
                  android:layout_alignParentBottom="true"
                  android:layout_marginLeft="160dp"/>
+
     <ImageButton android:layout_width="wrap_content"
                  android:layout_height="wrap_content"
                  android:contentDescription="@string/twitter_button_description"

@@ -6,6 +6,8 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import com.appctek.anyroshambo.math.Point;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Not perfect and sometimes
@@ -15,17 +17,17 @@ import com.appctek.anyroshambo.math.Point;
  */
 public class ShakeDetector implements SensorEventListener {
 
+    private static final Logger logger = LoggerFactory.getLogger(ShakeDetector.class);
+
     public interface OnShakeListener {
         void onShake();
     }
 
     private Context context;
     private DateTimeService dateTimeService;
-
     private float sensitivity = 10f;
     private int maxMoveCount = 5;
     private long shakeTimeout = 500; // 500ms to reset shaking
-
     private Point prevAccel, accelDir;
     private int moveCount = 0;
     private long lastMoveTime = 0;
@@ -91,13 +93,15 @@ public class ShakeDetector implements SensorEventListener {
         }
 
         lastMoveTime = currentTime;
-        if (++moveCount >= maxMoveCount) {
-            if (onShakeListener != null) {
-                onShakeListener.onShake();
-            }
-            moveCount = 0;
+        if (++moveCount < maxMoveCount) {
+            return;
         }
 
+        final OnShakeListener shakeListener = onShakeListener;
+        if (shakeListener != null) {
+            shakeListener.onShake();
+        }
+        moveCount = 0;
     }
 
     public ShakeDetector(Context context, DateTimeService dateTimeService) {
@@ -105,9 +109,16 @@ public class ShakeDetector implements SensorEventListener {
         this.context = context;
     }
 
-    public void stop() {
-        this.onShakeListener = null;
-        getSensorManager().unregisterListener(this);
+    public void pause() {
+        if (onShakeListener != null) {
+            getSensorManager().unregisterListener(this);
+        }
+    }
+
+    public void resume() {
+        if (onShakeListener != null) {
+            start(onShakeListener);
+        }
     }
 
     public void start(OnShakeListener shakeListener) {

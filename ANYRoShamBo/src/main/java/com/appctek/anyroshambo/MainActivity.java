@@ -21,6 +21,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
     private static final Logger logger = LoggerFactory.getLogger(MainActivity.class);
 
+    private static final float INITIAL_ANGLE = GeometryUtils.HALF_PI;
     private static final int[] goForResIds = new int[] {
             R.drawable.text_gocelebrate,
             R.drawable.text_goforawalk,
@@ -33,10 +34,16 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private GameService gameService = ServiceRepository.getRepository().getGameService();
     private AnimationFactory animationFactory = ServiceRepository.getRepository().getAnimationFactory();
 
+    private View triangle;
+    private View[] icons;
+    private ImageView glow;
+    private ImageView goFor;
+    private GameModel gameModel = new GameModel();
+
     private void stopListeners() {
         gameModel.setInProgress(true);
         triangle.setOnTouchListener(null);
-        shakeDetector.stop();
+        shakeDetector.pause();
     }
 
     private void initListeners() {
@@ -61,14 +68,6 @@ public class MainActivity extends HardwareAcceleratedActivity {
         gameModel.setInProgress(false);
     }
 
-
-    private View triangle;
-    private View[] icons;
-    private ImageView glow;
-    private ImageView goFor;
-    private GameModel gameModel = new GameModel();
-
-    private static final float INITIAL_ANGLE = GeometryUtils.HALF_PI;
 
     private float computeRotationAngleInRadians(float degrees) {
         return INITIAL_ANGLE - (float)Math.toRadians(degrees);
@@ -193,13 +192,13 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        shakeDetector.stop();
+        shakeDetector.pause();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        initListeners();
+        shakeDetector.resume();
     }
 
     @Override
