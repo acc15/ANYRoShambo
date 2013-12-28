@@ -5,7 +5,7 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
-    <TextView android:layout_width="match_parent"
+    <TextView android:id="@+id/info_header" android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:textColor="@color/text_color"
               android:layout_marginTop="100dp"
@@ -14,7 +14,8 @@
               android:textSize="20sp"
               android:text="@string/info_header"/>
 
-    <TextView android:layout_width="match_parent"
+    <TextView id="@+id/info_text"
+              android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:textColor="@color/text_color"
               android:layout_marginLeft="10dp"
