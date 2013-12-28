@@ -9,6 +9,8 @@ import com.appctek.anyroshambo.math.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+
 /**
  * Not perfect and sometimes
  *
@@ -60,11 +62,16 @@ public class ShakeDetector implements SensorEventListener {
 
     public void onSensorChanged(SensorEvent event) {
 
+        final long timestamp = event.timestamp;
+
+        logger.trace("Accelerometer event: [timestamp:" + timestamp +
+                                     ";accuracy:" + event.accuracy +
+                                     ";values:" + Arrays.toString(event.values) + "]");
+
         final Point currentAccel = Point.fromArray(
                          event.values[SensorManager.DATA_X],
                          event.values[SensorManager.DATA_Y],
                          event.values[SensorManager.DATA_Z]);
-
         if (prevAccel == null) {
             prevAccel = currentAccel;
             accelDir = prevAccel.identity();
@@ -75,28 +82,35 @@ public class ShakeDetector implements SensorEventListener {
         prevAccel = currentAccel;
 
         if (isNoise(accelDiff)) {
+            logger.trace("Accelerometer event at {} filtered by values as noise", timestamp);
             return;
         }
 
         final float angle = accelDir.angle(accelDiff);
         if (angle >= 0) {
+            logger.trace("Move direction doesn't changes. Returning");
             accelDir = accelDir.add(accelDiff).identity();
             return;
         }
+
+        logger.debug("Detected change of direction. Acceleration: {}. Old direction: {}", accelDiff, accelDir);
 
         // direction of phone changed..
         accelDir = accelDiff.identity();
 
         final long currentTime = dateTimeService.getTimeInMillis();
         if (moveCount > 0 && currentTime - lastMoveTime > shakeTimeout) {
+            logger.debug("Shake timeout has been expired");
             moveCount = 0;
         }
 
         lastMoveTime = currentTime;
         if (++moveCount < maxMoveCount) {
+            logger.debug("Not enough move count {} to report shake event. ", moveCount);
             return;
         }
 
+        logger.info("Shake detected. Calling onShakeListener.");
         final OnShakeListener shakeListener = onShakeListener;
         if (shakeListener != null) {
             shakeListener.onShake();
