@@ -11,7 +11,8 @@
                  android:src="@drawable/info_button"
                  android:background="@null"
                  android:layout_marginLeft="280dp"
-                 android:layout_marginTop="50dp"/>
+                 android:layout_marginTop="50dp"
+                 android:onClick="showInfo"/>
 
     <ImageView android:id="@+id/go_for"
                android:layout_width="wrap_content"

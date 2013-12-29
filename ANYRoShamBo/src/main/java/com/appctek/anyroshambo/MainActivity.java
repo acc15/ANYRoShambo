@@ -1,5 +1,6 @@
 package com.appctek.anyroshambo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.MotionEvent;
 import android.view.View;
@@ -205,6 +206,9 @@ public class MainActivity extends HardwareAcceleratedActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // TODO handle restore
+
+
         logger.debug("Initializing main activity...");
         setContentView(R.layout.splash);
 
@@ -230,6 +234,10 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
     }
 
+    public void showInfo() {
+        final Intent intent = new Intent(this, AboutActivity.class);
+        startActivity(intent);
+    }
 
 }
 

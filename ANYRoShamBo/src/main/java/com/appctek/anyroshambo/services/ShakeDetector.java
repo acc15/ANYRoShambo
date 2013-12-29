@@ -82,7 +82,7 @@ public class ShakeDetector implements SensorEventListener {
         prevAccel = currentAccel;
 
         if (isNoise(accelDiff)) {
-            logger.trace("Accelerometer event at {} filtered by values as noise", timestamp);
+            logger.trace("Filtered as noise event at {}", timestamp);
             return;
         }
 

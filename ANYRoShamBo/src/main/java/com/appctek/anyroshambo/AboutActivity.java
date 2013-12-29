@@ -1,6 +1,5 @@
 package com.appctek.anyroshambo;
 
-import android.app.Activity;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.widget.TextView;
@@ -10,7 +9,7 @@ import com.appctek.R;
  * @author Vyacheslav Mayorov
  * @since 2013-28-12
  */
-public class AboutActivity extends Activity {
+public class AboutActivity extends FullScreenActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
