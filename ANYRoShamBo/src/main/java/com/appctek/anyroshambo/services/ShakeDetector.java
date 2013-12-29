@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Not perfect and sometimes
@@ -21,18 +22,23 @@ public class ShakeDetector implements SensorEventListener {
 
     private static final Logger logger = LoggerFactory.getLogger(ShakeDetector.class);
 
+    private static final float INITIAL_ALPHA = 0.2f;
+    private static final float DEFAULT_ALPHA = 0.8f;
+
     public interface OnShakeListener {
         void onShake();
     }
 
     private Context context;
-    private DateTimeService dateTimeService;
-    private float sensitivity = 10f;
+    private float sensitivity = 8f;
     private int maxMoveCount = 5;
     private long shakeTimeout = 500; // 500ms to reset shaking
-    private Point prevAccel, accelDir;
     private int moveCount = 0;
+    private float alpha = INITIAL_ALPHA;
     private long lastMoveTime = 0;
+
+    private Point moveVector = Point.zero(3); // identity vector which tracks movement direction
+    private Point gravity = Point.zero(3); // force of gravity
 
     private OnShakeListener onShakeListener;
 
@@ -62,43 +68,36 @@ public class ShakeDetector implements SensorEventListener {
 
     public void onSensorChanged(SensorEvent event) {
 
-        final long timestamp = event.timestamp;
+        logger.trace("Accelerometer event: [timestamp:{};accuracy:{};value:{}]",
+                event.timestamp, event.accuracy, Arrays.toString(event.values));
 
-        logger.trace("Accelerometer event: [timestamp:" + timestamp +
-                                     ";accuracy:" + event.accuracy +
-                                     ";values:" + Arrays.toString(event.values) + "]");
+        final Point currentVelocity = Point.fromArray(
+                event.values[SensorManager.DATA_X],
+                event.values[SensorManager.DATA_Y],
+                event.values[SensorManager.DATA_Z]);
 
-        final Point currentAccel = Point.fromArray(
-                         event.values[SensorManager.DATA_X],
-                         event.values[SensorManager.DATA_Y],
-                         event.values[SensorManager.DATA_Z]);
-        if (prevAccel == null) {
-            prevAccel = currentAccel;
-            accelDir = prevAccel.identity();
+        gravity = gravity.mul(alpha).add(currentVelocity.mul(1f-alpha));
+        alpha = DEFAULT_ALPHA;
+
+        final Point linearVelocity = currentVelocity.sub(gravity);
+
+        logger.trace("Linear velocity of event at {}: {}", event.timestamp, linearVelocity);
+        if (isNoise(linearVelocity)) {
+            logger.trace("Event at {} will be ignored since it has low velocity values", event.timestamp);
             return;
         }
 
-        final Point accelDiff = currentAccel.sub(prevAccel);
-        prevAccel = currentAccel;
-
-        if (isNoise(accelDiff)) {
-            logger.trace("Filtered as noise event at {}", timestamp);
+        final float cosineOfAngle = moveVector.cosineOfAngle(linearVelocity);
+        if (cosineOfAngle >= 0) {
+            logger.trace("Move direction doesn't changes due event at {}. Continue tracking...", event.timestamp);
+            moveVector = moveVector.add(linearVelocity).identity();
             return;
         }
 
-        final float angle = accelDir.angle(accelDiff);
-        if (angle >= 0) {
-            logger.trace("Move direction doesn't changes. Returning");
-            accelDir = accelDir.add(accelDiff).identity();
-            return;
-        }
+        logger.debug("Detected change of direction. New direction: {}. Old direction: {}", linearVelocity, moveVector);
+        moveVector = linearVelocity.identity();
 
-        logger.debug("Detected change of direction. Acceleration: {}. Old direction: {}", accelDiff, accelDir);
-
-        // direction of phone changed..
-        accelDir = accelDiff.identity();
-
-        final long currentTime = dateTimeService.getTimeInMillis();
+        final long currentTime = TimeUnit.NANOSECONDS.toMillis(event.timestamp);
         if (moveCount > 0 && currentTime - lastMoveTime > shakeTimeout) {
             logger.debug("Shake timeout has been expired");
             moveCount = 0;
@@ -106,20 +105,21 @@ public class ShakeDetector implements SensorEventListener {
 
         lastMoveTime = currentTime;
         if (++moveCount < maxMoveCount) {
-            logger.debug("Not enough move count {} to report shake event. ", moveCount);
+            logger.trace("Not enough move count {} to report shake event. ", moveCount);
             return;
         }
 
         logger.info("Shake detected. Calling onShakeListener.");
+
         final OnShakeListener shakeListener = onShakeListener;
         if (shakeListener != null) {
             shakeListener.onShake();
         }
         moveCount = 0;
+
     }
 
-    public ShakeDetector(Context context, DateTimeService dateTimeService) {
-        this.dateTimeService = dateTimeService;
+    public ShakeDetector(Context context) {
         this.context = context;
     }
 
@@ -136,10 +136,14 @@ public class ShakeDetector implements SensorEventListener {
     }
 
     public void start(OnShakeListener shakeListener) {
+
+        this.alpha = INITIAL_ALPHA;
         this.onShakeListener = shakeListener;
+
         final SensorManager sensorManager = getSensorManager();
         final Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_NORMAL);
+        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
+
     }
 
     public void onAccuracyChanged(Sensor sensor, int accuracy) {

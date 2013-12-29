@@ -52,7 +52,7 @@ public class ServiceRepository {
     }
 
     public ShakeDetector getShakeDetector(Context context) {
-        return new ShakeDetector(context, getDateTimeService());
+        return new ShakeDetector(context);
     }
 
     public GameService getGameService() {

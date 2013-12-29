@@ -12,13 +12,25 @@ public class Point {
 
     private float[] components;
 
-    private Point(float[] components) {
-        this.components = components;
+    private Point(float[] exact) {
+        this.components = exact;
+    }
+
+    private Point(int length, float[] components) {
+        this.components = new float[length];
+        System.arraycopy(components, 0, this.components, 0, length);
     }
 
     private Point(Point copy) {
-        this.components = new float[copy.components.length];
-        System.arraycopy(copy.components, 0, components, 0, components.length);
+        this(copy.components.length, copy.components);
+    }
+
+    public static Point zero(int componentCount) {
+        return new Point(new float[componentCount]);
+    }
+
+    public static Point fromArray(int length, float... components) {
+        return new Point(length, components);
     }
 
     /**
@@ -82,6 +94,14 @@ public class Point {
         final Point result = new Point(this);
         for (int i=0; i<result.components.length; i++) {
             result.components[i] *= pt.components[i];
+        }
+        return result;
+    }
+
+    public Point mul(float alpha) {
+        final Point result = new Point(this);
+        for (int i=0; i<result.components.length; i++) {
+            result.components[i] *= alpha;
         }
         return result;
     }
@@ -150,7 +170,7 @@ public class Point {
      * @param pt point
      * @return {@code cos(x)}, where x is an angle between <code>this</code> and <code>pt</code> vectors
      */
-    public float angle(Point pt) {
+    public float cosineOfAngle(Point pt) {
         return mul(pt).sum() / (module() * pt.module());
     }
 
