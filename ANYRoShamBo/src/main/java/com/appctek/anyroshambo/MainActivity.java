@@ -234,7 +234,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
     }
 
-    public void showInfo() {
+    public void showInfo(View view) {
         final Intent intent = new Intent(this, AboutActivity.class);
         startActivity(intent);
     }
