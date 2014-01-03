@@ -97,7 +97,6 @@ public class MainActivity extends HardwareAcceleratedActivity {
             return;
         }
         gameModel.setInProgress(true);
-        shakeDetector.pause();
 
         if (gameModel.getSelectedIcon() >= 0) {
             goFor.startAnimation(animationFactory.createGoForAnimationOut());
@@ -133,7 +132,6 @@ public class MainActivity extends HardwareAcceleratedActivity {
                         goForAnimation.setAnimationListener(new AnimationHandler() {
                             public void onAnimationEnd(Animation animation) {
                                 gameModel.setInProgress(false);
-                                shakeDetector.resume();
                             }
                         });
                         goFor.setImageResource(goForResIds[gameModel.getSelectedIcon()]);
