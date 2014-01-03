@@ -21,7 +21,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private static final Logger logger = LoggerFactory.getLogger(MainActivity.class);
 
     private static final float INITIAL_ANGLE = GeometryUtils.HALF_PI;
-    private static final int[] goForResIds = new int[] {
+    private static final int[] goForResIds = new int[]{
             R.drawable.text_gocelebrate,
             R.drawable.text_goforawalk,
             R.drawable.text_goparty
@@ -39,23 +39,8 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private ImageView goFor;
     private GameModel gameModel = new GameModel();
 
-    private void stopListeners() {
-        gameModel.setInProgress(true);
-        shakeDetector.pause();
-    }
-
-    private void initListeners() {
-        shakeDetector.start(new ShakeDetector.OnShakeListener() {
-            public void onShake() {
-                runOnUiThread(startGameAction);
-            }
-        });
-        gameModel.setInProgress(false);
-    }
-
-
     private float computeRotationAngleInRadians(float degrees) {
-        return INITIAL_ANGLE - (float)Math.toRadians(degrees);
+        return INITIAL_ANGLE - (float) Math.toRadians(degrees);
     }
 
     private void setIconPositions(float angle) {
@@ -64,25 +49,25 @@ public class MainActivity extends HardwareAcceleratedActivity {
         final int height = triangle.getHeight();
 
         // angle between icons
-        final float iconAngle = GeometryUtils.TWO_PI/icons.length;
+        final float iconAngle = GeometryUtils.TWO_PI / icons.length;
         final float radius = GeometryUtils.calculateTriangleCenterY(height);
 
-        final float centerX = triangle.getLeft() + width/2,
-                    centerY = triangle.getTop() + radius;
-        for (final View icon: icons) {
+        final float centerX = triangle.getLeft() + width / 2,
+                centerY = triangle.getTop() + radius;
+        for (final View icon : icons) {
 
             final int iconWidth = icon.getWidth();
             final int iconHeight = icon.getHeight();
 
-            final float xAbsolute = (float)Math.cos(angle) * radius;
-            final float yAbsolute = (float)Math.sin(angle) * radius;
+            final float xAbsolute = (float) Math.cos(angle) * radius;
+            final float yAbsolute = (float) Math.sin(angle) * radius;
 
-            final float x = centerX + xAbsolute - iconWidth/2;
-            final float y = centerY - yAbsolute - iconHeight/2;
+            final float x = centerX + xAbsolute - iconWidth / 2;
+            final float y = centerY - yAbsolute - iconHeight / 2;
 
-            final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)icon.getLayoutParams();
-            layoutParams.leftMargin = (int)x;
-            layoutParams.topMargin = (int)y;
+            final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) icon.getLayoutParams();
+            layoutParams.leftMargin = (int) x;
+            layoutParams.topMargin = (int) y;
             icon.setLayoutParams(layoutParams);
             angle += iconAngle;
 
@@ -90,89 +75,95 @@ public class MainActivity extends HardwareAcceleratedActivity {
     }
 
     private void setIconGlow(View icon) {
-        final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)glow.getLayoutParams();
+        final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) glow.getLayoutParams();
 
         final float glowScale = 2f;
         final float scaledWidth = icon.getWidth() * glowScale;
         final float scaledHeight = icon.getHeight() * glowScale;
-        final float x = icon.getLeft() - (scaledWidth - icon.getWidth())/2;
-        final float y = icon.getTop() - (scaledHeight - icon.getHeight())/2;
+        final float x = icon.getLeft() - (scaledWidth - icon.getWidth()) / 2;
+        final float y = icon.getTop() - (scaledHeight - icon.getHeight()) / 2;
 
-        layoutParams.leftMargin = (int)x;
-        layoutParams.topMargin = (int)y;
-        layoutParams.width = (int)scaledWidth;
-        layoutParams.height = (int)scaledHeight;
+        layoutParams.leftMargin = (int) x;
+        layoutParams.topMargin = (int) y;
+        layoutParams.width = (int) scaledWidth;
+        layoutParams.height = (int) scaledHeight;
         glow.setLayoutParams(layoutParams);
         glow.startAnimation(animationFactory.createGlowAnimationIn());
     }
 
-    private Runnable startGameAction = new Runnable() {
-        public void run() {
-            if (gameModel.isInProgress()) {
-                return;
-            }
-            stopListeners();
 
-            if (gameModel.getSelectedIcon() >= 0) {
-                goFor.startAnimation(animationFactory.createGoForAnimationOut());
-                glow.startAnimation(animationFactory.createGlowAnimationOut());
-                icons[gameModel.getSelectedIcon()].startAnimation(animationFactory.createIconScaleOut());
-            }
-
-            vibrationService.feedback();
-            gameService.initGame(gameModel);
-
-
-
-            final Animation rotateAnimation = animationFactory.createRotate(gameModel);
-            final ViewTreeObserver viewTreeObserver = triangle.getViewTreeObserver();
-
-            final ViewTreeObserver.OnPreDrawListener preDrawListener = new ViewTreeObserver.OnPreDrawListener() {
-                public boolean onPreDraw() {
-                    final float interpolation = animationHelper.computeInterpolation(rotateAnimation);
-                    final float degrees = (gameModel.getFromDegrees() +
-                            (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
-                    final float angle = computeRotationAngleInRadians(degrees);
-                    setIconPositions(angle);
-                    return true;
-                }
-            };
-
-            viewTreeObserver.addOnPreDrawListener(preDrawListener);
-            rotateAnimation.setAnimationListener(new AnimationHandler() {
-                public void onAnimationEnd(Animation animation) {
-                    viewTreeObserver.removeOnPreDrawListener(preDrawListener);
-                    setIconPositions(computeRotationAngleInRadians(gameModel.getToDegrees()));
-                    final Animation scaleAnimation = animationFactory.createIconScaleIn();
-                    scaleAnimation.setAnimationListener(new AnimationHandler() {
-                        public void onAnimationEnd(Animation animation) {
-                            final Animation goForAnimation = animationFactory.createGoForAnimationIn();
-                            goForAnimation.setAnimationListener(new AnimationHandler() {
-                                public void onAnimationEnd(Animation animation) {
-                                    initListeners();
-                                }
-                            });
-                            goFor.setImageResource(goForResIds[gameModel.getSelectedIcon()]);
-                            goFor.startAnimation(goForAnimation);
-                        }
-                    });
-
-                    final View selectedIcon = icons[gameModel.getSelectedIcon()];
-                    setIconGlow(selectedIcon);
-                    selectedIcon.startAnimation(scaleAnimation);
-                }
-            });
-            triangle.startAnimation(rotateAnimation);
+    public void startGame() {
+        if (gameModel.isInProgress()) {
+            return;
         }
-    };
+        gameModel.setInProgress(true);
+        shakeDetector.pause();
+
+        if (gameModel.getSelectedIcon() >= 0) {
+            goFor.startAnimation(animationFactory.createGoForAnimationOut());
+            glow.startAnimation(animationFactory.createGlowAnimationOut());
+            icons[gameModel.getSelectedIcon()].startAnimation(animationFactory.createIconScaleOut());
+        }
+
+        vibrationService.feedback();
+        gameService.initGame(gameModel);
+
+        final Animation rotateAnimation = animationFactory.createRotate(gameModel);
+        final ViewTreeObserver viewTreeObserver = triangle.getViewTreeObserver();
+        final ViewTreeObserver.OnPreDrawListener preDrawListener = new ViewTreeObserver.OnPreDrawListener() {
+            public boolean onPreDraw() {
+                final float interpolation = animationHelper.computeInterpolation(rotateAnimation);
+                final float degrees = (gameModel.getFromDegrees() +
+                        (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
+                final float angle = computeRotationAngleInRadians(degrees);
+                setIconPositions(angle);
+                return true;
+            }
+        };
+
+        viewTreeObserver.addOnPreDrawListener(preDrawListener);
+        rotateAnimation.setAnimationListener(new AnimationHandler() {
+            public void onAnimationEnd(Animation animation) {
+                viewTreeObserver.removeOnPreDrawListener(preDrawListener);
+                setIconPositions(computeRotationAngleInRadians(gameModel.getToDegrees()));
+                final Animation scaleAnimation = animationFactory.createIconScaleIn();
+                scaleAnimation.setAnimationListener(new AnimationHandler() {
+                    public void onAnimationEnd(Animation animation) {
+                        final Animation goForAnimation = animationFactory.createGoForAnimationIn();
+                        goForAnimation.setAnimationListener(new AnimationHandler() {
+                            public void onAnimationEnd(Animation animation) {
+                                gameModel.setInProgress(false);
+                                shakeDetector.resume();
+                            }
+                        });
+                        goFor.setImageResource(goForResIds[gameModel.getSelectedIcon()]);
+                        goFor.startAnimation(goForAnimation);
+                    }
+                });
+
+                final View selectedIcon = icons[gameModel.getSelectedIcon()];
+                setIconGlow(selectedIcon);
+                selectedIcon.startAnimation(scaleAnimation);
+            }
+        });
+        triangle.startAnimation(rotateAnimation);
+    }
 
     private void initGame() {
         triangle = findViewById(R.id.triangle);
-        glow = (ImageView)findViewById(R.id.glow);
-        goFor = (ImageView)findViewById(R.id.go_for);
-        icons = new View[] {findViewById(R.id.drink), findViewById(R.id.walk), findViewById(R.id.party)};
+        glow = (ImageView) findViewById(R.id.glow);
+        goFor = (ImageView) findViewById(R.id.go_for);
+        icons = new View[]{findViewById(R.id.drink), findViewById(R.id.walk), findViewById(R.id.party)};
         setIconPositions(INITIAL_ANGLE);
-        initListeners();
+        shakeDetector.start(new ShakeDetector.OnShakeListener() {
+            public void onShake() {
+                runOnUiThread(new Runnable() {
+                    public void run() {
+                        startGame();
+                    }
+                });
+            }
+        });
     }
 
     @Override
@@ -199,23 +190,24 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
         final ImageView imageView = (ImageView) findViewById(R.id.splash);
         animationHelper.start(new AnimationHelper.Action() {
-            public View execute() {
-                imageView.setImageResource(R.drawable.logoscreen);
-                return imageView;
-            }
-        }, new AnimationHelper.Action() {
-            public View execute() {
-                final View gameView = getLayoutInflater().inflate(R.layout.game, null);
-                gameView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                    public void onGlobalLayout() {
-                        initGame();
-                        gameView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                    }
-                });
-                setContentView(gameView);
-                return gameView;
-            }
-        });
+                                  public View execute() {
+                                      imageView.setImageResource(R.drawable.logoscreen);
+                                      return imageView;
+                                  }
+                              }, new AnimationHelper.Action() {
+                                  public View execute() {
+                                      final View gameView = getLayoutInflater().inflate(R.layout.game, null);
+                                      gameView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                                          public void onGlobalLayout() {
+                                              initGame();
+                                              gameView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                                          }
+                                      });
+                                      setContentView(gameView);
+                                      return gameView;
+                                  }
+                              }
+        );
 
     }
 
