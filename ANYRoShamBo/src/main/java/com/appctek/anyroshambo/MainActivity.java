@@ -2,7 +2,6 @@ package com.appctek.anyroshambo;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
@@ -10,7 +9,6 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import com.appctek.R;
 import com.appctek.anyroshambo.math.GeometryUtils;
-import com.appctek.anyroshambo.math.Point;
 import com.appctek.anyroshambo.model.GameModel;
 import com.appctek.anyroshambo.services.*;
 import com.appctek.anyroshambo.util.AnimationHandler;
@@ -43,24 +41,10 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
     private void stopListeners() {
         gameModel.setInProgress(true);
-        triangle.setOnTouchListener(null);
         shakeDetector.pause();
     }
 
     private void initListeners() {
-        triangle.setOnTouchListener(new View.OnTouchListener() {
-            public boolean onTouch(View v, MotionEvent event) {
-                final Point pt = Point.fromArray(event.getX(), event.getY());
-                final Point t1 = Point.fromArray(v.getWidth()/2, 0),
-                        t2 = Point.fromArray(v.getWidth(), v.getHeight()),
-                        t3 = Point.fromArray(0, v.getHeight());
-                if (GeometryUtils.ptInTriangle(pt, t1, t2, t3)) {
-                    runOnUiThread(startGameAction);
-                    return true;
-                }
-                return false;
-            }
-        });
         shakeDetector.start(new ShakeDetector.OnShakeListener() {
             public void onShake() {
                 runOnUiThread(startGameAction);
@@ -138,15 +122,13 @@ public class MainActivity extends HardwareAcceleratedActivity {
             vibrationService.feedback();
             gameService.initGame(gameModel);
 
+
+
             final Animation rotateAnimation = animationFactory.createRotate(gameModel);
             final ViewTreeObserver viewTreeObserver = triangle.getViewTreeObserver();
-            viewTreeObserver.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                public boolean onPreDraw() {
-                    if (rotateAnimation.hasEnded()) {
-                        viewTreeObserver.removeOnPreDrawListener(this);
-                        return true;
-                    }
 
+            final ViewTreeObserver.OnPreDrawListener preDrawListener = new ViewTreeObserver.OnPreDrawListener() {
+                public boolean onPreDraw() {
                     final float interpolation = animationHelper.computeInterpolation(rotateAnimation);
                     final float degrees = (gameModel.getFromDegrees() +
                             (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
@@ -154,9 +136,12 @@ public class MainActivity extends HardwareAcceleratedActivity {
                     setIconPositions(angle);
                     return true;
                 }
-            });
+            };
+
+            viewTreeObserver.addOnPreDrawListener(preDrawListener);
             rotateAnimation.setAnimationListener(new AnimationHandler() {
                 public void onAnimationEnd(Animation animation) {
+                    viewTreeObserver.removeOnPreDrawListener(preDrawListener);
                     setIconPositions(computeRotationAngleInRadians(gameModel.getToDegrees()));
                     final Animation scaleAnimation = animationFactory.createIconScaleIn();
                     scaleAnimation.setAnimationListener(new AnimationHandler() {
