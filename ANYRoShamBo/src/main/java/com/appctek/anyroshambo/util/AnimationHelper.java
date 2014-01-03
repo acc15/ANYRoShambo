@@ -51,6 +51,10 @@ public class AnimationHelper {
         final long startTime = animation.getStartTime();
         final long duration = animation.getDuration();
         final long time = currentTime - startTime;
+        if (time >= duration) {
+            return 1.0f;
+        }
+
         final float timePosition = (float)time/duration;
         final Interpolator interpolator = animation.getInterpolator();
         return interpolator.getInterpolation(timePosition);
