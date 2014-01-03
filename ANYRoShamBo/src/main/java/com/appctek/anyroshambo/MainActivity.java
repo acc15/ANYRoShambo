@@ -11,7 +11,6 @@ import com.appctek.R;
 import com.appctek.anyroshambo.math.GeometryUtils;
 import com.appctek.anyroshambo.model.GameModel;
 import com.appctek.anyroshambo.services.*;
-import com.appctek.anyroshambo.util.AnimationHandler;
 import com.appctek.anyroshambo.util.AnimationHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +35,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private View triangle;
     private View[] icons;
     private ImageView glow;
-    private ImageView goFor;
+    private ImageView goForLabel;
     private GameModel gameModel = new GameModel();
 
     private float computeRotationAngleInRadians(float degrees) {
@@ -92,6 +91,44 @@ public class MainActivity extends HardwareAcceleratedActivity {
     }
 
 
+    private static class SequentialAnimator {
+
+        interface SequentialListener {
+            View onAction(int step, SequentialAnimator animator);
+        }
+
+        private int step = -1;
+
+        private void executeStep(final int step, final SequentialListener listener) {
+            final View view = listener.onAction(step, this);
+            if (view == null) {
+                return;
+            }
+
+            view.getAnimation().setAnimationListener(new Animation.AnimationListener() {
+                public void onAnimationStart(Animation animation) {
+                }
+
+                public void onAnimationEnd(Animation animation) {
+                    SequentialAnimator.this.step = step;
+                    executeStep(step + 1, listener);
+                }
+
+                public void onAnimationRepeat(Animation animation) {
+                }
+            });
+        }
+
+        public int getStep() {
+            return this.step;
+        }
+
+        public void start(int initialStep, SequentialListener listener) {
+            executeStep(initialStep, listener);
+        }
+
+    }
+
     public void startGame() {
         if (gameModel.isInProgress()) {
             return;
@@ -99,7 +136,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
         gameModel.setInProgress(true);
 
         if (gameModel.getSelectedIcon() >= 0) {
-            goFor.startAnimation(animationFactory.createGoForAnimationOut());
+            goForLabel.startAnimation(animationFactory.createGoForAnimationOut());
             glow.startAnimation(animationFactory.createGlowAnimationOut());
             icons[gameModel.getSelectedIcon()].startAnimation(animationFactory.createIconScaleOut());
         }
@@ -107,50 +144,57 @@ public class MainActivity extends HardwareAcceleratedActivity {
         vibrationService.feedback();
         gameService.initGame(gameModel);
 
-        final Animation rotateAnimation = animationFactory.createRotate(gameModel);
-        final ViewTreeObserver viewTreeObserver = triangle.getViewTreeObserver();
-        final ViewTreeObserver.OnPreDrawListener preDrawListener = new ViewTreeObserver.OnPreDrawListener() {
-            public boolean onPreDraw() {
-                final float interpolation = animationHelper.computeInterpolation(rotateAnimation);
-                final float degrees = (gameModel.getFromDegrees() +
-                        (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
-                final float angle = computeRotationAngleInRadians(degrees);
-                setIconPositions(angle);
-                return true;
-            }
-        };
+        new SequentialAnimator().start(0, new SequentialAnimator.SequentialListener() {
+            private ViewTreeObserver.OnPreDrawListener preDrawListener;
 
-        viewTreeObserver.addOnPreDrawListener(preDrawListener);
-        rotateAnimation.setAnimationListener(new AnimationHandler() {
-            public void onAnimationEnd(Animation animation) {
-                viewTreeObserver.removeOnPreDrawListener(preDrawListener);
-                setIconPositions(computeRotationAngleInRadians(gameModel.getToDegrees()));
-                final Animation scaleAnimation = animationFactory.createIconScaleIn();
-                scaleAnimation.setAnimationListener(new AnimationHandler() {
-                    public void onAnimationEnd(Animation animation) {
-                        final Animation goForAnimation = animationFactory.createGoForAnimationIn();
-                        goForAnimation.setAnimationListener(new AnimationHandler() {
-                            public void onAnimationEnd(Animation animation) {
-                                gameModel.setInProgress(false);
-                            }
-                        });
-                        goFor.setImageResource(goForResIds[gameModel.getSelectedIcon()]);
-                        goFor.startAnimation(goForAnimation);
-                    }
-                });
+            public View onAction(int step, SequentialAnimator animator) {
+                switch (step) {
+                case 0:
+                    final Animation rotateAnimation = animationFactory.createRotate(gameModel);
+                    this.preDrawListener = new ViewTreeObserver.OnPreDrawListener() {
+                        public boolean onPreDraw() {
+                            final float interpolation = animationHelper.computeInterpolation(rotateAnimation);
+                            final float degrees = (gameModel.getFromDegrees() +
+                                    (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
+                            final float angle = computeRotationAngleInRadians(degrees);
+                            setIconPositions(angle);
+                            return true;
+                        }
+                    };
+                    triangle.getViewTreeObserver().addOnPreDrawListener(preDrawListener);
+                    triangle.startAnimation(rotateAnimation);
+                    return triangle;
 
-                final View selectedIcon = icons[gameModel.getSelectedIcon()];
-                setIconGlow(selectedIcon);
-                selectedIcon.startAnimation(scaleAnimation);
+                case 1:
+                    triangle.getViewTreeObserver().removeOnPreDrawListener(preDrawListener);
+                    this.preDrawListener = null;
+
+                    setIconPositions(computeRotationAngleInRadians(gameModel.getToDegrees()));
+                    final Animation scaleAnimation = animationFactory.createIconScaleIn();
+                    final View selectedIcon = icons[gameModel.getSelectedIcon()];
+                    setIconGlow(selectedIcon);
+                    selectedIcon.startAnimation(scaleAnimation);
+                    return selectedIcon;
+
+                case 2:
+                    final Animation goForAnimation = animationFactory.createGoForAnimationIn();
+                    goForLabel.setImageResource(goForResIds[gameModel.getSelectedIcon()]);
+                    goForLabel.startAnimation(goForAnimation);
+                    return goForLabel;
+
+                case 3:
+                    gameModel.setInProgress(false);
+                    break;
+                }
+                return null;
             }
         });
-        triangle.startAnimation(rotateAnimation);
     }
 
     private void initGame() {
         triangle = findViewById(R.id.triangle);
         glow = (ImageView) findViewById(R.id.glow);
-        goFor = (ImageView) findViewById(R.id.go_for);
+        goForLabel = (ImageView) findViewById(R.id.go_for);
         icons = new View[]{findViewById(R.id.drink), findViewById(R.id.walk), findViewById(R.id.party)};
         setIconPositions(INITIAL_ANGLE);
         shakeDetector.start(new ShakeDetector.OnShakeListener() {
@@ -181,8 +225,6 @@ public class MainActivity extends HardwareAcceleratedActivity {
         super.onCreate(savedInstanceState);
 
         // TODO handle restore
-
-
         logger.debug("Initializing main activity...");
         setContentView(R.layout.splash);
 

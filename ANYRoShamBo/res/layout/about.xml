@@ -14,7 +14,7 @@
               android:textSize="20sp"
               android:text="@string/info_header"/>
 
-    <TextView id="@+id/info_text"
+    <TextView android:id="@+id/info_text"
               android:layout_width="match_parent"
               android:layout_height="wrap_content"
               android:textColor="@color/text_color"
