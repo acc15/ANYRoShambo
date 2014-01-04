@@ -1,7 +1,7 @@
 package com.appctek.anyroshambo.services;
 
 import android.content.Context;
-import com.appctek.anyroshambo.util.AnimationHelper;
+import com.appctek.anyroshambo.anim.Animator;
 
 import java.util.Random;
 
@@ -59,8 +59,8 @@ public class ServiceRepository {
         return new GameService(getRandom());
     }
 
-    public AnimationHelper getAnimationHelper() {
-        return new AnimationHelper(getDateTimeService());
+    public Animator getAnimationHelper() {
+        return new Animator(getDateTimeService());
     }
 
     public AnimationFactory getAnimationFactory() {

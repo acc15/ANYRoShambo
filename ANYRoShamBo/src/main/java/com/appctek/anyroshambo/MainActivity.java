@@ -10,9 +10,9 @@ import android.widget.RelativeLayout;
 import com.appctek.R;
 import com.appctek.anyroshambo.math.GeometryUtils;
 import com.appctek.anyroshambo.model.GameModel;
-import com.appctek.anyroshambo.sequences.*;
+import com.appctek.anyroshambo.anim.*;
 import com.appctek.anyroshambo.services.*;
-import com.appctek.anyroshambo.util.AnimationHelper;
+import com.appctek.anyroshambo.anim.Animator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +31,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
     private ShakeDetector shakeDetector = ServiceRepository.getRepository().getShakeDetector(this);
     private VibrationService vibrationService = ServiceRepository.getRepository().getVibrationService(this);
-    private AnimationHelper animationHelper = ServiceRepository.getRepository().getAnimationHelper();
+    private Animator animator = ServiceRepository.getRepository().getAnimationHelper();
     private GameService gameService = ServiceRepository.getRepository().getGameService();
     private AnimationFactory animationFactory = ServiceRepository.getRepository().getAnimationFactory();
 
@@ -48,31 +48,10 @@ public class MainActivity extends HardwareAcceleratedActivity {
                 setContentView(R.layout.splash);
                 final ImageView imageView = (ImageView) findViewById(R.id.splash);
                 imageView.setImageResource(R.drawable.logoscreen);
-                final Sequencer splashSeq = new Sequencer(new ActionSequence() {
-                    private Animation fadeIn;
-                    public LazyAction executeStep(int step, Sequencer sequencer) {
-                        switch (step) {
-                        case 0:
-                            fadeIn = animationFactory.createSplashAnimationIn();
-                            return new AnimationAction(imageView, fadeIn);
-
-                        case 1:
-                            return new DelayAction(imageView, 5000);
-
-                        case 2:
-                            final float interpolation = animationHelper.computeInterpolation(fadeIn);
-                            return new AnimationAction(imageView,
-                                    animationFactory.createSplashAnimationOut(interpolation));
-                        }
-                        return null;
-                    }
-                });
-                imageView.setOnClickListener(new View.OnClickListener() {
-                    public void onClick(View v) {
-                        splashSeq.execute(2);
-                    }
-                });
-                return splashSeq;
+                return animator.animateInOut(imageView).
+                        in(animationFactory.createSplashAnimationIn()).
+                        out(animationFactory.createSplashAnimationOut()).
+                        withDelay(5000).skipOnClick().build();
 
             case 1:
                 final View gameView = getLayoutInflater().inflate(R.layout.game, null);
@@ -84,7 +63,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
                 });
                 setContentView(gameView);
                 return sequencer.getStep() == 0
-                        ? new AnimationAction(gameView, animationFactory.createSplashAnimationIn())
+                        ? animator.animate(gameView).with(animationFactory.createSplashAnimationIn()).build()
                         : null;
             }
             return null;
@@ -109,36 +88,67 @@ public class MainActivity extends HardwareAcceleratedActivity {
                 final Animation rotateAnimation = animationFactory.createRotate(gameModel);
                 this.preDrawListener = new ViewTreeObserver.OnPreDrawListener() {
                     public boolean onPreDraw() {
-                        final float interpolation = animationHelper.computeInterpolation(rotateAnimation);
-                        final float degrees = (gameModel.getFromDegrees() +
-                                (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
-                        final float angle = computeRotationAngleInRadians(degrees);
-                        setIconPositions(angle);
+                        final float interpolation = animator.computeInterpolation(rotateAnimation);
+                        final float degrees = GeometryUtils.interpolate(interpolation,
+                                gameModel.getFromDegrees(), gameModel.getToDegrees()) % GeometryUtils.DEGREES_IN_CIRCLE;
+                        setIconPositions(computeRotationAngleInRadians(degrees));
                         return true;
                     }
                 };
                 triangle.getViewTreeObserver().addOnPreDrawListener(preDrawListener);
-                return new AnimationAction(triangle, rotateAnimation);
+                return animator.animate(triangle).with(rotateAnimation).build();
 
             case 1:
                 triangle.getViewTreeObserver().removeOnPreDrawListener(preDrawListener);
                 this.preDrawListener = null;
+
                 setIconPositions(computeRotationAngleInRadians(gameModel.getToDegrees()));
                 final View selectedIcon = icons[gameModel.getSelectedIcon()];
                 setIconGlow(selectedIcon);
-                return new AnimationAction(selectedIcon, animationFactory.createIconScaleIn());
+                return animator.animate(selectedIcon).with(animationFactory.createIconScaleIn()).build();
 
             case 2:
                 goForLabel.setImageResource(goForResIds[gameModel.getSelectedIcon()]);
-                return new AnimationAction(goForLabel, animationFactory.createGoForAnimationIn());
+                return animator.animate(goForLabel).with(animationFactory.createGoForAnimationIn()).build();
 
             case 3:
-                sequencer.reset();
+                gameSequencer.reset();
                 break;
             }
             return null;
         }
     });
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        shakeDetector.pause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        shakeDetector.resume();
+    }
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        final int initialStep = savedInstanceState != null ? savedInstanceState.getInt(ANIMATION_POSITION_KEY, 0) : 0;
+        logger.debug("Starting animation from " + initialStep + " step");
+        mainSequencer.run(initialStep);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(ANIMATION_POSITION_KEY, mainSequencer.getStep());
+    }
+
+    public void showInfo(View view) {
+        final Intent intent = new Intent(this, AboutActivity.class);
+        startActivity(intent);
+    }
 
     private float computeRotationAngleInRadians(float degrees) {
         return INITIAL_ANGLE - (float) Math.toRadians(degrees);
@@ -200,45 +210,11 @@ public class MainActivity extends HardwareAcceleratedActivity {
         setIconPositions(INITIAL_ANGLE);
         shakeDetector.start(new ShakeDetector.OnShakeListener() {
             public void onShake() {
-                runOnUiThread(new Runnable() {
-                    public void run() {
-                        gameSequencer.execute();
-                    }
-                });
+                runOnUiThread(gameSequencer);
             }
         });
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        shakeDetector.pause();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        shakeDetector.resume();
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        final int initialStep = savedInstanceState != null ? savedInstanceState.getInt(ANIMATION_POSITION_KEY, 0) : 0;
-        logger.debug("Starting animation from " + initialStep + " step");
-        mainSequencer.execute(initialStep);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putInt(ANIMATION_POSITION_KEY, mainSequencer.getStep());
-    }
-
-    public void showInfo(View view) {
-        final Intent intent = new Intent(this, AboutActivity.class);
-        startActivity(intent);
-    }
 
 }
 

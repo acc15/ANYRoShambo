@@ -1,4 +1,4 @@
-package com.appctek.anyroshambo.sequences;
+package com.appctek.anyroshambo.anim;
 
 /**
 * @author Vyacheslav Mayorov

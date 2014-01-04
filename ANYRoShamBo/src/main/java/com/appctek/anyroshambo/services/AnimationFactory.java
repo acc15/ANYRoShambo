@@ -74,8 +74,8 @@ public class AnimationFactory {
         return createFadeAnimation(1000, 0, 1f);
     }
 
-    public Animation createSplashAnimationOut(float interpolation) {
-        return createFadeAnimation((long)(1000 * interpolation), interpolation, 0);
+    public Animation createSplashAnimationOut() {
+        return createFadeAnimation(1000, 1f, 0);
     }
 
     private Animation createFadeAnimation(long duration, float from, float to) {

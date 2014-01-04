@@ -1,4 +1,4 @@
-package com.appctek.anyroshambo.sequences;
+package com.appctek.anyroshambo.anim;
 
 import android.view.View;
 
@@ -20,7 +20,7 @@ public class DelayAction implements LazyAction {
         this.listener = listener;
     }
 
-    public void execute() {
+    public void run() {
         view.postDelayed(listener, delay);
     }
 }

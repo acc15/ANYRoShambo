@@ -1,4 +1,4 @@
-package com.appctek.anyroshambo.sequences;
+package com.appctek.anyroshambo.anim;
 
 /**
  * @author Vyacheslav Mayorov
@@ -19,11 +19,11 @@ public class Sequencer implements LazyAction {
         this.listener = listener;
     }
 
-    public void execute() {
-        execute(0);
+    public void run() {
+        run(0);
     }
 
-    public void execute(final int step) {
+    public void run(final int step) {
         if (this.step >= step) {
             return;
         }
@@ -39,10 +39,10 @@ public class Sequencer implements LazyAction {
         this.step = step;
         lazyAction.setListener(new Runnable() {
             public void run() {
-                execute(step+1);
+                Sequencer.this.run(step + 1);
             }
         });
-        lazyAction.execute();
+        lazyAction.run();
     }
 
     public int getStep() {
