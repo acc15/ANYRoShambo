@@ -3,7 +3,6 @@ package com.appctek.anyroshambo;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.widget.TextView;
-import com.appctek.R;
 
 /**
  * @author Vyacheslav Mayorov

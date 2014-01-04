@@ -7,12 +7,13 @@ import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import com.appctek.R;
+import com.appctek.anyroshambo.anim.ActionSequence;
+import com.appctek.anyroshambo.anim.Animator;
+import com.appctek.anyroshambo.anim.LazyAction;
+import com.appctek.anyroshambo.anim.Sequencer;
 import com.appctek.anyroshambo.math.GeometryUtils;
 import com.appctek.anyroshambo.model.GameModel;
-import com.appctek.anyroshambo.anim.*;
 import com.appctek.anyroshambo.services.*;
-import com.appctek.anyroshambo.anim.Animator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private Animator animator = ServiceRepository.getRepository().getAnimationHelper();
     private GameService gameService = ServiceRepository.getRepository().getGameService();
     private AnimationFactory animationFactory = ServiceRepository.getRepository().getAnimationFactory();
+    private AppInfo appInfo = ServiceRepository.getRepository().getAppInfo();
 
     private View triangle;
     private View[] icons;
@@ -204,6 +206,14 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
     private void initGame() {
         triangle = findViewById(R.id.triangle);
+        if (appInfo.isDebug()) {
+            triangle.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    gameSequencer.run();
+                }
+            });
+        }
+
         glow = (ImageView) findViewById(R.id.glow);
         goForLabel = (ImageView) findViewById(R.id.go_for);
         icons = new View[]{findViewById(R.id.drink), findViewById(R.id.walk), findViewById(R.id.party)};

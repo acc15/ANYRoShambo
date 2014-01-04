@@ -11,6 +11,7 @@
         <android.version>2.2.1</android.version>
         <android.platform>8</android.platform>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.debug>true</project.build.debug>
     </properties>
 
     <dependencies>
@@ -33,14 +34,33 @@
         </dependency>
     </dependencies>
 
+    <scm>
+        <developerConnection>scm:git:https://bitbucket.org/acc15/anyroshambo.git</developerConnection>
+    </scm>
+
     <build>
+        <finalName>${project.artifactId}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+            <resource>
+                <directory>.</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>AndroidManifest.xml</include>
+                </includes>
+                <targetPath>${project.build.directory}/filtered</targetPath>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>com.jayway.maven.plugins.android.generation2</groupId>
                 <artifactId>android-maven-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
+                    <androidManifestFile>${project.build.directory}/filtered/AndroidManifest.xml</androidManifestFile>
                     <assetsDirectory>${project.basedir}/assets</assetsDirectory>
                     <resourceDirectory>${project.basedir}/res</resourceDirectory>
                     <nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
@@ -51,7 +71,31 @@
                 </configuration>
                 <extensions>true</extensions>
             </plugin>
-
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.2</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create-timestamp</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <phase>initialize</phase>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>

@@ -1,6 +1,8 @@
 package com.appctek.anyroshambo.services;
 
 import android.content.Context;
+import com.appctek.anyroshambo.AppInfo;
+import com.appctek.anyroshambo.MainActivity;
 import com.appctek.anyroshambo.anim.Animator;
 
 import java.util.Random;
@@ -42,6 +44,7 @@ public class ServiceRepository {
 
 
     private DateTimeService dateTimeService = new DateTimeService();
+    private AppInfo appInfo = new AppInfo(MainActivity.class);
 
     public DateTimeService getDateTimeService() {
         return dateTimeService;
@@ -69,6 +72,10 @@ public class ServiceRepository {
 
     public Random getRandom() {
         return new Random();
+    }
+
+    public AppInfo getAppInfo() {
+        return appInfo;
     }
 
 
