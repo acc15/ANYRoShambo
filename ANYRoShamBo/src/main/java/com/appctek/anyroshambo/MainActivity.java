@@ -10,6 +10,7 @@ import android.widget.RelativeLayout;
 import com.appctek.R;
 import com.appctek.anyroshambo.math.GeometryUtils;
 import com.appctek.anyroshambo.model.GameModel;
+import com.appctek.anyroshambo.sequences.*;
 import com.appctek.anyroshambo.services.*;
 import com.appctek.anyroshambo.util.AnimationHelper;
 import org.slf4j.Logger;
@@ -18,6 +19,8 @@ import org.slf4j.LoggerFactory;
 public class MainActivity extends HardwareAcceleratedActivity {
 
     private static final Logger logger = LoggerFactory.getLogger(MainActivity.class);
+
+    private static final String ANIMATION_POSITION_KEY = "key.animationPosition";
 
     private static final float INITIAL_ANGLE = GeometryUtils.HALF_PI;
     private static final int[] goForResIds = new int[]{
@@ -37,6 +40,105 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private ImageView glow;
     private ImageView goForLabel;
     private GameModel gameModel = new GameModel();
+
+    private Sequencer mainSequencer = new Sequencer(new ActionSequence() {
+        public LazyAction executeStep(int step, Sequencer sequencer) {
+            switch (step) {
+            case 0:
+                setContentView(R.layout.splash);
+                final ImageView imageView = (ImageView) findViewById(R.id.splash);
+                imageView.setImageResource(R.drawable.logoscreen);
+                final Sequencer splashSeq = new Sequencer(new ActionSequence() {
+                    private Animation fadeIn;
+                    public LazyAction executeStep(int step, Sequencer sequencer) {
+                        switch (step) {
+                        case 0:
+                            fadeIn = animationFactory.createSplashAnimationIn();
+                            return new AnimationAction(imageView, fadeIn);
+
+                        case 1:
+                            return new DelayAction(imageView, 5000);
+
+                        case 2:
+                            final float interpolation = animationHelper.computeInterpolation(fadeIn);
+                            return new AnimationAction(imageView,
+                                    animationFactory.createSplashAnimationOut(interpolation));
+                        }
+                        return null;
+                    }
+                });
+                imageView.setOnClickListener(new View.OnClickListener() {
+                    public void onClick(View v) {
+                        splashSeq.execute(2);
+                    }
+                });
+                return splashSeq;
+
+            case 1:
+                final View gameView = getLayoutInflater().inflate(R.layout.game, null);
+                gameView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+                    public void onGlobalLayout() {
+                        initGame();
+                        gameView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                    }
+                });
+                setContentView(gameView);
+                return sequencer.getStep() == 0
+                        ? new AnimationAction(gameView, animationFactory.createSplashAnimationIn())
+                        : null;
+            }
+            return null;
+        }
+    });
+
+    private Sequencer gameSequencer = new Sequencer(new ActionSequence() {
+        private ViewTreeObserver.OnPreDrawListener preDrawListener;
+
+        public LazyAction executeStep(int step, Sequencer sequencer) {
+            switch (step) {
+            case 0:
+                if (gameModel.getSelectedIcon() >= 0) {
+                    goForLabel.startAnimation(animationFactory.createGoForAnimationOut());
+                    glow.startAnimation(animationFactory.createGlowAnimationOut());
+                    icons[gameModel.getSelectedIcon()].startAnimation(animationFactory.createIconScaleOut());
+                }
+
+                vibrationService.feedback();
+                gameService.initGame(gameModel);
+
+                final Animation rotateAnimation = animationFactory.createRotate(gameModel);
+                this.preDrawListener = new ViewTreeObserver.OnPreDrawListener() {
+                    public boolean onPreDraw() {
+                        final float interpolation = animationHelper.computeInterpolation(rotateAnimation);
+                        final float degrees = (gameModel.getFromDegrees() +
+                                (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
+                        final float angle = computeRotationAngleInRadians(degrees);
+                        setIconPositions(angle);
+                        return true;
+                    }
+                };
+                triangle.getViewTreeObserver().addOnPreDrawListener(preDrawListener);
+                return new AnimationAction(triangle, rotateAnimation);
+
+            case 1:
+                triangle.getViewTreeObserver().removeOnPreDrawListener(preDrawListener);
+                this.preDrawListener = null;
+                setIconPositions(computeRotationAngleInRadians(gameModel.getToDegrees()));
+                final View selectedIcon = icons[gameModel.getSelectedIcon()];
+                setIconGlow(selectedIcon);
+                return new AnimationAction(selectedIcon, animationFactory.createIconScaleIn());
+
+            case 2:
+                goForLabel.setImageResource(goForResIds[gameModel.getSelectedIcon()]);
+                return new AnimationAction(goForLabel, animationFactory.createGoForAnimationIn());
+
+            case 3:
+                sequencer.reset();
+                break;
+            }
+            return null;
+        }
+    });
 
     private float computeRotationAngleInRadians(float degrees) {
         return INITIAL_ANGLE - (float) Math.toRadians(degrees);
@@ -90,107 +192,6 @@ public class MainActivity extends HardwareAcceleratedActivity {
         glow.startAnimation(animationFactory.createGlowAnimationIn());
     }
 
-
-    private static class SequentialAnimator {
-
-        interface SequentialListener {
-            View onAction(int step, SequentialAnimator animator);
-        }
-
-        private int step = -1;
-
-        private void executeStep(final int step, final SequentialListener listener) {
-            final View view = listener.onAction(step, this);
-            if (view == null) {
-                return;
-            }
-
-            view.getAnimation().setAnimationListener(new Animation.AnimationListener() {
-                public void onAnimationStart(Animation animation) {
-                }
-
-                public void onAnimationEnd(Animation animation) {
-                    SequentialAnimator.this.step = step;
-                    executeStep(step + 1, listener);
-                }
-
-                public void onAnimationRepeat(Animation animation) {
-                }
-            });
-        }
-
-        public int getStep() {
-            return this.step;
-        }
-
-        public void start(int initialStep, SequentialListener listener) {
-            executeStep(initialStep, listener);
-        }
-
-    }
-
-    public void startGame() {
-        if (gameModel.isInProgress()) {
-            return;
-        }
-        gameModel.setInProgress(true);
-
-        if (gameModel.getSelectedIcon() >= 0) {
-            goForLabel.startAnimation(animationFactory.createGoForAnimationOut());
-            glow.startAnimation(animationFactory.createGlowAnimationOut());
-            icons[gameModel.getSelectedIcon()].startAnimation(animationFactory.createIconScaleOut());
-        }
-
-        vibrationService.feedback();
-        gameService.initGame(gameModel);
-
-        new SequentialAnimator().start(0, new SequentialAnimator.SequentialListener() {
-            private ViewTreeObserver.OnPreDrawListener preDrawListener;
-
-            public View onAction(int step, SequentialAnimator animator) {
-                switch (step) {
-                case 0:
-                    final Animation rotateAnimation = animationFactory.createRotate(gameModel);
-                    this.preDrawListener = new ViewTreeObserver.OnPreDrawListener() {
-                        public boolean onPreDraw() {
-                            final float interpolation = animationHelper.computeInterpolation(rotateAnimation);
-                            final float degrees = (gameModel.getFromDegrees() +
-                                    (gameModel.getToDegrees() - gameModel.getFromDegrees()) * interpolation) % 360; // degrees
-                            final float angle = computeRotationAngleInRadians(degrees);
-                            setIconPositions(angle);
-                            return true;
-                        }
-                    };
-                    triangle.getViewTreeObserver().addOnPreDrawListener(preDrawListener);
-                    triangle.startAnimation(rotateAnimation);
-                    return triangle;
-
-                case 1:
-                    triangle.getViewTreeObserver().removeOnPreDrawListener(preDrawListener);
-                    this.preDrawListener = null;
-
-                    setIconPositions(computeRotationAngleInRadians(gameModel.getToDegrees()));
-                    final Animation scaleAnimation = animationFactory.createIconScaleIn();
-                    final View selectedIcon = icons[gameModel.getSelectedIcon()];
-                    setIconGlow(selectedIcon);
-                    selectedIcon.startAnimation(scaleAnimation);
-                    return selectedIcon;
-
-                case 2:
-                    final Animation goForAnimation = animationFactory.createGoForAnimationIn();
-                    goForLabel.setImageResource(goForResIds[gameModel.getSelectedIcon()]);
-                    goForLabel.startAnimation(goForAnimation);
-                    return goForLabel;
-
-                case 3:
-                    gameModel.setInProgress(false);
-                    break;
-                }
-                return null;
-            }
-        });
-    }
-
     private void initGame() {
         triangle = findViewById(R.id.triangle);
         glow = (ImageView) findViewById(R.id.glow);
@@ -201,7 +202,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
             public void onShake() {
                 runOnUiThread(new Runnable() {
                     public void run() {
-                        startGame();
+                        gameSequencer.execute();
                     }
                 });
             }
@@ -223,32 +224,15 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        final int initialStep = savedInstanceState != null ? savedInstanceState.getInt(ANIMATION_POSITION_KEY, 0) : 0;
+        logger.debug("Starting animation from " + initialStep + " step");
+        mainSequencer.execute(initialStep);
+    }
 
-        // TODO handle restore
-        logger.debug("Initializing main activity...");
-        setContentView(R.layout.splash);
-
-        final ImageView imageView = (ImageView) findViewById(R.id.splash);
-        animationHelper.start(new AnimationHelper.Action() {
-                                  public View execute() {
-                                      imageView.setImageResource(R.drawable.logoscreen);
-                                      return imageView;
-                                  }
-                              }, new AnimationHelper.Action() {
-                                  public View execute() {
-                                      final View gameView = getLayoutInflater().inflate(R.layout.game, null);
-                                      gameView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                                          public void onGlobalLayout() {
-                                              initGame();
-                                              gameView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                                          }
-                                      });
-                                      setContentView(gameView);
-                                      return gameView;
-                                  }
-                              }
-        );
-
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt(ANIMATION_POSITION_KEY, mainSequencer.getStep());
     }
 
     public void showInfo(View view) {

@@ -67,8 +67,20 @@ public class AnimationFactory {
     }
 
     public Animation createGoForAnimationOut() {
-        final AlphaAnimation alphaAnimation = new AlphaAnimation(1f, 0);
-        alphaAnimation.setDuration(50);
+        return createFadeAnimation(50, 1f, 0);
+    }
+
+    public Animation createSplashAnimationIn() {
+        return createFadeAnimation(1000, 0, 1f);
+    }
+
+    public Animation createSplashAnimationOut(float interpolation) {
+        return createFadeAnimation((long)(1000 * interpolation), interpolation, 0);
+    }
+
+    private Animation createFadeAnimation(long duration, float from, float to) {
+        final AlphaAnimation alphaAnimation = new AlphaAnimation(from, to);
+        alphaAnimation.setDuration(duration);
         alphaAnimation.setInterpolator(new LinearInterpolator());
         return enableFillAfter(alphaAnimation);
     }
