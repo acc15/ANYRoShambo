@@ -23,6 +23,7 @@ public class Animator {
         final long startTime = animation.getStartTime();
         final long duration = animation.getDuration();
         final long time = currentTime - startTime;
+
         if (time >= duration) {
             return 1.0f;
         }
@@ -100,6 +101,7 @@ public class Animator {
                         return delay > 0 ? new DelayAction(view, delay) : new NopAction();
 
                     case 2:
+
                         final float interpolation = computeInterpolation(inAnimation);
                         if (interpolation < 1.f) {
 
@@ -115,6 +117,11 @@ public class Animator {
                             outAnimation.setDuration((long)(outAnimation.getDuration() * interpolation));
 
                         }
+                        if (!inAnimation.hasEnded()) {
+                            inAnimation.setAnimationListener(null);
+                            inAnimation.cancel();
+                        }
+
                         return new AnimationAction(view, outAnimation);
                     }
                     return null;

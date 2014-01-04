@@ -57,13 +57,15 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
             case 1:
                 final View gameView = getLayoutInflater().inflate(R.layout.game, null);
+                setContentView(gameView);
+
                 gameView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
                     public void onGlobalLayout() {
                         initGame();
                         gameView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
                     }
                 });
-                setContentView(gameView);
+
                 return sequencer.getStep() == 0
                         ? animator.animate(gameView).with(animationFactory.createSplashAnimationIn()).build()
                         : null;

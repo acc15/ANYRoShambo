@@ -39,19 +39,10 @@
     </scm>
 
     <build>
-        <finalName>${project.artifactId}</finalName>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
                 <filtering>true</filtering>
-            </resource>
-            <resource>
-                <directory>.</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>AndroidManifest.xml</include>
-                </includes>
-                <targetPath>${project.build.directory}/filtered</targetPath>
             </resource>
         </resources>
         <plugins>
@@ -60,10 +51,6 @@
                 <artifactId>android-maven-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <androidManifestFile>${project.build.directory}/filtered/AndroidManifest.xml</androidManifestFile>
-                    <assetsDirectory>${project.basedir}/assets</assetsDirectory>
-                    <resourceDirectory>${project.basedir}/res</resourceDirectory>
-                    <nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
                     <sdk>
                         <platform>${android.platform}</platform>
                     </sdk>
@@ -80,18 +67,6 @@
                         <phase>validate</phase>
                         <goals>
                             <goal>create-timestamp</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <artifactId>maven-resources-plugin</artifactId>
-                <version>2.6</version>
-                <executions>
-                    <execution>
-                        <phase>initialize</phase>
-                        <goals>
-                            <goal>resources</goal>
                         </goals>
                     </execution>
                 </executions>
