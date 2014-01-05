@@ -37,7 +37,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private AnimationFactory animationFactory = ServiceRepository.getRepository().getAnimationFactory();
     private AppInfo appInfo = ServiceRepository.getRepository().getAppInfo();
 
-    private View triangle;
+    private ImageView triangle;
     private View[] icons;
     private ImageView glow;
     private ImageView goForLabel;
@@ -80,6 +80,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
         public LazyAction executeStep(int step, Sequencer sequencer) {
             switch (step) {
             case 0:
+
                 if (gameModel.getSelectedIcon() >= 0) {
                     goForLabel.startAnimation(animationFactory.createGoForAnimationOut());
                     glow.startAnimation(animationFactory.createGlowAnimationOut());
@@ -190,13 +191,16 @@ public class MainActivity extends HardwareAcceleratedActivity {
     }
 
     private void setIconGlow(View icon) {
-        final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) glow.getLayoutParams();
-
         final float glowScale = 2f;
-        final float scaledWidth = icon.getWidth() * glowScale;
-        final float scaledHeight = icon.getHeight() * glowScale;
-        final float x = icon.getLeft() - (scaledWidth - icon.getWidth()) / 2;
-        final float y = icon.getTop() - (scaledHeight - icon.getHeight()) / 2;
+
+        final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) glow.getLayoutParams();
+        final RelativeLayout.LayoutParams iconParams = (RelativeLayout.LayoutParams)icon.getLayoutParams();
+
+        final int w = icon.getWidth(), h = icon.getHeight();
+        final float scaledWidth = w * glowScale;
+        final float scaledHeight = h * glowScale;
+        final float x = iconParams.leftMargin - (scaledWidth - w) / 2;
+        final float y = iconParams.topMargin - (scaledHeight - h) / 2;
 
         layoutParams.leftMargin = (int) x;
         layoutParams.topMargin = (int) y;
@@ -207,7 +211,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     }
 
     private void initGame() {
-        triangle = findViewById(R.id.triangle);
+        triangle = (ImageView)findViewById(R.id.triangle);
         if (appInfo.isDebug()) {
             triangle.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {

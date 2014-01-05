@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="icon_size">110dp</dimen>
+    <dimen name="go_for_y">100dp</dimen>
+    <dimen name="triangle_y">200dp</dimen>
+</resources>
