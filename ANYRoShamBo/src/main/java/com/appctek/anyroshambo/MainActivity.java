@@ -212,7 +212,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
     private void initGame() {
         triangle = (ImageView)findViewById(R.id.triangle);
-        if (appInfo.isDebug()) {
+        if (BuildConfig.DEBUG) {
             triangle.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     gameSequencer.run();

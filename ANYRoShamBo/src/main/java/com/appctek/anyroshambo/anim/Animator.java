@@ -19,14 +19,16 @@ public class Animator {
     }
 
     public float computeInterpolation(Animation animation) {
+        if (!animation.hasStarted()) {
+            return 0.0f;
+        } else if (animation.hasEnded()) {
+            return 1.0f;
+        }
+
         final long currentTime = dateTimeService.getAnimationTimeMillis();
         final long startTime = animation.getStartTime();
         final long duration = animation.getDuration();
         final long time = currentTime - startTime;
-
-        if (time >= duration) {
-            return 1.0f;
-        }
 
         final float timePosition = (float)time/duration;
         final Interpolator interpolator = animation.getInterpolator();

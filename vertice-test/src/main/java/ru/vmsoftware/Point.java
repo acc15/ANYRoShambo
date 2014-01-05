@@ -1,4 +1,4 @@
-package com.appctek.anyroshambo.math;
+package ru.vmsoftware;
 
 /**
  * @author Vyacheslav Mayorov
