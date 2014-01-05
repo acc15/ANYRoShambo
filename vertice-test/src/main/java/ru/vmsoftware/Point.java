@@ -17,7 +17,7 @@ public class Point {
     }
 
     private Point(int length, float[] components) {
-        this.components = new float[length];
+        this(new float[length]);
         System.arraycopy(components, 0, this.components, 0, length);
     }
 
@@ -55,10 +55,22 @@ public class Point {
         return components[comp];
     }
 
+    public float getX() {
+        return components[X];
+    }
+
+    public float getY() {
+        return components[Y];
+    }
+
+    public float getZ() {
+        return components[Z];
+    }
+
     /**
-     * Calculates sum of <code>this</code> and <code>pt</code> points
+     * Calculates sum of {@code this} and {@code pt} points
      * @param pt pt to add
-     * @return sum of of <code>this</code> and <code>pt</code> points
+     * @return sum of of {@code this} and {@code pt} points
      */
     public Point add(Point pt) {
         final Point result = new Point(this);
@@ -69,9 +81,9 @@ public class Point {
     }
 
     /**
-     * Calculates difference of <code>this</code> and <code>pt</code> points
+     * Calculates difference of {@code this} and {@code pt} points
      * @param pt pt to subtract
-     * @return difference of <code>this</code> and <code>pt</code> points
+     * @return difference of {@code this} and {@code pt} points
      */
     public Point sub(Point pt) {
         final Point result = new Point(this);
@@ -82,9 +94,9 @@ public class Point {
     }
 
     /**
-     * Returns multiplication of <code>this</code> and <code>pt</code> points
+     * Returns multiplication of {@code this} and {@code pt} points
      * @param pt multiplicand
-     * @return multiplication of <code>this</code> and <code>pt</code> points
+     * @return multiplication of {@code this} and {@code pt} points
      */
     public Point mul(Point pt) {
         final Point result = new Point(this);
@@ -94,18 +106,10 @@ public class Point {
         return result;
     }
 
-    public Point mul(float alpha) {
-        final Point result = new Point(this);
-        for (int i=0; i<result.components.length; i++) {
-            result.components[i] *= alpha;
-        }
-        return result;
-    }
-
     /**
-     * Returns division of <code>this</code> on <code>pt</code> point
+     * Returns division of {@code this} on {@code pt} point
      * @param pt divider
-     * @return division of <code>this</code> on <code>pt</code> point
+     * @return division of {@code this} on {@code pt} point
      */
     public Point div(Point pt) {
         final Point result = new Point(this);
@@ -113,6 +117,75 @@ public class Point {
             result.components[i] /= pt.components[i];
         }
         return result;
+    }
+
+    /**
+     * Returns sum of {@code this} and {@code {val,val}} points
+     * @param val addend
+     * @return sum of {@code this} and {@code {val,val}} points
+     */
+    public Point add(float val) {
+        final Point result = new Point(this);
+        for (int i=0; i<result.components.length; i++) {
+            result.components[i] += val;
+        }
+        return result;
+    }
+
+    /**
+     * Returns difference between {@code this} and {@code {val,val}} points
+     * @param val subtrahend
+     * @return difference between {@code this} and {@code {val,val}} points
+     */
+    public Point sub(float val) {
+        final Point result = new Point(this);
+        for (int i=0; i<result.components.length; i++) {
+            result.components[i] -= val;
+        }
+        return result;
+    }
+
+    /**
+     * Returns multiplication of {@code this} and {@code {val,val}} points
+     * @param val multiplicand
+     * @return multiplication of {@code this} and {@code {val,val}} points
+     */
+    public Point mul(float val) {
+        final Point result = new Point(this);
+        for (int i=0; i<result.components.length; i++) {
+            result.components[i] *= val;
+        }
+        return result;
+    }
+
+    /**
+     * Returns division of {@code this} and {@code {val,val}} points
+     * @param val divider
+     * @return division of {@code this} and {@code {val,val}} points
+     */
+    public Point div(float val) {
+        final Point result = new Point(this);
+        for (int i=0; i<result.components.length; i++) {
+            result.components[i] /= val;
+        }
+        return result;
+    }
+
+    /**
+     * Rotates point on specified amount of radians.
+     * Works only for 2 dimension points.
+     * @param angle amount of radians
+     * @return rotated point
+     */
+    public Point rotate(float angle) {
+        if (getComponentCount() != 2) {
+            throw new IllegalStateException("Rotate function is only supported for 2 dimension points");
+        }
+        final float sina = -(float)Math.sin(angle);
+        final float cosa = (float)Math.cos(angle);
+        final float x = cosa * getX() - sina * getY();
+        final float y = sina * getX() + cosa * getY();
+        return Point.fromArray(x, y);
     }
 
     /**
@@ -145,7 +218,7 @@ public class Point {
         for (int i=0; i<result.components.length; i++) {
             result.components[i] /= module;
         }
-        return this;
+        return result;
     }
 
     /**
@@ -161,10 +234,10 @@ public class Point {
     }
 
     /**
-     * Calculates angle between <code>this</code> and <code>pt</code> vectors.
+     * Calculates angle between {@code this} and {@code pt} vectors.
      * Returns result as cos(a). Do arccos() to get actual angle in radians.
      * @param pt point
-     * @return {@code cos(x)}, where x is an angle between <code>this</code> and <code>pt</code> vectors
+     * @return {@code cos(x)}, where x is an angle between {@code this} and {@code pt} vectors
      */
     public float cosineOfAngle(Point pt) {
         return mul(pt).sum() / (module() * pt.module());

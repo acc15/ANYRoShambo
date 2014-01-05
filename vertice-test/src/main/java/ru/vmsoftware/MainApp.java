@@ -9,6 +9,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 
 public class MainApp extends Application {
@@ -19,15 +20,31 @@ public class MainApp extends Application {
 
     private Point from, to, pos;
     private Canvas canvas;
-    private double angle;
+
+    private void strokeLine(GraphicsContext ctx, Point p1, Point p2) {
+        ctx.strokeLine(p1.getX(), p1.getY(), p2.getX(), p2.getY());
+    }
+
+    private void renderArrow(GraphicsContext ctx, Paint paint, Point from, Point to) {
+
+        ctx.setStroke(paint);
+        ctx.setFill(paint);
+
+        strokeLine(ctx, from, to);
+        final Point v = from.sub(to).identity().mul(15);
+        final Point p1 = v.rotate((float)Math.toRadians(15)).add(to);
+        final Point p2 = v.rotate((float)Math.toRadians(-15)).add(to);
+        ctx.fillPolygon(new double[]{to.getX(), p1.getX(), p2.getX()},
+                        new double[]{to.getY(), p1.getY(), p2.getY()}, 3);
+
+    }
 
     private void render() {
         final GraphicsContext ctx = canvas.getGraphicsContext2D();
         ctx.setFill(Color.BLACK);
-        ctx.setStroke(Color.WHITE);
-
         ctx.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
+        ctx.setStroke(Color.WHITE);
         if (pos != null) {
             ctx.strokeText("Pos: " + pos, 0, 10);
         }
@@ -35,11 +52,10 @@ public class MainApp extends Application {
         Point drawnVec = null;
         if (from != null && to != null) {
             drawnVec = to.sub(from);
-
             ctx.strokeText("From: " + from, 0, 25);
             ctx.strokeText("To: " + to, 0, 40);
             ctx.strokeText("Drawn vector: " + drawnVec, 0, 55);
-            ctx.strokeLine(from.get(Point.X), from.get(Point.Y), to.get(Point.X), to.get(Point.Y));
+            renderArrow(ctx, Color.WHITE, from, to);
         }
 
         if (pos == null || drawnVec == null) {
@@ -51,6 +67,8 @@ public class MainApp extends Application {
 
         final float cosineOfAngle = drawnVec.cosineOfAngle(currentVec);
         ctx.strokeText("Cosine of angle: " + cosineOfAngle, 0, 85);
+
+        renderArrow(ctx, Color.GRAY, from, pos);
 
     }
 
