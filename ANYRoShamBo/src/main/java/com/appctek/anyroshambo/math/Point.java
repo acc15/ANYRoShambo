@@ -55,14 +55,26 @@ public class Point {
         return components[comp];
     }
 
+    /**
+     * Returns X coordinate of this point
+     * @return X coordinate
+     */
     public float getX() {
         return components[X];
     }
 
+    /**
+     * Returns Y coordinate of this point
+     * @return Y coordinate
+     */
     public float getY() {
         return components[Y];
     }
 
+    /**
+     * Returns Z coordinate of this point
+     * @return Z coordinate
+     */
     public float getZ() {
         return components[Z];
     }
@@ -181,10 +193,10 @@ public class Point {
         if (getComponentCount() != 2) {
             throw new IllegalStateException("Rotate function is only supported for 2 dimension points");
         }
-        final float sina = (float)Math.sin(angle);
+        final float sina = -(float)Math.sin(angle);
         final float cosa = (float)Math.cos(angle);
-        final float x = cosa * get(X) - sina * get(Y);
-        final float y = sina * get(X) + cosa * get(Y);
+        final float x = cosa * getX() - sina * getY();
+        final float y = sina * getX() + cosa * getY();
         return Point.fromArray(x, y);
     }
 
