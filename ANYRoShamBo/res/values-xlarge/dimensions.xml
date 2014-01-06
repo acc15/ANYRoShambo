@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <dimen name="icon_size">110dp</dimen>
-    <dimen name="button_size">64dp</dimen>
-    <dimen name="button_height">100dp</dimen>
-    <dimen name="triangle_y">400dp</dimen>
-    <dimen name="go_for_y">280dp</dimen>
-</resources>
