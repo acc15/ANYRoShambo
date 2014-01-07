@@ -91,7 +91,6 @@
             android:id="@+id/go_for"
             android:layout_width="120dp"
             android:layout_height="30dp"
-            android:src="@drawable/text_goparty"
             android:layout_centerHorizontal="true"
             android:contentDescription="@string/go_for_description"
             android:scaleType="fitXY"
