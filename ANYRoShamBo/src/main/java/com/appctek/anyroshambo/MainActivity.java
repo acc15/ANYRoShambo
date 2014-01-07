@@ -180,15 +180,14 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private void setIconGlow(View icon) {
         final float glowScale = 2f;
 
-        final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) glow.getLayoutParams();
         final RelativeLayout.LayoutParams iconParams = (RelativeLayout.LayoutParams)icon.getLayoutParams();
-
         final int w = icon.getWidth(), h = icon.getHeight();
         final float scaledWidth = w * glowScale;
         final float scaledHeight = h * glowScale;
         final float x = iconParams.leftMargin - (scaledWidth - w) / 2;
         final float y = iconParams.topMargin - (scaledHeight - h) / 2;
 
+        final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) glow.getLayoutParams();
         layoutParams.leftMargin = (int) x;
         layoutParams.topMargin = (int) y;
         layoutParams.width = (int) scaledWidth;
