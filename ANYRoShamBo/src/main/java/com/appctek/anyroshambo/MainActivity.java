@@ -54,7 +54,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
                         withDelay(5000).skipOnClick().build();
 
             case 1:
-                initGame(sequencer.getStep()==0);
+                initView(sequencer.getStep() == 0);
                 break;
             }
             return null;
@@ -197,7 +197,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
         glow.startAnimation(animationFactory.createGlowAnimationIn());
     }
 
-    private void startGame() {
+    private void initGame() {
         if (BuildConfig.DEBUG) {
             triangle.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
@@ -214,7 +214,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
     }
 
-    private void initGame(final boolean doAnimate) {
+    private void initView(final boolean doAnimate) {
 
         setContentView(R.layout.game_with_preloader);
         triangle = (ImageView)findViewById(R.id.triangle);
@@ -234,7 +234,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
                 }
 
                 gameContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                startGame();
+                initGame();
 
                 final View preloader = findViewById(R.id.preloader);
                 gameContainer.removeView(preloader);
