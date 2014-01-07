@@ -2,10 +2,12 @@ package com.appctek.anyroshambo.util;
 
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import com.appctek.anyroshambo.math.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  * @author Vyacheslav Mayorov
@@ -29,7 +31,7 @@ public class ViewUtils {
             return;
         }
 
-        final Point scale = Point.fromArray((float)cw/vw,(float)ch/vh);
+        final Point scale = Point.fromArray((float) cw / vw, (float) ch / vh);
         logger.debug("Scaling view from " + vw + "x" + vh + " to " + cw + "x" + ch + ". Scale factors: " + scale);
         scaleView(view, scale);
     }
@@ -40,12 +42,22 @@ public class ViewUtils {
 
     public static void scaleView(View view, Point factor) {
 
+        final float scale = Math.min(factor.getX(), factor.getY());
+
         final ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
         if (!isSpecialDimension(layoutParams.width)) {
-            layoutParams.width *= factor.getX();
+            if (view instanceof ImageView) {
+                layoutParams.width *= scale;
+            } else {
+                layoutParams.width *= factor.getX();
+            }
         }
         if (!isSpecialDimension(layoutParams.height)) {
-            layoutParams.height *= factor.getY();
+            if (view instanceof ImageView) {
+                layoutParams.height *= scale;
+            } else {
+                layoutParams.height *= factor.getY();
+            }
         }
 
         if (layoutParams instanceof ViewGroup.MarginLayoutParams) {

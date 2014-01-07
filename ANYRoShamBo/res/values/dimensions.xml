@@ -2,7 +2,4 @@
 <resources>
     <dimen name="icon_size">110dp</dimen>
     <dimen name="button_size">90dp</dimen>
-    <dimen name="button_height">80dp</dimen>
-    <dimen name="triangle_size">220dp</dimen>
-    <dimen name="go_for_y">100dp</dimen>
 </resources>
