@@ -1,6 +1,5 @@
 package com.appctek.anyroshambo;
 
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 
@@ -23,7 +22,6 @@ public class HardwareAcceleratedActivity extends FullScreenActivity {
                     FLAG_HARDWARE_ACCELERATED,
                     FLAG_HARDWARE_ACCELERATED);
         }
-        findViewById(android.R.id.content).setBackgroundColor(Color.BLACK);
-
+        findViewById(android.R.id.content).setBackgroundColor(getResources().getColor(R.color.background_color));
     }
 }

@@ -1,15 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                android:background="@drawable/gamescreen"
-                android:layout_width="360dp"
-                android:layout_height="592dp"
-                android:keepScreenOn="true">
+<RelativeLayout
+        android:id="@+id/game_view"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:background="@drawable/gamescreen"
+        android:layout_width="360dp"
+        android:layout_height="592dp"
+        android:keepScreenOn="true">
+
+    <ImageButton
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/info_button_description"
+            android:src="@drawable/info_button"
+            android:background="@null"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="5dp"
+            android:layout_marginTop="50dp"
+            android:onClick="showInfo"/>
+
+    <ImageButton
+            android:id="@+id/vk_button"
+            android:layout_width="@dimen/button_size"
+            android:layout_height="@dimen/button_size"
+            android:contentDescription="@string/vkontakte_button_description"
+            android:src="@drawable/vk_button"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginBottom="10dp"
+            android:background="@null"/>
+
+    <ImageButton
+            android:id="@+id/ok_button"
+            android:layout_width="@dimen/button_size"
+            android:layout_height="@dimen/button_size"
+            android:contentDescription="@string/odnoklassniki_button_description"
+            android:src="@drawable/ok_button"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="90dp"
+            android:layout_marginBottom="10dp"
+            android:background="@null"/>
+
+    <ImageButton
+            android:id="@+id/fb_button"
+            android:layout_width="@dimen/button_size"
+            android:layout_height="@dimen/button_size"
+            android:contentDescription="@string/facebook_button_description"
+            android:src="@drawable/fb_button"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="180dp"
+            android:layout_marginBottom="10dp"
+            android:background="@null"/>
+
+    <ImageButton
+            android:id="@+id/tw_button"
+            android:layout_width="@dimen/button_size"
+            android:layout_height="@dimen/button_size"
+            android:contentDescription="@string/twitter_button_description"
+            android:src="@drawable/tw_button"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_marginLeft="270dp"
+            android:layout_marginBottom="10dp"
+            android:background="@null"/>
+
+    <ImageView
+            android:id="@+id/glow"
+            android:src="@drawable/glow_big"
+            android:layout_width="@dimen/icon_size"
+            android:layout_height="@dimen/icon_size"
+            android:visibility="invisible"
+            android:contentDescription="@string/glow_description"/>
 
     <ImageView
             android:id="@+id/triangle"
             android:src="@drawable/triangle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="200dp"
             android:contentDescription="@string/triangle_description"/>
@@ -22,14 +90,6 @@
             android:contentDescription="@string/go_for_description"
             android:visibility="invisible"
             android:layout_marginTop="@dimen/go_for_y"/>
-
-    <ImageView
-            android:id="@+id/glow"
-            android:src="@drawable/glow_big"
-            android:layout_width="@dimen/icon_size"
-            android:layout_height="@dimen/icon_size"
-            android:visibility="invisible"
-            android:contentDescription="@string/glow_description"/>
 
     <ImageView
             android:id="@+id/walk"
@@ -51,59 +111,5 @@
             android:layout_width="@dimen/icon_size"
             android:layout_height="@dimen/icon_size"
             android:contentDescription="@string/party_description"/>
-
-    <ImageButton
-            android:layout_width="80dp"
-            android:layout_height="wrap_content"
-            android:contentDescription="@string/info_button_description"
-            android:src="@drawable/info_button"
-            android:background="@null"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="5dp"
-            android:layout_marginTop="50dp"
-            android:onClick="showInfo"/>
-
-    <ImageButton android:id="@+id/vk_button"
-            android:layout_width="@dimen/button_size"
-            android:layout_height="@dimen/button_size"
-            android:contentDescription="@string/vkontakte_button_description"
-            android:src="@drawable/vk_button"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_marginBottom="10dp"
-            android:background="@null"/>
-
-    <ImageButton android:id="@+id/ok_button"
-            android:layout_width="@dimen/button_size"
-            android:layout_height="@dimen/button_size"
-            android:contentDescription="@string/odnoklassniki_button_description"
-            android:src="@drawable/ok_button"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_marginLeft="90dp"
-            android:layout_marginBottom="10dp"
-            android:background="@null"/>
-
-    <ImageButton android:id="@+id/fb_button"
-            android:layout_width="@dimen/button_size"
-            android:layout_height="@dimen/button_size"
-            android:contentDescription="@string/facebook_button_description"
-            android:src="@drawable/fb_button"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_marginLeft="180dp"
-            android:layout_marginBottom="10dp"
-            android:background="@null"/>
-
-    <ImageButton android:id="@+id/tw_button"
-            android:layout_width="@dimen/button_size"
-            android:layout_height="@dimen/button_size"
-            android:contentDescription="@string/twitter_button_description"
-            android:src="@drawable/tw_button"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_marginLeft="270dp"
-            android:layout_marginBottom="10dp"
-            android:background="@null"/>
 
 </RelativeLayout>

@@ -3,17 +3,16 @@ package com.appctek.anyroshambo;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import com.appctek.anyroshambo.anim.ActionSequence;
-import com.appctek.anyroshambo.anim.Animator;
-import com.appctek.anyroshambo.anim.LazyAction;
-import com.appctek.anyroshambo.anim.Sequencer;
+import com.appctek.anyroshambo.anim.*;
 import com.appctek.anyroshambo.math.GeometryUtils;
 import com.appctek.anyroshambo.model.GameModel;
 import com.appctek.anyroshambo.services.*;
+import com.appctek.anyroshambo.util.ViewUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,10 +34,9 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private Animator animator = ServiceRepository.getRepository().getAnimationHelper();
     private GameService gameService = ServiceRepository.getRepository().getGameService();
     private AnimationFactory animationFactory = ServiceRepository.getRepository().getAnimationFactory();
-    private AppInfo appInfo = ServiceRepository.getRepository().getAppInfo();
 
     private ImageView triangle;
-    private View[] icons;
+    private View[]    icons;
     private ImageView glow;
     private ImageView goForLabel;
     private GameModel gameModel = new GameModel();
@@ -56,19 +54,8 @@ public class MainActivity extends HardwareAcceleratedActivity {
                         withDelay(5000).skipOnClick().build();
 
             case 1:
-                final View gameView = getLayoutInflater().inflate(R.layout.game, null);
-                setContentView(gameView);
-
-                gameView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-                    public void onGlobalLayout() {
-                        initGame();
-                        gameView.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                    }
-                });
-
-                return sequencer.getStep() == 0
-                        ? animator.animate(gameView).with(animationFactory.createSplashAnimationIn()).build()
-                        : null;
+                initGame(sequencer.getStep()==0);
+                break;
             }
             return null;
         }
@@ -82,7 +69,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
             case 0:
 
                 if (gameModel.getSelectedIcon() >= 0) {
-                    goForLabel.startAnimation(animationFactory.createGoForAnimationOut());
+                    goForLabel.setImageDrawable(null);
                     glow.startAnimation(animationFactory.createGlowAnimationOut());
                     icons[gameModel.getSelectedIcon()].startAnimation(animationFactory.createIconScaleOut());
                 }
@@ -210,8 +197,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
         glow.startAnimation(animationFactory.createGlowAnimationIn());
     }
 
-    private void initGame() {
-        triangle = (ImageView)findViewById(R.id.triangle);
+    private void startGame() {
         if (BuildConfig.DEBUG) {
             triangle.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
@@ -219,14 +205,43 @@ public class MainActivity extends HardwareAcceleratedActivity {
                 }
             });
         }
-
-        glow = (ImageView) findViewById(R.id.glow);
-        goForLabel = (ImageView) findViewById(R.id.go_for);
-        icons = new View[]{findViewById(R.id.drink), findViewById(R.id.walk), findViewById(R.id.party)};
-        setIconPositions(INITIAL_ANGLE);
         shakeDetector.start(new ShakeDetector.OnShakeListener() {
             public void onShake() {
                 runOnUiThread(gameSequencer);
+            }
+        });
+        setIconPositions(INITIAL_ANGLE);
+
+    }
+
+    private void initGame(final boolean doAnimate) {
+
+        setContentView(R.layout.game_with_preloader);
+        triangle = (ImageView)findViewById(R.id.triangle);
+        glow = (ImageView) findViewById(R.id.glow);
+        goForLabel = (ImageView) findViewById(R.id.go_for);
+        icons = new View[]{findViewById(R.id.drink), findViewById(R.id.walk), findViewById(R.id.party)};
+
+        final ViewGroup gameContainer = (ViewGroup)findViewById(R.id.game_container);
+        gameContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            public void onGlobalLayout() {
+
+                final View gameView = findViewById(R.id.game_view);
+                if (gameView.getWidth() != gameContainer.getWidth() ||
+                    gameView.getHeight() != gameContainer.getHeight()) {
+                    ViewUtils.scaleComponents(gameContainer, gameView);
+                    return;
+                }
+
+                gameContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                startGame();
+
+                final View preloader = findViewById(R.id.preloader);
+                gameContainer.removeView(preloader);
+
+                if (doAnimate) {
+                    gameContainer.startAnimation(animationFactory.createSplashAnimationIn());
+                }
             }
         });
     }

@@ -17,7 +17,7 @@ public class AnimationAction implements LazyAction {
     }
 
     public void setListener(final Runnable listener) {
-        this.animation.setAnimationListener(new Animation.AnimationListener() {
+        this.animation.setAnimationListener(listener != null ? new Animation.AnimationListener() {
             public void onAnimationStart(Animation animation) {
             }
 
@@ -27,7 +27,7 @@ public class AnimationAction implements LazyAction {
 
             public void onAnimationRepeat(Animation animation) {
             }
-        });
+        } : null);
     }
 
     public void run() {
