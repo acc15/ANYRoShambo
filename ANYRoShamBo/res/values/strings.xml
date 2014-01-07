@@ -19,5 +19,7 @@
         To make the super-chooser work shake the device, or tap in the center of a triangle.
         Follow us, and we will gladden you with new interesting and exciting games.</string>
     <string name="info_header">Information</string>
+    <string name="gamescreen_description">gamescreen</string>
+    <string name="share_text_description">share_text</string>
 
 </resources>

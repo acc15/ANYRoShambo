@@ -15,7 +15,7 @@ public class AboutActivity extends FullScreenActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.about);
 
-        final Typeface typeface = Typeface.createFromAsset(getAssets(), "myriadpro.ttf");
+        final Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/myriadpro.ttf");
         ((TextView)findViewById(R.id.info_header)).setTypeface(typeface);
         ((TextView)findViewById(R.id.info_text)).setTypeface(typeface);
     }

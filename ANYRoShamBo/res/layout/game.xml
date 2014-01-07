@@ -2,22 +2,35 @@
 <RelativeLayout
         android:id="@+id/game_view"
         xmlns:android="http://schemas.android.com/apk/res/android"
-        android:background="@drawable/gamescreen"
         android:layout_width="360dp"
-        android:layout_height="592dp"
+        android:layout_height="640dp"
         android:keepScreenOn="true">
 
-    <ImageButton
-            android:layout_width="75dp"
+    <ImageView android:id="@+id/game_screen"
+            android:layout_width="360dp"
+            android:layout_height="640dp"
+            android:src="@drawable/gamescreen"
+            android:contentDescription="@string/gamescreen_description"
+            android:scaleType="matrix"/>
+
+    <ImageButton android:layout_width="75dp"
             android:layout_height="100dp"
             android:contentDescription="@string/info_button_description"
             android:src="@drawable/info_button"
             android:background="@null"
             android:layout_alignParentRight="true"
-            android:layout_marginRight="10dp"
-            android:layout_marginTop="70dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginTop="80dp"
             android:scaleType="fitXY"
             android:onClick="showInfo"/>
+
+    <ImageView android:id="@+id/share_text"
+               android:layout_width="360dp"
+               android:layout_height="50dp"
+               android:layout_marginTop="430dp"
+               android:scaleType="fitXY"
+               android:src="@drawable/text_share"
+               android:contentDescription="@string/share_text_description"/>
 
     <ImageButton
             android:id="@+id/vk_button"
@@ -25,9 +38,8 @@
             android:layout_height="@dimen/button_size"
             android:contentDescription="@string/vkontakte_button_description"
             android:src="@drawable/vk_button"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
-            android:layout_marginBottom="25dp"
+            android:layout_below="@id/share_text"
+            android:layout_marginTop="@dimen/button_offset"
             android:scaleType="fitXY"
             android:background="@null"/>
 
@@ -37,10 +49,9 @@
             android:layout_height="@dimen/button_size"
             android:contentDescription="@string/odnoklassniki_button_description"
             android:src="@drawable/ok_button"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
+            android:layout_below="@id/share_text"
+            android:layout_marginTop="@dimen/button_offset"
             android:layout_marginLeft="90dp"
-            android:layout_marginBottom="25dp"
             android:scaleType="fitXY"
             android:background="@null"/>
 
@@ -50,10 +61,9 @@
             android:layout_height="@dimen/button_size"
             android:contentDescription="@string/facebook_button_description"
             android:src="@drawable/fb_button"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
+            android:layout_below="@id/share_text"
+            android:layout_marginTop="@dimen/button_offset"
             android:layout_marginLeft="180dp"
-            android:layout_marginBottom="25dp"
             android:scaleType="fitXY"
             android:background="@null"/>
 
@@ -63,10 +73,9 @@
             android:layout_height="@dimen/button_size"
             android:contentDescription="@string/twitter_button_description"
             android:src="@drawable/tw_button"
-            android:layout_alignParentBottom="true"
-            android:layout_alignParentLeft="true"
+            android:layout_below="@id/share_text"
+            android:layout_marginTop="@dimen/button_offset"
             android:layout_marginLeft="270dp"
-            android:layout_marginBottom="25dp"
             android:scaleType="fitXY"
             android:background="@null"/>
 
@@ -82,9 +91,9 @@
             android:id="@+id/triangle"
             android:src="@drawable/triangle"
             android:layout_width="match_parent"
-            android:layout_height="180dp"
+            android:layout_height="160dp"
             android:layout_centerHorizontal="true"
-            android:layout_marginTop="200dp"
+            android:layout_marginTop="180dp"
             android:contentDescription="@string/triangle_description"/>
 
     <ImageView
@@ -94,8 +103,7 @@
             android:layout_centerHorizontal="true"
             android:contentDescription="@string/go_for_description"
             android:scaleType="fitXY"
-            android:layout_marginTop="100dp"/>
-
+            android:layout_marginTop="80dp"/>
     <ImageView
             android:id="@+id/walk"
             android:src="@drawable/icon_walk_normal"

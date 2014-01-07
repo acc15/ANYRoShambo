@@ -2,4 +2,5 @@
 <resources>
     <dimen name="icon_size">110dp</dimen>
     <dimen name="button_size">90dp</dimen>
+    <dimen name="button_offset">-30dp</dimen>
 </resources>

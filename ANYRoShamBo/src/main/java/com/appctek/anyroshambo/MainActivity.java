@@ -8,7 +8,10 @@ import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import com.appctek.anyroshambo.anim.*;
+import com.appctek.anyroshambo.anim.ActionSequence;
+import com.appctek.anyroshambo.anim.Animator;
+import com.appctek.anyroshambo.anim.LazyAction;
+import com.appctek.anyroshambo.anim.Sequencer;
 import com.appctek.anyroshambo.math.GeometryUtils;
 import com.appctek.anyroshambo.model.GameModel;
 import com.appctek.anyroshambo.services.*;
@@ -226,9 +229,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
             public void onGlobalLayout() {
 
                 final View gameView = findViewById(R.id.game_view);
-                if (gameView.getWidth() != gameContainer.getWidth() ||
-                    gameView.getHeight() != gameContainer.getHeight()) {
-                    ViewUtils.scaleComponents(gameContainer, gameView);
+                if (ViewUtils.scaleComponents(gameContainer, gameView)) {
                     return;
                 }
 

@@ -1,5 +1,6 @@
 package com.appctek.anyroshambo.util;
 
+import android.graphics.Matrix;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -17,48 +18,48 @@ public class ViewUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(ViewUtils.class);
 
+    public static boolean scaleComponents(View container, View view) {
+        final int cw = container.getWidth(), ch = container.getHeight();
 
-    public static void scaleComponents(View container, View view) {
+        final int vw = view.getWidth(), vh = view.getHeight();
+        if (cw == vw) {
+            return false;
+        }
+
         final ViewGroup.LayoutParams params = view.getLayoutParams();
-        final int vw = params.width, vh = params.height;
-        if (isSpecialDimension(vw) || isSpecialDimension(vh)) {
+        final int lw = params.width, lh = params.height;
+        if (isSpecialDimension(lw) || isSpecialDimension(lh)) {
             throw new IllegalArgumentException("View layout width and height should be fixed to perform scaling");
         }
-
-        final int cw = container.getWidth(), ch = container.getHeight();
-        if (cw == vw && ch == vh) {
+        if (cw == lw) {
             logger.debug("View already scaled. Skipping scale");
-            return;
+            return true;
         }
 
-        final Point scale = Point.fromArray((float) cw / vw, (float) ch / vh);
-        logger.debug("Scaling view from " + vw + "x" + vh + " to " + cw + "x" + ch + ". Scale factors: " + scale);
+        final float factor = (float)cw/lw;
+        final Point scale = Point.fromArray(factor, factor);
+        logger.debug("Scaling view from " + lw + "x" + lh + " to " + cw + "x" + ch + ". Scale factors: " + scale);
         scaleView(view, scale);
+        return true;
     }
 
     private static boolean isSpecialDimension(int val) {
         return val == ViewGroup.LayoutParams.MATCH_PARENT || val == ViewGroup.LayoutParams.WRAP_CONTENT;
     }
 
+    private static void scaleWH(ViewGroup.LayoutParams lp, float xScale, float yScale) {
+        if (!isSpecialDimension(lp.width)) {
+            lp.width *= xScale;
+        }
+        if (!isSpecialDimension(lp.height)) {
+            lp.height *= yScale;
+        }
+    }
+
     public static void scaleView(View view, Point factor) {
 
-        final float scale = Math.min(factor.getX(), factor.getY());
-
         final ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
-        if (!isSpecialDimension(layoutParams.width)) {
-            if (view instanceof ImageView) {
-                layoutParams.width *= scale;
-            } else {
-                layoutParams.width *= factor.getX();
-            }
-        }
-        if (!isSpecialDimension(layoutParams.height)) {
-            if (view instanceof ImageView) {
-                layoutParams.height *= scale;
-            } else {
-                layoutParams.height *= factor.getY();
-            }
-        }
+        scaleWH(layoutParams, factor.getX(), factor.getY());
 
         if (layoutParams instanceof ViewGroup.MarginLayoutParams) {
             final ViewGroup.MarginLayoutParams marginLayoutParams = (ViewGroup.MarginLayoutParams) layoutParams;
@@ -70,18 +71,24 @@ public class ViewUtils {
 
         view.setLayoutParams(layoutParams);
         view.setPadding(
-                (int)(view.getPaddingLeft() * factor.getX()),
-                (int)(view.getPaddingTop() * factor.getY()),
-                (int)(view.getPaddingRight() * factor.getX()),
-                (int)(view.getPaddingBottom() * factor.getY()));
+                (int) (view.getPaddingLeft() * factor.getX()),
+                (int) (view.getPaddingTop() * factor.getY()),
+                (int) (view.getPaddingRight() * factor.getX()),
+                (int) (view.getPaddingBottom() * factor.getY()));
 
-        if (view instanceof TextView) {
+        if (view instanceof ImageView) {
+            final ImageView imageView = (ImageView) view;
+            if (imageView.getScaleType() == ImageView.ScaleType.MATRIX) {
+                final Matrix matrix = new Matrix();
+                matrix.setScale(factor.getX(), factor.getY());
+                imageView.setImageMatrix(matrix);
+            }
+        } else if (view instanceof TextView) {
             final TextView textView = (TextView) view;
             textView.setTextSize(textView.getTextSize() * Math.min(factor.getX(), factor.getY()));
-        }
-        if (view instanceof ViewGroup) {
+        } else if (view instanceof ViewGroup) {
             final ViewGroup viewGroup = (ViewGroup) view;
-            for (int i=0; i<viewGroup.getChildCount(); i++) {
+            for (int i = 0; i < viewGroup.getChildCount(); i++) {
                 final View child = viewGroup.getChildAt(i);
                 scaleView(child, factor);
             }
