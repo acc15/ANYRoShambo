@@ -11,7 +11,7 @@
         <android.version>2.2.1</android.version>
         <android.platform>8</android.platform>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.build.debug>true</project.build.debug>
+        <project.build.number>DEV</project.build.number>
     </properties>
 
     <dependencies>
@@ -57,6 +57,25 @@
                     <undeployBeforeDeploy>true</undeployBeforeDeploy>
                 </configuration>
                 <extensions>true</extensions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>buildnumber-maven-plugin</artifactId>
+                <version>1.2</version>
+                <executions>
+                    <execution>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>create</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <doCheck>true</doCheck>
+                    <doUpdate>true</doUpdate>
+                    <shortRevisionLength>8</shortRevisionLength>
+                    <buildNumberPropertyName>project.build.number</buildNumberPropertyName>
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
