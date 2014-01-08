@@ -47,8 +47,4 @@ public class AppInfo {
     public String getVersion() {
         return getAppProperty("version");
     }
-
-    public boolean isDebug() {
-        return Boolean.parseBoolean(getAppProperty("debug"));
-    }
 }
