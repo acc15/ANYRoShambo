@@ -38,47 +38,47 @@
 
     <ImageButton
             android:id="@+id/vk_button"
-            android:layout_width="@dimen/button_size"
-            android:layout_height="@dimen/button_size"
+            android:layout_width="@dimen/game_button_size"
+            android:layout_height="@dimen/game_button_size"
             android:contentDescription="@string/vkontakte_button_description"
             android:src="@drawable/vk_button"
             android:layout_below="@id/share_text"
-            android:layout_marginTop="@dimen/button_offset"
+            android:layout_marginTop="@dimen/game_button_offset"
             android:scaleType="fitXY"
             android:background="@null"/>
 
     <ImageButton
             android:id="@+id/ok_button"
-            android:layout_width="@dimen/button_size"
-            android:layout_height="@dimen/button_size"
+            android:layout_width="@dimen/game_button_size"
+            android:layout_height="@dimen/game_button_size"
             android:contentDescription="@string/odnoklassniki_button_description"
             android:src="@drawable/ok_button"
             android:layout_below="@id/share_text"
-            android:layout_marginTop="@dimen/button_offset"
+            android:layout_marginTop="@dimen/game_button_offset"
             android:layout_marginLeft="90dp"
             android:scaleType="fitXY"
             android:background="@null"/>
 
     <ImageButton
             android:id="@+id/fb_button"
-            android:layout_width="@dimen/button_size"
-            android:layout_height="@dimen/button_size"
+            android:layout_width="@dimen/game_button_size"
+            android:layout_height="@dimen/game_button_size"
             android:contentDescription="@string/facebook_button_description"
             android:src="@drawable/fb_button"
             android:layout_below="@id/share_text"
-            android:layout_marginTop="@dimen/button_offset"
+            android:layout_marginTop="@dimen/game_button_offset"
             android:layout_marginLeft="180dp"
             android:scaleType="fitXY"
             android:background="@null"/>
 
     <ImageButton
             android:id="@+id/tw_button"
-            android:layout_width="@dimen/button_size"
-            android:layout_height="@dimen/button_size"
+            android:layout_width="@dimen/game_button_size"
+            android:layout_height="@dimen/game_button_size"
             android:contentDescription="@string/twitter_button_description"
             android:src="@drawable/tw_button"
             android:layout_below="@id/share_text"
-            android:layout_marginTop="@dimen/button_offset"
+            android:layout_marginTop="@dimen/game_button_offset"
             android:layout_marginLeft="270dp"
             android:scaleType="fitXY"
             android:background="@null"/>
@@ -86,8 +86,8 @@
     <ImageView
             android:id="@+id/glow"
             android:src="@drawable/glow_big"
-            android:layout_width="@dimen/icon_size"
-            android:layout_height="@dimen/icon_size"
+            android:layout_width="@dimen/game_icon_size"
+            android:layout_height="@dimen/game_icon_size"
             android:visibility="invisible"
             android:contentDescription="@string/glow_description"/>
 
@@ -111,22 +111,22 @@
     <ImageView
             android:id="@+id/walk"
             android:src="@drawable/icon_walk_normal"
-            android:layout_width="@dimen/icon_size"
-            android:layout_height="@dimen/icon_size"
+            android:layout_width="@dimen/game_icon_size"
+            android:layout_height="@dimen/game_icon_size"
             android:contentDescription="@string/walk_description"/>
 
     <ImageView
             android:id="@+id/drink"
             android:src="@drawable/icon_drink_normal"
-            android:layout_width="@dimen/icon_size"
-            android:layout_height="@dimen/icon_size"
+            android:layout_width="@dimen/game_icon_size"
+            android:layout_height="@dimen/game_icon_size"
             android:contentDescription="@string/drink_description"/>
 
     <ImageView
             android:id="@+id/party"
             android:src="@drawable/icon_party_normal"
-            android:layout_width="@dimen/icon_size"
-            android:layout_height="@dimen/icon_size"
+            android:layout_width="@dimen/game_icon_size"
+            android:layout_height="@dimen/game_icon_size"
             android:contentDescription="@string/party_description"/>
 
 </RelativeLayout>

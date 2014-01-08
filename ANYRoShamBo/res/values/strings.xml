@@ -16,11 +16,23 @@
     <string name="go_for_description">go_for</string>
 
     <string name="info_text">Special New Year edition of ANYRoShamBo will help you to have a lot of fun on a New Year’s day.
-        To make the super-chooser work shake the device, or tap in the center of a triangle.
-        Follow us, and we will gladden you with new interesting and exciting games.</string>
+            To make the super-chooser work shake the device, or tap in the center of a triangle.
+            Follow us, and we will gladden you with new interesting and exciting games.</string>
     <string name="info_header">Information</string>
     <string name="gamescreen_description">gamescreen</string>
     <string name="share_text_description">share_text</string>
     <string name="share_text">Share</string>
 
+    <string name="about_main_url">
+         <a href="http://appctek.com">http://appctek.com</a>
+    </string>
+    <string name="about_vk_url">
+         <a href="http://vk.com/appctek">http://vk.com/appctek</a>
+    </string>
+    <string name="about_tw_url">
+         <a href="http://twitter.com/appctek">http://twitter.com/appctek</a>
+    </string>
+    <string name="about_ig_url">
+         <a href="http://instagram.com/appctek">http://instagram.com/appctek</a>
+    </string>
 </resources>

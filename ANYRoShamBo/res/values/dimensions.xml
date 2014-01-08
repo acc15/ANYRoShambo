@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <dimen name="icon_size">110dp</dimen>
-    <dimen name="button_size">90dp</dimen>
-    <dimen name="button_offset">-15dp</dimen>
+    <dimen name="game_icon_size">110dp</dimen>
+    <dimen name="game_button_size">90dp</dimen>
+    <dimen name="game_button_offset">-15dp</dimen>
     <dimen name="header_text_size">24sp</dimen>
     <dimen name="normal_text_size">16sp</dimen>
+    <dimen name="about_side_margin">30dp</dimen>
+    <dimen name="about_field_offset">5dp</dimen>
 </resources>
