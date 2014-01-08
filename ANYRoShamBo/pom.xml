@@ -34,6 +34,46 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>ad</id>
+            <properties>
+                <manifest.ad.permissions><![CDATA[
+    <!-- Already defined <uses-permission android:name="android.permission.INTERNET"/>  -->
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+    <uses-permission android:name="android.permission.GET_TASKS"/>
+    ]]></manifest.ad.permissions>
+            </properties>
+            <repositories>
+                <repository>
+                    <id>thirdparty</id>
+                    <url>file://${basedir}/../thirdparty</url>
+                </repository>
+            </repositories>
+            <dependencies>
+                <dependency>
+                    <groupId>com.startapp</groupId>
+                    <artifactId>common</artifactId>
+                    <version>1.0.1</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.startapp</groupId>
+                    <artifactId>search-box</artifactId>
+                    <version>1.0.4</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.startapp</groupId>
+                    <artifactId>in-app</artifactId>
+                    <version>2.1.1</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+    </profiles>
+
     <scm>
         <developerConnection>scm:git:https://bitbucket.org/acc15/anyroshambo.git</developerConnection>
     </scm>
