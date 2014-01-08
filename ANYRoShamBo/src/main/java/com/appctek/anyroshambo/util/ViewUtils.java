@@ -3,7 +3,7 @@ package com.appctek.anyroshambo.util;
 import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
-import android.graphics.drawable.InsetDrawable;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -89,7 +89,7 @@ public class ViewUtils {
         } else if (view instanceof TextView) {
 
             final TextView textView = (TextView) view;
-            textView.setTextSize(textView.getTextSize() * Math.min(factor.getX(), factor.getY()));
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, textView.getTextSize() * Math.min(factor.getX(), factor.getY()));
 
             final Drawable[] drawables = textView.getCompoundDrawables();
             for (final Drawable drawable: drawables) {

@@ -7,4 +7,8 @@
     <string name="info_header">Информация</string>
     <string name="share_text">Поделиться с друзьями</string>
 
+    <string name="go_party_text">Танцевать!</string>
+    <string name="go_celebrate_text">Праздновать!</string>
+    <string name="go_forawalk_text">Гулять!</string>
+
 </resources>

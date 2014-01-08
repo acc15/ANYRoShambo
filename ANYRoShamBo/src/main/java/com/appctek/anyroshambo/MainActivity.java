@@ -1,6 +1,7 @@
 package com.appctek.anyroshambo;
 
 import android.content.Intent;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,6 +9,7 @@ import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import com.appctek.anyroshambo.anim.ActionSequence;
 import com.appctek.anyroshambo.anim.Animator;
 import com.appctek.anyroshambo.anim.LazyAction;
@@ -27,9 +29,9 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
     private static final float INITIAL_ANGLE = GeometryUtils.HALF_PI;
     private static final int[] goForResIds = new int[]{
-            R.drawable.text_gocelebrate,
-            R.drawable.text_goforawalk,
-            R.drawable.text_goparty
+            R.string.go_celebrate_text,
+            R.string.go_forawalk_text,
+            R.string.go_party_text
     };
 
     private ShakeDetector shakeDetector = ServiceRepository.getRepository().getShakeDetector(this);
@@ -41,7 +43,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private ImageView triangle;
     private View[]    icons;
     private ImageView glow;
-    private ImageView goForLabel;
+    private TextView goForLabel;
     private GameModel gameModel = new GameModel();
 
     private Sequencer mainSequencer = new Sequencer(new ActionSequence() {
@@ -72,7 +74,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
             case 0:
 
                 if (gameModel.getSelectedIcon() >= 0) {
-                    goForLabel.setImageDrawable(null);
+                    goForLabel.setText(null);
                     glow.startAnimation(animationFactory.createGlowAnimationOut());
                     icons[gameModel.getSelectedIcon()].startAnimation(animationFactory.createIconScaleOut());
                 }
@@ -103,7 +105,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
                 return animator.animate(selectedIcon).with(animationFactory.createIconScaleIn()).build();
 
             case 2:
-                goForLabel.setImageResource(goForResIds[gameModel.getSelectedIcon()]);
+                goForLabel.setText(goForResIds[gameModel.getSelectedIcon()]);
                 return animator.animate(goForLabel).with(animationFactory.createGoForAnimationIn()).build();
 
             case 3:
@@ -221,8 +223,11 @@ public class MainActivity extends HardwareAcceleratedActivity {
         setContentView(R.layout.game_with_preloader);
         triangle = (ImageView)findViewById(R.id.triangle);
         glow = (ImageView) findViewById(R.id.glow);
-        goForLabel = (ImageView) findViewById(R.id.go_for);
+        goForLabel = (TextView) findViewById(R.id.go_for);
         icons = new View[]{findViewById(R.id.drink), findViewById(R.id.walk), findViewById(R.id.party)};
+
+        final Typeface kremlinCtt = Typeface.createFromAsset(getAssets(), "fonts/kremlinctt.ttf");
+        goForLabel.setTypeface(kremlinCtt);
 
         final ViewGroup gameContainer = (ViewGroup)findViewById(R.id.game_container);
         gameContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
