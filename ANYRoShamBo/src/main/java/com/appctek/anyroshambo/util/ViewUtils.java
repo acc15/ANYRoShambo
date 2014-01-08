@@ -1,6 +1,9 @@
 package com.appctek.anyroshambo.util;
 
 import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.InsetDrawable;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -84,8 +87,24 @@ public class ViewUtils {
                 imageView.setImageMatrix(matrix);
             }
         } else if (view instanceof TextView) {
+
             final TextView textView = (TextView) view;
             textView.setTextSize(textView.getTextSize() * Math.min(factor.getX(), factor.getY()));
+
+            final Drawable[] drawables = textView.getCompoundDrawables();
+            for (final Drawable drawable: drawables) {
+                if (drawable == null) {
+                    continue;
+                }
+
+                final Rect oldBounds = drawable.getBounds();
+                drawable.setBounds((int)(oldBounds.left * factor.getX()),
+                                   (int)(oldBounds.top * factor.getY()),
+                                   (int)(oldBounds.right * factor.getX()),
+                                   (int)(oldBounds.bottom * factor.getY()));
+            }
+            textView.setCompoundDrawables(drawables[0], drawables[1], drawables[2], drawables[3]);
+
         } else if (view instanceof ViewGroup) {
             final ViewGroup viewGroup = (ViewGroup) view;
             for (int i = 0; i < viewGroup.getChildCount(); i++) {

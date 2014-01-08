@@ -21,5 +21,6 @@
     <string name="info_header">Information</string>
     <string name="gamescreen_description">gamescreen</string>
     <string name="share_text_description">share_text</string>
+    <string name="share_text">Share</string>
 
 </resources>

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/about_screen"
               android:orientation="vertical"
               android:layout_width="360dp"
               android:layout_height="640dp">
@@ -12,13 +13,17 @@
             android:contentDescription="@string/gamescreen_description"/>
 
     <TextView android:id="@+id/info_header"
-              android:layout_width="match_parent"
+              android:layout_width="wrap_content"
               android:layout_height="wrap_content"
+              android:layout_centerHorizontal="true"
               android:textColor="@color/text_color"
               android:layout_marginTop="150dp"
               android:layout_marginBottom="10dp"
-              android:gravity="center_horizontal"
-              android:textSize="30sp"
+              android:layout_marginLeft="10dp"
+              android:layout_marginRight="10dp"
+              android:drawableLeft="@drawable/hline"
+              android:drawableRight="@drawable/hline"
+              android:textSize="@dimen/header_text_size"
               android:text="@string/info_header"/>
 
     <TextView android:id="@+id/info_text"
@@ -26,9 +31,11 @@
               android:layout_height="wrap_content"
               android:textColor="@color/text_color"
               android:layout_below="@id/info_header"
-              android:textSize="18sp"
+              android:textSize="@dimen/normal_text_size"
               android:layout_marginLeft="10dp"
               android:layout_marginRight="10dp"
               android:text="@string/info_text"/>
+
+
 
 </RelativeLayout>
