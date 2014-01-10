@@ -17,6 +17,7 @@ import com.appctek.anyroshambo.anim.Sequencer;
 import com.appctek.anyroshambo.math.GeometryUtils;
 import com.appctek.anyroshambo.model.GameModel;
 import com.appctek.anyroshambo.services.*;
+import com.appctek.anyroshambo.util.SupportUtils;
 import com.appctek.anyroshambo.util.ViewUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -219,7 +220,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
                     return;
                 }
 
-                gameContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                SupportUtils.removeOnGlobalLayoutListener(gameContainer.getViewTreeObserver(), this);
                 initGame();
 
                 final View preloader = findViewById(R.id.preloader);

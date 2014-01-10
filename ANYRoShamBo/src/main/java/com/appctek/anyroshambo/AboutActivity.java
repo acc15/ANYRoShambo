@@ -6,6 +6,7 @@ import android.text.method.LinkMovementMethod;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.TextView;
+import com.appctek.anyroshambo.util.SupportUtils;
 import com.appctek.anyroshambo.util.ViewUtils;
 
 /**
@@ -32,7 +33,7 @@ public class AboutActivity extends FullScreenActivity {
         final View rootView = findViewById(R.id.about_screen);
         container.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             public void onGlobalLayout() {
-                container.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                SupportUtils.removeOnGlobalLayoutListener(container.getViewTreeObserver(), this);
                 ViewUtils.scaleComponents(container, rootView);
             }
         });

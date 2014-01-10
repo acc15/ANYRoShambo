@@ -8,8 +8,8 @@
     <packaging>apk</packaging>
 
     <properties>
-        <android.version>4.1.1.4</android.version>
-        <android.platform>8</android.platform>
+        <android.version>4.4.2_r2</android.version>
+        <android.platform>19</android.platform>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.number>DEV</project.build.number>
         <manifest.ad.permissions/>
@@ -17,7 +17,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>com.google.android</groupId>
+            <groupId>android</groupId>
             <artifactId>android</artifactId>
             <version>${android.version}</version>
             <scope>provided</scope>
@@ -120,6 +120,9 @@
                 <artifactId>android-maven-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
+                    <sdk>
+                        <platform>${android.platform}</platform>
+                    </sdk>
                     <androidManifestFile>${project.build.directory}/filtered/AndroidManifest.xml</androidManifestFile>
                     <undeployBeforeDeploy>true</undeployBeforeDeploy>
                     <proguard>
