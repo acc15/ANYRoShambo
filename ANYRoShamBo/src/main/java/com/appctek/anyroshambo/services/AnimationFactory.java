@@ -49,7 +49,20 @@ public class AnimationFactory {
         final AlphaAnimation alphaAnimation = new AlphaAnimation(0, 1f);
         alphaAnimation.setDuration(500);
         alphaAnimation.setInterpolator(new DecelerateInterpolator());
-        return enableFillAfter(alphaAnimation);
+        enableFillAfter(alphaAnimation);
+
+        final RotateAnimation rotateAnimation = new RotateAnimation(0, 360,
+                Animation.RELATIVE_TO_SELF, GeometryUtils.HALF,
+                Animation.RELATIVE_TO_SELF, GeometryUtils.HALF);
+        rotateAnimation.setRepeatCount(Animation.INFINITE);
+        rotateAnimation.setInterpolator(new LinearInterpolator());
+        rotateAnimation.setDuration(5000);
+        enableFillAfter(rotateAnimation);
+
+        final AnimationSet animationSet = new AnimationSet(false);
+        animationSet.addAnimation(alphaAnimation);
+        animationSet.addAnimation(rotateAnimation);
+        return enableFillAfter(animationSet);
     }
 
     public Animation createGlowAnimationOut() {
@@ -64,10 +77,6 @@ public class AnimationFactory {
         alphaAnimation.setDuration(500);
         alphaAnimation.setInterpolator(new BounceInterpolator());
         return enableFillAfter(alphaAnimation);
-    }
-
-    public Animation createGoForAnimationOut() {
-        return createFadeAnimation(50, 1f, 0);
     }
 
     public Animation createSplashAnimationIn() {

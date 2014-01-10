@@ -183,7 +183,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     }
 
     private void setIconGlow(View icon) {
-        final float glowScale = 2f;
+        final float glowScale = 3f;
 
         final RelativeLayout.LayoutParams iconParams = (RelativeLayout.LayoutParams)icon.getLayoutParams();
         final int w = icon.getWidth(), h = icon.getHeight();

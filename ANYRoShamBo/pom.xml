@@ -125,6 +125,9 @@
                     </sdk>
                     <androidManifestFile>${project.build.directory}/filtered/AndroidManifest.xml</androidManifestFile>
                     <undeployBeforeDeploy>true</undeployBeforeDeploy>
+                    <proguard>
+                        <skip>true</skip>
+                    </proguard>
                 </configuration>
                 <extensions>true</extensions>
             </plugin>
@@ -140,8 +143,6 @@
                     </execution>
                 </executions>
             </plugin>
-
-            <!-- TODO Add proguard configuration -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>buildnumber-maven-plugin</artifactId>
