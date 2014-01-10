@@ -140,6 +140,8 @@ public class ShakeDetector implements SensorEventListener {
         this.alpha = INITIAL_ALPHA;
         this.onShakeListener = shakeListener;
 
+        // Android emulator hungs unexpectedly when attempts to get sensor service
+        // TODO Find a way to disable listener registration when running on emulator only
         final SensorManager sensorManager = getSensorManager();
         final Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
