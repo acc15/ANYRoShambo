@@ -13,7 +13,7 @@ import com.appctek.anyroshambo.services.ServiceRepository;
  * @author Vyacheslav Mayorov
  * @since 2013-29-12
  */
-public class FullScreenActivity extends Activity {
+class FullScreenActivity extends Activity {
 
     private AppInfo appInfo = ServiceRepository.getRepository().getAppInfo();
 

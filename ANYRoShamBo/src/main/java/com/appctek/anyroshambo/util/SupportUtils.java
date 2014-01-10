@@ -11,7 +11,7 @@ import android.view.ViewTreeObserver;
 public class SupportUtils {
 
     /**
-     * Support method for
+     * Support method for. Added to support Android API version &lt;16
      * {@link android.view.ViewTreeObserver#removeOnGlobalLayoutListener(android.view.ViewTreeObserver.OnGlobalLayoutListener)}
      * @see android.view.ViewTreeObserver#removeOnGlobalLayoutListener(android.view.ViewTreeObserver.OnGlobalLayoutListener)
      */

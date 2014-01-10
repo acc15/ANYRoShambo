@@ -7,7 +7,7 @@ import android.os.Bundle;
  * @author Vyacheslav Mayorov
  * @since 2013-27-12
  */
-public class HardwareAcceleratedActivity extends FullScreenActivity {
+class HardwareAcceleratedActivity extends FullScreenActivity {
 
     // to make sure it compiles using old android SDK jars
     private static final int FLAG_HARDWARE_ACCELERATED = 0x01000000;
