@@ -100,9 +100,9 @@ public class MainActivity extends HardwareAcceleratedActivity {
                 this.preDrawListener = null;
 
                 setIconPositions(computeRotationAngleInRadians(gameModel.getToDegrees()));
-                final View selectedIcon = icons[gameModel.getSelectedIcon()];
-                setIconGlow(selectedIcon);
-                return animator.animate(selectedIcon).with(animationFactory.createIconScaleIn()).build();
+                glow.startAnimation(animationFactory.createGlowAnimationIn());
+                return animator.animate(icons[gameModel.getSelectedIcon()]).
+                        with(animationFactory.createIconScaleIn()).build();
 
             case 2:
                 goForLabel.setText(goForResIds[gameModel.getSelectedIcon()]);
@@ -180,25 +180,6 @@ public class MainActivity extends HardwareAcceleratedActivity {
             angle += iconAngle;
 
         }
-    }
-
-    private void setIconGlow(View icon) {
-        final float glowScale = 3f;
-
-        final RelativeLayout.LayoutParams iconParams = (RelativeLayout.LayoutParams)icon.getLayoutParams();
-        final int w = icon.getWidth(), h = icon.getHeight();
-        final float scaledWidth = w * glowScale;
-        final float scaledHeight = h * glowScale;
-        final float x = iconParams.leftMargin - (scaledWidth - w) / 2;
-        final float y = iconParams.topMargin - (scaledHeight - h) / 2;
-
-        final RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) glow.getLayoutParams();
-        layoutParams.leftMargin = (int) x;
-        layoutParams.topMargin = (int) y;
-        layoutParams.width = (int) scaledWidth;
-        layoutParams.height = (int) scaledHeight;
-        glow.setLayoutParams(layoutParams);
-        glow.startAnimation(animationFactory.createGlowAnimationIn());
     }
 
     private void initGame() {

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="game_icon_size">110dp</dimen>
+    <dimen name="game_glow_size">260dp</dimen>
     <dimen name="game_button_size">90dp</dimen>
     <dimen name="game_button_offset">-15dp</dimen>
     <dimen name="header_text_size">24sp</dimen>

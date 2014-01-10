@@ -78,13 +78,6 @@
                  android:scaleType="fitXY"
                  android:background="@null"/>
 
-    <ImageView android:id="@+id/glow"
-               android:src="@drawable/glow_big"
-               android:layout_width="@dimen/game_icon_size"
-               android:layout_height="@dimen/game_icon_size"
-               android:visibility="invisible"
-               android:contentDescription="@string/glow_description"/>
-
     <ImageView android:id="@+id/triangle"
                android:src="@drawable/triangle"
                android:layout_width="match_parent"
@@ -92,6 +85,15 @@
                android:layout_centerHorizontal="true"
                android:layout_marginTop="180dp"
                android:contentDescription="@string/triangle_description"/>
+
+    <ImageView android:id="@+id/glow"
+               android:src="@drawable/glow_big"
+               android:layout_width="@dimen/game_glow_size"
+               android:layout_height="@dimen/game_glow_size"
+               android:visibility="invisible"
+               android:layout_centerHorizontal="true"
+               android:layout_marginTop="50dp"
+               android:contentDescription="@string/glow_description"/>
 
     <TextView android:id="@+id/go_for"
               android:layout_width="wrap_content"

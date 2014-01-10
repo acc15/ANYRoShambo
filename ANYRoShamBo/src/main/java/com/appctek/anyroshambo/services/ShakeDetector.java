@@ -71,11 +71,7 @@ public class ShakeDetector implements SensorEventListener {
         logger.trace("Accelerometer event: [timestamp:{};accuracy:{};value:{}]",
                 event.timestamp, event.accuracy, Arrays.toString(event.values));
 
-        final Point currentVelocity = Point.fromArray(
-                event.values[SensorManager.DATA_X],
-                event.values[SensorManager.DATA_Y],
-                event.values[SensorManager.DATA_Z]);
-
+        final Point currentVelocity = Point.fromArray(3, event.values);
         gravity = gravity.mul(alpha).add(currentVelocity.mul(1f-alpha));
         alpha = DEFAULT_ALPHA;
 

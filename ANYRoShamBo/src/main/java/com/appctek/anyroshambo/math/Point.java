@@ -34,8 +34,18 @@ public class Point {
      * @param components point components
      * @return created point
      */
-    public static Point fromArray(float... components) {
+    public static Point create(float... components) {
         return new Point(components);
+    }
+
+    /**
+     * Creates point from array using only first {@code length} values
+     * @param length count of point components
+     * @param array array to copy values from
+     * @return created point
+     */
+    public static Point fromArray(int length, float[] array) {
+        return new Point(length, array);
     }
 
     /**
@@ -197,7 +207,7 @@ public class Point {
         final float cosa = (float)Math.cos(angle);
         final float x = cosa * getX() - sina * getY();
         final float y = sina * getX() + cosa * getY();
-        return Point.fromArray(x, y);
+        return Point.create(x, y);
     }
 
     /**

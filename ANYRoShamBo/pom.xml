@@ -8,7 +8,7 @@
     <packaging>apk</packaging>
 
     <properties>
-        <android.version>2.2.1</android.version>
+        <android.version>4.1.1.4</android.version>
         <android.platform>8</android.platform>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.number>DEV</project.build.number>
@@ -120,13 +120,10 @@
                 <artifactId>android-maven-plugin</artifactId>
                 <version>3.8.1</version>
                 <configuration>
-                    <sdk>
-                        <platform>${android.platform}</platform>
-                    </sdk>
                     <androidManifestFile>${project.build.directory}/filtered/AndroidManifest.xml</androidManifestFile>
                     <undeployBeforeDeploy>true</undeployBeforeDeploy>
                     <proguard>
-                        <skip>true</skip>
+                        <skip>false</skip>
                     </proguard>
                 </configuration>
                 <extensions>true</extensions>

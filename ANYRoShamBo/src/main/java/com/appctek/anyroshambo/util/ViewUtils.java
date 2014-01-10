@@ -40,7 +40,7 @@ public class ViewUtils {
         }
 
         final float factor = (float)cw/lw;
-        final Point scale = Point.fromArray(factor, factor);
+        final Point scale = Point.create(factor, factor);
         logger.debug("Scaling view from " + lw + "x" + lh + " to " + cw + "x" + ch + ". Scale factors: " + scale);
         scaleView(view, scale);
         return true;
