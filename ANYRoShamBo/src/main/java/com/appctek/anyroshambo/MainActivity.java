@@ -36,23 +36,12 @@ public class MainActivity extends HardwareAcceleratedActivity {
             R.string.go_party_text
     };
 
-    @Inject
-    private ShakeDetector shakeDetector;
-
-    @Inject
-    private VibrationService vibrationService;
-
-    @Inject
-    private Animator animator;
-
-    @Inject
-    private GameService gameService;
-
-    @Inject
-    private AnimationFactory animationFactory = new AnimationFactory();
-
-    @Inject
-    private AdService adService;
+    @Inject private ShakeDetector shakeDetector;
+    @Inject private VibrationService vibrationService;
+    @Inject private Animator animator;
+    @Inject private GameService gameService;
+    @Inject private AnimationFactory animationFactory;
+    @Inject private AdService adService;
 
     @InjectView(R.id.game_container) private FrameLayout gameContainer;
     @InjectView(R.id.triangle) private ImageView triangle;
@@ -66,9 +55,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @InjectView(R.id.game_view) private View gameView;
 
     private ImageView[] icons;
-
     private GameModel gameModel = new GameModel();
-
 
     private Sequencer mainSequencer = new Sequencer(new ActionSequence() {
         public LazyAction executeStep(int step, final Sequencer sequencer) {
