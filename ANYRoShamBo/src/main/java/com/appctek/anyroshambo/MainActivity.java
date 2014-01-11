@@ -148,7 +148,6 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
         setContentView(R.layout.game_with_preloader);
         adService.addBanner(gameContainer);
-        adService.addFeatures(this);
 
         icons = new ImageView[] {drinkIcon, walkIcon, partyIcon};
         goForLabel.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/kremlinctt.ttf"));

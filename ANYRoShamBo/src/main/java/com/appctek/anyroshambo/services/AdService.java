@@ -30,12 +30,4 @@ public interface AdService {
      * @param container container to append banner view
      */
     void addBanner(ViewGroup container);
-
-    /**
-     * Adds optional features provided by AD network.
-     * Must be called after {@link android.app.Activity#setContentView(int)}.
-     * @param activity activity for initialization
-     */
-    void addFeatures(Activity activity);
-
 }

@@ -34,9 +34,7 @@ public class AboutActivity extends FullScreenActivity {
         super.onCreate(savedInstanceState);
         adService.init(this);
         setContentView(R.layout.about);
-
         adService.addBanner(aboutScreen);
-        adService.addFeatures(this);
 
         final Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/myriadpro.ttf");
         infoHeader.setTypeface(typeface);

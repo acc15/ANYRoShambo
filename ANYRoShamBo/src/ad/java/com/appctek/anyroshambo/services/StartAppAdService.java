@@ -61,10 +61,8 @@ public class StartAppAdService implements AdService {
             throw new UnsupportedOperationException("Unsupported container type: " + container.getClass().getName());
         }
         container.addView(new Banner(container.getContext()), layoutParams);
-    }
-
-    public void addFeatures(Activity activity) {
         if (isSearchSdkSupported()) {
+            final Activity activity = (Activity)container.getContext();
             StartAppSearch.showSearchBox(activity);
         }
     }
