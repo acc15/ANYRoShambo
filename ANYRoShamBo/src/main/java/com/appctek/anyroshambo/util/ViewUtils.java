@@ -23,18 +23,24 @@ public class ViewUtils {
     private static final Logger logger = LoggerFactory.getLogger(ViewUtils.class);
 
     public static void printViewHierarchy(View view) {
-        printViewHierarchy("", view);
+        if (BuildConfig.DEBUG) {
+            final StringBuilder stringBuilder = new StringBuilder();
+            printViewHierarchy(stringBuilder, 0, view);
+            logger.info("Printing view tree:\n" + stringBuilder.toString());
+        }
     }
 
-    private static void printViewHierarchy(final String prefix, final View view) {
-        if (BuildConfig.DEBUG) {
-            logger.info(prefix + view.getClass().getName() + "[" + view.getId() + "]");
-            if (view instanceof ViewGroup) {
-                final ViewGroup vg = (ViewGroup) view;
-                for (int i=0; i<vg.getChildCount(); i++) {
-                    final View child = vg.getChildAt(i);
-                    printViewHierarchy(prefix + "  ", child);
-                }
+    private static void printViewHierarchy(final StringBuilder stringBuilder, int depth, final View view) {
+        for (int j=0; j<depth;j++) {
+            stringBuilder.append("   ");
+        }
+        stringBuilder.append(view.getClass().getName()).append('[').append(view.getId()).append(']');
+        if (view instanceof ViewGroup) {
+            final ViewGroup vg = (ViewGroup) view;
+            for (int i=0; i<vg.getChildCount(); i++) {
+                final View child = vg.getChildAt(i);
+                stringBuilder.append("\n");
+                printViewHierarchy(stringBuilder, depth + 1, child);
             }
         }
     }

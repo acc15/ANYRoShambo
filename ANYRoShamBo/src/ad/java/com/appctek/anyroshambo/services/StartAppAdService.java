@@ -1,6 +1,7 @@
 package com.appctek.anyroshambo.services;
 
 import android.app.Activity;
+import android.os.Build;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
@@ -26,9 +27,15 @@ public class StartAppAdService implements AdService {
         this.appId = appId;
     }
 
+    private boolean isSearchSdkSupported() {
+        return Build.VERSION.SDK_INT != 10;
+    }
+
     public void init(Activity activity) {
         StartAppAd.init(activity, developerId, appId);
-        StartAppSearch.init(activity, developerId, appId);
+        if (isSearchSdkSupported()) {
+            StartAppSearch.init(activity, developerId, appId);
+        }
     }
 
     public void addBanner(Activity activity) {
@@ -39,6 +46,8 @@ public class StartAppAdService implements AdService {
                 Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
         final FrameLayout rootView = (FrameLayout)activity.getWindow().getDecorView().getRootView();
         rootView.addView(banner, layoutParams);
-        StartAppSearch.showSearchBox(activity);
+        if (isSearchSdkSupported()) {
+            StartAppSearch.showSearchBox(activity);
+        }
     }
 }

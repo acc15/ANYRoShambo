@@ -4,9 +4,9 @@ import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -21,6 +21,7 @@ import com.appctek.anyroshambo.util.ViewUtils;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import roboguice.inject.InjectView;
 
 public class MainActivity extends HardwareAcceleratedActivity {
 
@@ -50,23 +51,30 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @Inject
     private AnimationFactory animationFactory = new AnimationFactory();
 
-    private ImageView triangle;
-    private View[]    icons;
-    private ImageView glow;
-    private TextView  goForLabel;
-    private GameModel gameModel = new GameModel();
-
     @Inject
     private AdService adService;
+
+    @InjectView(R.id.game_container) private FrameLayout gameContainer;
+    @InjectView(R.id.triangle) private ImageView triangle;
+    @InjectView(R.id.drink) private ImageView drinkIcon;
+    @InjectView(R.id.walk) private ImageView walkIcon;
+    @InjectView(R.id.party) private ImageView partyIcon;
+    @InjectView(R.id.glow) private ImageView glow;
+    @InjectView(R.id.go_for) private TextView goForLabel;
+    @InjectView(R.id.splash) private ImageView splash;
+    @InjectView(R.id.preloader) private View preloader;
+    @InjectView(R.id.game_view) private View gameView;
+
+    private ImageView[] icons;
+
+    private GameModel gameModel = new GameModel();
+
 
     private Sequencer mainSequencer = new Sequencer(new ActionSequence() {
         public LazyAction executeStep(int step, Sequencer sequencer) {
             switch (step) {
             case 0:
-                setContentView(R.layout.splash);
-                final ImageView imageView = (ImageView) findViewById(R.id.splash);
-                imageView.setImageResource(R.drawable.logoscreen);
-                return animator.animateInOut(imageView).
+                return animator.animateInOut(splash).
                         in(animationFactory.createSplashAnimationIn()).
                         out(animationFactory.createSplashAnimationOut()).
                         withDelay(5000).skipOnClick().build();
@@ -144,10 +152,22 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        adService.init(this);
-        adService.addBanner(this);
+        setContentView(R.layout.game_with_preloader);
+
+        icons = new ImageView[] {drinkIcon, walkIcon, partyIcon};
+        goForLabel.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/kremlinctt.ttf"));
+
+        gameContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            public void onGlobalLayout() {
+                if (ViewUtils.scaleComponents(gameContainer, gameView)) {
+                    return;
+                }
+                gameContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
+                setIconPositions(INITIAL_ANGLE);
+            }
+        });
+
         final int initialStep = savedInstanceState != null ? savedInstanceState.getInt(ANIMATION_POSITION_KEY, 0) : 0;
-        logger.debug("Starting animation from " + initialStep + " step");
         mainSequencer.run(initialStep);
     }
 
@@ -197,7 +217,8 @@ public class MainActivity extends HardwareAcceleratedActivity {
         }
     }
 
-    private void initGame() {
+    private void initView(final boolean doAnimate) {
+
         if (BuildConfig.DEBUG) {
             triangle.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
@@ -210,44 +231,15 @@ public class MainActivity extends HardwareAcceleratedActivity {
                 runOnUiThread(gameSequencer);
             }
         });
-        setIconPositions(INITIAL_ANGLE);
 
-    }
+        gameContainer.removeView(splash);
+        splash = null;
+        gameContainer.removeView(preloader);
+        preloader = null;
 
-    private void initView(final boolean doAnimate) {
-
-        setContentView(R.layout.game_with_preloader);
-
-        ViewUtils.printViewHierarchy(getWindow().getDecorView());
-
-        triangle = (ImageView)findViewById(R.id.triangle);
-        glow = (ImageView) findViewById(R.id.glow);
-        goForLabel = (TextView) findViewById(R.id.go_for);
-        icons = new View[]{findViewById(R.id.drink), findViewById(R.id.walk), findViewById(R.id.party)};
-
-        final Typeface kremlinCtt = Typeface.createFromAsset(getAssets(), "fonts/kremlinctt.ttf");
-        goForLabel.setTypeface(kremlinCtt);
-
-        final ViewGroup gameContainer = (ViewGroup)findViewById(R.id.game_container);
-        gameContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            public void onGlobalLayout() {
-
-                final View gameView = findViewById(R.id.game_view);
-                if (ViewUtils.scaleComponents(gameContainer, gameView)) {
-                    return;
-                }
-
-                gameContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                initGame();
-
-                final View preloader = findViewById(R.id.preloader);
-                gameContainer.removeView(preloader);
-
-                if (doAnimate) {
-                    gameContainer.startAnimation(animationFactory.createSplashAnimationIn());
-                }
-            }
-        });
+        if (doAnimate) {
+            gameView.startAnimation(animationFactory.createSplashAnimationIn());
+        }
     }
 
 
