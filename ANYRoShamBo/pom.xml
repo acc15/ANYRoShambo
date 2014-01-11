@@ -13,6 +13,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.number>DEV</project.build.number>
         <manifest.ad.permissions/>
+        <manifest.ad.activities/>
     </properties>
 
     <dependencies>
@@ -52,6 +53,17 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
     <uses-permission android:name="android.permission.GET_TASKS"/>
     ]]></manifest.ad.permissions>
+                <manifest.ad.activities><![CDATA[
+    <activity android:name="com.startapp.android.eula.EULAActivity"
+              android:theme="@android:style/Theme.Translucent"
+              android:configChanges="keyboard|keyboardHidden|orientation" />
+    <activity android:name="com.startapp.android.publish.list3d.List3DActivity"
+              android:taskAffinity="com.appctek.anyroshambo.AppWall"
+              android:theme="@android:style/Theme" />
+    <activity android:name="com.startapp.android.publish.AppWallActivity"
+              android:theme="@android:style/Theme.Translucent"
+              android:taskAffinity="com.appctek.anyroshambo.AppWall"
+              android:configChanges="orientation|keyboardHidden"/>]]></manifest.ad.activities>
             </properties>
             <repositories>
                 <repository>

@@ -1,6 +1,9 @@
 package com.appctek.anyroshambo;
 
+import com.appctek.anyroshambo.services.AdService;
+import com.appctek.anyroshambo.services.StartAppAdService;
 import com.google.inject.AbstractModule;
+import com.google.inject.Singleton;
 
 /**
  * @author Vyacheslav Mayorov
@@ -11,5 +14,6 @@ public class AppModule extends AbstractModule {
     protected void configure() {
         final AppInfo appInfo = new AppInfo(AppModule.class);
         bind(AppInfo.class).toInstance(appInfo);
+        bind(AdService.class).to(StartAppAdService.class).in(Singleton.class);
     }
 }

@@ -56,6 +56,9 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private TextView  goForLabel;
     private GameModel gameModel = new GameModel();
 
+    @Inject
+    private AdService adService;
+
     private Sequencer mainSequencer = new Sequencer(new ActionSequence() {
         public LazyAction executeStep(int step, Sequencer sequencer) {
             switch (step) {
@@ -141,6 +144,8 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        adService.init(this);
+        adService.addBanner(this);
         final int initialStep = savedInstanceState != null ? savedInstanceState.getInt(ANIMATION_POSITION_KEY, 0) : 0;
         logger.debug("Starting animation from " + initialStep + " step");
         mainSequencer.run(initialStep);
@@ -212,6 +217,9 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private void initView(final boolean doAnimate) {
 
         setContentView(R.layout.game_with_preloader);
+
+        ViewUtils.printViewHierarchy(getWindow().getDecorView());
+
         triangle = (ImageView)findViewById(R.id.triangle);
         glow = (ImageView) findViewById(R.id.glow);
         goForLabel = (TextView) findViewById(R.id.go_for);

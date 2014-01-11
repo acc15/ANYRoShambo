@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import com.appctek.anyroshambo.BuildConfig;
 import com.appctek.anyroshambo.math.Point;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,6 +21,23 @@ import org.slf4j.LoggerFactory;
 public class ViewUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(ViewUtils.class);
+
+    public static void printViewHierarchy(View view) {
+        printViewHierarchy("", view);
+    }
+
+    private static void printViewHierarchy(final String prefix, final View view) {
+        if (BuildConfig.DEBUG) {
+            logger.info(prefix + view.getClass().getName() + "[" + view.getId() + "]");
+            if (view instanceof ViewGroup) {
+                final ViewGroup vg = (ViewGroup) view;
+                for (int i=0; i<vg.getChildCount(); i++) {
+                    final View child = vg.getChildAt(i);
+                    printViewHierarchy(prefix + "  ", child);
+                }
+            }
+        }
+    }
 
     public static boolean scaleComponents(View container, View view) {
         final int cw = container.getWidth(), ch = container.getHeight();
