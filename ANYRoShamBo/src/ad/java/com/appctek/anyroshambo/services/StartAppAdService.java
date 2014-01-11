@@ -5,6 +5,7 @@ import android.os.Build;
 import android.view.Gravity;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.RelativeLayout;
 import com.searchboxsdk.android.StartAppSearch;
 import com.startapp.android.publish.StartAppAd;
 import com.startapp.android.publish.banner.Banner;
@@ -38,14 +39,27 @@ public class StartAppAdService implements AdService {
         }
     }
 
-    public void addBanner(Activity activity) {
-        final Banner banner = new Banner(activity);
-        final FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
-        final FrameLayout rootView = (FrameLayout)activity.getWindow().getDecorView().getRootView();
-        rootView.addView(banner, layoutParams);
+    public void addBanner(ViewGroup container) {
+        final ViewGroup.LayoutParams layoutParams;
+        if (container instanceof RelativeLayout) {
+
+            final RelativeLayout.LayoutParams l = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            l.addRule(RelativeLayout.CENTER_HORIZONTAL);
+            l.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+            layoutParams = l;
+
+        } else if (container instanceof FrameLayout) {
+            layoutParams = new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
+        } else {
+            throw new UnsupportedOperationException("Unsupported container type: " + container.getClass().getName());
+        }
+        container.addView(new Banner(container.getContext()), layoutParams);
+    }
+
+    public void addFeatures(Activity activity) {
         if (isSearchSdkSupported()) {
             StartAppSearch.showSearchBox(activity);
         }

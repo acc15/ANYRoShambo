@@ -71,7 +71,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
 
     private Sequencer mainSequencer = new Sequencer(new ActionSequence() {
-        public LazyAction executeStep(int step, Sequencer sequencer) {
+        public LazyAction executeStep(int step, final Sequencer sequencer) {
             switch (step) {
             case 0:
                 return animator.animateInOut(splash).
@@ -80,7 +80,11 @@ public class MainActivity extends HardwareAcceleratedActivity {
                         withDelay(5000).skipOnClick().build();
 
             case 1:
-                initView(sequencer.getStep() == 0);
+                gameContainer.post(new Runnable() {
+                    public void run() {
+                        initView(sequencer.getStep() == 0);
+                    }
+                });
                 break;
             }
             return null;
@@ -152,14 +156,18 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        adService.init(this);
         setContentView(R.layout.game_with_preloader);
+        adService.addBanner(gameContainer);
+        //adService.addFeatures(this);
 
         icons = new ImageView[] {drinkIcon, walkIcon, partyIcon};
         goForLabel.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/kremlinctt.ttf"));
 
         gameContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             public void onGlobalLayout() {
-                if (ViewUtils.scaleComponents(gameContainer, gameView)) {
+                if (!ViewUtils.scaleComponents(gameContainer, gameView)) {
                     return;
                 }
                 gameContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
@@ -219,6 +227,10 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
     private void initView(final boolean doAnimate) {
 
+        gameContainer.removeView(splash);
+        gameContainer.removeView(preloader);
+        gameContainer.invalidate();
+
         if (BuildConfig.DEBUG) {
             triangle.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
@@ -231,15 +243,10 @@ public class MainActivity extends HardwareAcceleratedActivity {
                 runOnUiThread(gameSequencer);
             }
         });
-
-        gameContainer.removeView(splash);
-        splash = null;
-        gameContainer.removeView(preloader);
-        preloader = null;
-
         if (doAnimate) {
             gameView.startAnimation(animationFactory.createSplashAnimationIn());
         }
+
     }
 
 

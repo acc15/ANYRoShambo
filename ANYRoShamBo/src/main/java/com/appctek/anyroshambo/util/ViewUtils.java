@@ -45,12 +45,18 @@ public class ViewUtils {
         }
     }
 
+    /**
+     * Scales view tree
+     * @param container container of view
+     * @param view view to scale
+     * @return {@code true} if view has ben scaled
+     */
     public static boolean scaleComponents(View container, View view) {
         final int cw = container.getWidth(), ch = container.getHeight();
 
         final int vw = view.getWidth(), vh = view.getHeight();
         if (cw == vw) {
-            return false;
+            return true;
         }
 
         final ViewGroup.LayoutParams params = view.getLayoutParams();
@@ -60,14 +66,20 @@ public class ViewUtils {
         }
         if (cw == lw) {
             logger.debug("View already scaled. Skipping scale");
-            return true;
+            return false;
         }
 
         final float factor = (float)cw/lw;
         final Point scale = Point.create(factor, factor);
         logger.debug("Scaling view from " + lw + "x" + lh + " to " + cw + "x" + ch + ". Scale factors: " + scale);
         scaleView(view, scale);
-        return true;
+
+        final ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+        layoutParams.width = Math.min(layoutParams.width, cw);
+        layoutParams.height = Math.min(layoutParams.height, ch);
+        view.setLayoutParams(layoutParams);
+
+        return false;
     }
 
     private static boolean isSpecialDimension(int val) {
