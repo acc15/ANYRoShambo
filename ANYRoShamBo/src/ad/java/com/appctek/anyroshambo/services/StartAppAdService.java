@@ -1,6 +1,4 @@
-package com.appctek;
-
-import com.appctek.anyroshambo.services.AdService;
+package com.appctek.anyroshambo.services;
 
 /**
  * @author Vyacheslav Mayorov

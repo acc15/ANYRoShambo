@@ -5,6 +5,7 @@ import android.view.animation.Animation;
 import android.view.animation.Interpolator;
 import com.appctek.anyroshambo.math.GeometryUtils;
 import com.appctek.anyroshambo.services.DateTimeService;
+import com.google.inject.Inject;
 
 /**
  * @author Vyacheslav Mayorov
@@ -14,6 +15,7 @@ public class Animator {
 
     private DateTimeService dateTimeService;
 
+    @Inject
     public Animator(DateTimeService dateTimeService) {
         this.dateTimeService = dateTimeService;
     }

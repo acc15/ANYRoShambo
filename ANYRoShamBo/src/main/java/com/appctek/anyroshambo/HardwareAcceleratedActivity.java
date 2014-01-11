@@ -2,6 +2,7 @@ package com.appctek.anyroshambo;
 
 import android.os.Build;
 import android.os.Bundle;
+import roboguice.inject.InjectResource;
 
 /**
  * @author Vyacheslav Mayorov
@@ -13,6 +14,9 @@ class HardwareAcceleratedActivity extends FullScreenActivity {
     private static final int FLAG_HARDWARE_ACCELERATED = 0x01000000;
     private static final int SDK_VERSION_HONEYCOMB = 11;
 
+    @InjectResource(R.color.background_color)
+    int backgroundColor;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,6 +26,6 @@ class HardwareAcceleratedActivity extends FullScreenActivity {
                     FLAG_HARDWARE_ACCELERATED,
                     FLAG_HARDWARE_ACCELERATED);
         }
-        findViewById(android.R.id.content).setBackgroundColor(getResources().getColor(R.color.background_color));
+        findViewById(android.R.id.content).setBackgroundColor(backgroundColor);
     }
 }

@@ -8,8 +8,8 @@
     <packaging>apk</packaging>
 
     <properties>
-        <android.version>4.4.2_r2</android.version>
-        <android.platform>19</android.platform>
+        <android.version>2.2.1</android.version>
+        <android.platform>8</android.platform>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.build.number>DEV</project.build.number>
         <manifest.ad.permissions/>
@@ -17,7 +17,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>android</groupId>
+            <groupId>com.google.android</groupId>
             <artifactId>android</artifactId>
             <version>${android.version}</version>
             <scope>provided</scope>
@@ -32,6 +32,11 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-android</artifactId>
             <version>1.6.1-RC1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.roboguice</groupId>
+            <artifactId>roboguice</artifactId>
+            <version>2.0</version>
         </dependency>
     </dependencies>
 

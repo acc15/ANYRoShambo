@@ -1,11 +1,11 @@
 package com.appctek.anyroshambo.services;
 
-import android.content.Context;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import com.appctek.anyroshambo.math.Point;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +29,7 @@ public class ShakeDetector implements SensorEventListener {
         void onShake();
     }
 
-    private Context context;
+    private SensorManager sensorManager;
     private float sensitivity = 8f;
     private int maxMoveCount = 5;
     private long shakeTimeout = 500; // 500ms to reset shaking
@@ -115,13 +115,14 @@ public class ShakeDetector implements SensorEventListener {
 
     }
 
-    public ShakeDetector(Context context) {
-        this.context = context;
+    @Inject
+    public ShakeDetector(SensorManager sensorManager) {
+        this.sensorManager = sensorManager;
     }
 
     public void pause() {
         if (onShakeListener != null) {
-            getSensorManager().unregisterListener(this);
+            sensorManager.unregisterListener(this);
         }
     }
 
@@ -132,23 +133,13 @@ public class ShakeDetector implements SensorEventListener {
     }
 
     public void start(OnShakeListener shakeListener) {
-
         this.alpha = INITIAL_ALPHA;
         this.onShakeListener = shakeListener;
-
-        // Android emulator hungs unexpectedly when attempts to get sensor service
-        // TODO Find a way to disable listener registration when running on emulator only
-        final SensorManager sensorManager = getSensorManager();
         final Sensor accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_UI);
-
     }
 
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-    }
-
-    private SensorManager getSensorManager() {
-        return (SensorManager)context.getSystemService(Context.SENSOR_SERVICE);
     }
 
     private boolean isNoise(float coord) {

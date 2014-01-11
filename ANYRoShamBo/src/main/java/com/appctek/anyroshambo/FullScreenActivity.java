@@ -1,21 +1,22 @@
 package com.appctek.anyroshambo;
 
-import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
-import com.appctek.anyroshambo.services.ServiceRepository;
+import com.google.inject.Inject;
+import roboguice.activity.RoboActivity;
 
 /**
  * @author Vyacheslav Mayorov
  * @since 2013-29-12
  */
-class FullScreenActivity extends Activity {
+class FullScreenActivity extends RoboActivity {
 
-    private AppInfo appInfo = ServiceRepository.getRepository().getAppInfo();
+    @Inject
+    private AppInfo appInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

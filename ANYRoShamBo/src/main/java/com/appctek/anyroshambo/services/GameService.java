@@ -1,6 +1,7 @@
 package com.appctek.anyroshambo.services;
 
 import com.appctek.anyroshambo.model.GameModel;
+import com.google.inject.Inject;
 
 import java.util.Random;
 
@@ -51,6 +52,7 @@ public class GameService {
         return random.nextInt(ICON_COUNT);
     }
 
+    @Inject
     public GameService(Random random) {
         this.random = random;
     }

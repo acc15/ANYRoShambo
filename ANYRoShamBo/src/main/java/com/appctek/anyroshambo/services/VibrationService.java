@@ -1,7 +1,7 @@
 package com.appctek.anyroshambo.services;
 
-import android.content.Context;
 import android.os.Vibrator;
+import com.google.inject.Inject;
 
 /**
  * @author Vyacheslav Mayorov
@@ -10,15 +10,15 @@ import android.os.Vibrator;
 public class VibrationService {
 
     private static final int FEEDBACK_TIME = 100;
-    private Context context;
+    private Vibrator vibrator;
 
-    public VibrationService(Context context) {
-        this.context = context;
+    @Inject
+    public VibrationService(Vibrator vibrator) {
+        this.vibrator = vibrator;
     }
 
     public void feedback() {
-        final Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-        v.vibrate(FEEDBACK_TIME);
+        vibrator.vibrate(FEEDBACK_TIME);
     }
 
 }

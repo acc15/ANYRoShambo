@@ -17,8 +17,8 @@ import com.appctek.anyroshambo.anim.Sequencer;
 import com.appctek.anyroshambo.math.GeometryUtils;
 import com.appctek.anyroshambo.model.GameModel;
 import com.appctek.anyroshambo.services.*;
-import com.appctek.anyroshambo.util.SupportUtils;
 import com.appctek.anyroshambo.util.ViewUtils;
+import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,16 +35,25 @@ public class MainActivity extends HardwareAcceleratedActivity {
             R.string.go_party_text
     };
 
-    private ShakeDetector shakeDetector = ServiceRepository.getRepository().getShakeDetector(this);
-    private VibrationService vibrationService = ServiceRepository.getRepository().getVibrationService(this);
-    private Animator animator = ServiceRepository.getRepository().getAnimationHelper();
-    private GameService gameService = ServiceRepository.getRepository().getGameService();
-    private AnimationFactory animationFactory = ServiceRepository.getRepository().getAnimationFactory();
+    @Inject
+    private ShakeDetector shakeDetector;
+
+    @Inject
+    private VibrationService vibrationService;
+
+    @Inject
+    private Animator animator;
+
+    @Inject
+    private GameService gameService;
+
+    @Inject
+    private AnimationFactory animationFactory = new AnimationFactory();
 
     private ImageView triangle;
     private View[]    icons;
     private ImageView glow;
-    private TextView goForLabel;
+    private TextView  goForLabel;
     private GameModel gameModel = new GameModel();
 
     private Sequencer mainSequencer = new Sequencer(new ActionSequence() {
@@ -220,7 +229,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
                     return;
                 }
 
-                SupportUtils.removeOnGlobalLayoutListener(gameContainer.getViewTreeObserver(), this);
+                gameContainer.getViewTreeObserver().removeGlobalOnLayoutListener(this);
                 initGame();
 
                 final View preloader = findViewById(R.id.preloader);
