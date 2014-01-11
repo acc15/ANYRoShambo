@@ -36,7 +36,7 @@ public class AboutActivity extends FullScreenActivity {
         setContentView(R.layout.about);
 
         adService.addBanner(aboutScreen);
-        //adService.addFeatures(this);
+        adService.addFeatures(this);
 
         final Typeface typeface = Typeface.createFromAsset(getAssets(), "fonts/myriadpro.ttf");
         infoHeader.setTypeface(typeface);
@@ -50,11 +50,8 @@ public class AboutActivity extends FullScreenActivity {
         final View container = findViewById(android.R.id.content);
         container.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             public void onGlobalLayout() {
-                if (!ViewUtils.scaleComponents(container, aboutScreen)) {
-                    return;
-                }
                 container.getViewTreeObserver().removeGlobalOnLayoutListener(this);
-                adService.addBanner(aboutScreen);
+                ViewUtils.scaleComponents(container, aboutScreen);
             }
         });
 

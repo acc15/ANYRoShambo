@@ -16,6 +16,12 @@ public interface AdService {
     void init(Activity activity);
 
     /**
+     * Returns {@code true} if this service is Ad enabled (is real)
+     * @return {@code true} if ads is enabled, {@code false} otherwise
+     */
+    boolean isAdEnabled();
+
+    /**
      * Appends banner view to the bottom of specified container. Supported container types: <ul>
      *     <li>RelativeLayout</li>
      *     <li>FrameLayout</li>

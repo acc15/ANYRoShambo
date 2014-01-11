@@ -32,6 +32,10 @@ public class StartAppAdService implements AdService {
         return Build.VERSION.SDK_INT != 10;
     }
 
+    public boolean isAdEnabled() {
+        return true;
+    }
+
     public void init(Activity activity) {
         StartAppAd.init(activity, developerId, appId);
         if (isSearchSdkSupported()) {

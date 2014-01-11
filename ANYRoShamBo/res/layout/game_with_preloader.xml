@@ -13,6 +13,5 @@
                android:layout_height="match_parent"
                android:scaleType="fitXY"
                android:src="@drawable/logoscreen"
-               android:visibility="invisible"
                android:contentDescription="@string/splash_content_description"/>
 </FrameLayout>
