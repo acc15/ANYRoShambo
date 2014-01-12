@@ -41,7 +41,6 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @Inject private Animator animator;
     @Inject private GameService gameService;
     @Inject private AnimationFactory animationFactory;
-    @Inject private AdService adService;
 
     @InjectView(R.id.game_container) private FrameLayout gameContainer;
     @InjectView(R.id.triangle) private ImageView triangle;
@@ -144,11 +143,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        adService.init(this);
-
         setContentView(R.layout.game_with_preloader);
-        adService.addBanner(gameContainer);
 
         icons = new ImageView[] {drinkIcon, walkIcon, partyIcon};
         goForLabel.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/kremlinctt.ttf"));

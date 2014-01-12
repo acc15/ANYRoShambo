@@ -4,8 +4,7 @@ import android.app.Activity;
 import android.os.Build;
 import android.view.Gravity;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
-import android.widget.RelativeLayout;
+import com.appctek.anyroshambo.util.ViewUtils;
 import com.searchboxsdk.android.StartAppSearch;
 import com.startapp.android.publish.StartAppAd;
 import com.startapp.android.publish.banner.Banner;
@@ -44,23 +43,9 @@ public class StartAppAdService implements AdService {
     }
 
     public void addBanner(ViewGroup container) {
-        final ViewGroup.LayoutParams layoutParams;
-        if (container instanceof RelativeLayout) {
-
-            final RelativeLayout.LayoutParams l = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            l.addRule(RelativeLayout.CENTER_HORIZONTAL);
-            l.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-            layoutParams = l;
-
-        } else if (container instanceof FrameLayout) {
-            layoutParams = new FrameLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
-        } else {
-            throw new UnsupportedOperationException("Unsupported container type: " + container.getClass().getName());
-        }
-        container.addView(new Banner(container.getContext()), layoutParams);
+        ViewUtils.addViewToContainer(container,
+                new Banner(container.getContext()),
+                Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM);
         if (isSearchSdkSupported()) {
             final Activity activity = (Activity)container.getContext();
             StartAppSearch.showSearchBox(activity);

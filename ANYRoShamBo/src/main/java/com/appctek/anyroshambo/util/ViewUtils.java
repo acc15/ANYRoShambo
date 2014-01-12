@@ -4,9 +4,12 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.util.TypedValue;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import com.appctek.anyroshambo.BuildConfig;
 import com.appctek.anyroshambo.math.Point;
@@ -21,6 +24,56 @@ import org.slf4j.LoggerFactory;
 public class ViewUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(ViewUtils.class);
+
+    public static void addViewToContainer(ViewGroup container, View view, int gravity) {
+
+        final ViewGroup.LayoutParams layoutParams;
+        if (container instanceof RelativeLayout) {
+
+            final RelativeLayout.LayoutParams l = new RelativeLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+
+            final int hGravity = gravity & Gravity.HORIZONTAL_GRAVITY_MASK;
+            switch (hGravity) {
+            case Gravity.LEFT:
+                l.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+                break;
+            case Gravity.CENTER_HORIZONTAL:
+                l.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                break;
+            case Gravity.RIGHT:
+                l.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
+                break;
+            }
+
+            final int vGravity = gravity & Gravity.VERTICAL_GRAVITY_MASK;
+            switch (vGravity) {
+            case Gravity.TOP:
+                l.addRule(RelativeLayout.ALIGN_PARENT_TOP);
+                break;
+
+            case Gravity.CENTER_VERTICAL:
+                l.addRule(RelativeLayout.CENTER_VERTICAL);
+                break;
+
+            case Gravity.BOTTOM:
+                l.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                break;
+            }
+            layoutParams = l;
+
+        } else if (container instanceof FrameLayout) {
+            layoutParams = new FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    gravity);
+        } else {
+            throw new UnsupportedOperationException("Unsupported container type: " + container.getClass().getName());
+        }
+        container.addView(view, layoutParams);
+
+    }
 
     public static void printViewHierarchy(View view) {
         if (BuildConfig.DEBUG) {
