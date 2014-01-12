@@ -2,6 +2,7 @@ package com.appctek.anyroshambo;
 
 import android.content.Intent;
 import android.graphics.Typeface;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -20,6 +21,7 @@ import com.appctek.anyroshambo.services.AnimationFactory;
 import com.appctek.anyroshambo.services.GameService;
 import com.appctek.anyroshambo.services.ShakeDetector;
 import com.appctek.anyroshambo.services.VibrationService;
+import com.appctek.anyroshambo.util.MediaPlayerUtils;
 import com.appctek.anyroshambo.util.ViewUtils;
 import com.google.inject.Inject;
 import roboguice.inject.InjectView;
@@ -35,11 +37,18 @@ public class MainActivity extends HardwareAcceleratedActivity {
             R.string.go_party_text
     };
 
+    private static final int[] goForAudioIds = new int[] {
+            R.raw.prazdnovaty,
+            R.raw.gulaty,
+            R.raw.tancevaty
+    };
+
     @Inject private ShakeDetector shakeDetector;
     @Inject private VibrationService vibrationService;
     @Inject private Animator animator;
     @Inject private GameService gameService;
     @Inject private AnimationFactory animationFactory;
+    @Inject private MediaPlayer mediaPlayer;
 
     @InjectView(R.id.game_container) private FrameLayout gameContainer;
     @InjectView(R.id.triangle) private ImageView triangle;
@@ -93,6 +102,8 @@ public class MainActivity extends HardwareAcceleratedActivity {
                 vibrationService.feedback();
                 gameService.initGame(gameModel);
 
+                MediaPlayerUtils.play(MainActivity.this, mediaPlayer, R.raw.ruletka);
+
                 final Animation rotateAnimation = animationFactory.createRotate(gameModel);
                 this.preDrawListener = new ViewTreeObserver.OnPreDrawListener() {
                     public boolean onPreDraw() {
@@ -116,6 +127,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
                         with(animationFactory.createIconScaleIn()).build();
 
             case 2:
+                MediaPlayerUtils.play(MainActivity.this, mediaPlayer, goForAudioIds[gameModel.getSelectedIcon()]);
                 goForLabel.setText(goForResIds[gameModel.getSelectedIcon()]);
                 return animator.animate(goForLabel).with(animationFactory.createGoForAnimationIn()).build();
 
@@ -131,12 +143,19 @@ public class MainActivity extends HardwareAcceleratedActivity {
     protected void onPause() {
         super.onPause();
         shakeDetector.pause();
+        MediaPlayerUtils.mute(mediaPlayer);
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        shakeDetector.resume();
+        MediaPlayerUtils.unmute(mediaPlayer);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mediaPlayer.release();
     }
 
     @Override
