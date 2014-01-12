@@ -14,6 +14,7 @@
         <project.build.number>DEV</project.build.number>
         <manifest.ad.permissions/>
         <manifest.ad.activities/>
+        <ad.enabled>false</ad.enabled>
     </properties>
 
     <dependencies>
@@ -45,6 +46,7 @@
         <profile>
             <id>ad</id>
             <properties>
+                <ad.enabled>true</ad.enabled>
                 <manifest.ad.permissions><![CDATA[
     <!-- Already defined <uses-permission android:name="android.permission.INTERNET"/>  -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
@@ -178,6 +180,18 @@
                     <shortRevisionLength>8</shortRevisionLength>
                     <buildNumberPropertyName>project.build.number</buildNumberPropertyName>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>templating-maven-plugin</artifactId>
+                <version>1.0-alpha-3</version> <!-- Be sure to use the last version. Check on the website's plugin -->
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>filter-sources</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>

@@ -12,9 +12,13 @@ import com.google.inject.Singleton;
 public class AppModule extends AbstractModule {
 
     private static Class<?> getAdServiceImplClass() {
-        try {
-            return Class.forName("com.appctek.anyroshambo.services.StartAppAdService");
-        } catch (ClassNotFoundException e) {
+        if (AppBuild.AD_ENABLED) {
+            try {
+                return Class.forName("com.appctek.anyroshambo.services.StartAppAdService");
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException("Can't find AD service class", e);
+            }
+        } else {
             return NoAdService.class;
         }
     }
