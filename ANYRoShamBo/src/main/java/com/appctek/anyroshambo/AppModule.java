@@ -11,20 +11,17 @@ import com.google.inject.Singleton;
  */
 public class AppModule extends AbstractModule {
 
-    public static final String AD_SERVICE_CLASS = "com.appctek.anyroshambo.services.StartAppAdService";
-
-    private static Class<?> getClassOrDefault(String className, Class<?> defaultClass) {
+    private static Class<?> getAdServiceImplClass() {
         try {
-            return Class.forName(className);
+            return Class.forName("com.appctek.anyroshambo.services.StartAppAdService");
         } catch (ClassNotFoundException e) {
-            return defaultClass;
+            return NoAdService.class;
         }
     }
 
     @Override
     protected void configure() {
         bind(AppInfo.class).toInstance(new AppInfo(AppModule.class));
-        bind(AdService.class).to(getClassOrDefault(AD_SERVICE_CLASS, NoAdService.class).
-                asSubclass(AdService.class)).in(Singleton.class);
+        bind(AdService.class).to(getAdServiceImplClass().asSubclass(AdService.class)).in(Singleton.class);
     }
 }
