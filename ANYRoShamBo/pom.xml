@@ -14,7 +14,6 @@
         <project.build.number>DEV</project.build.number>
         <manifest.ad.permissions/>
         <manifest.ad.activities/>
-        <ad.enabled>false</ad.enabled>
     </properties>
 
     <dependencies>
@@ -46,7 +45,6 @@
         <profile>
             <id>ad</id>
             <properties>
-                <ad.enabled>true</ad.enabled>
                 <manifest.ad.permissions><![CDATA[
     <!-- Already defined <uses-permission android:name="android.permission.INTERNET"/>  -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
