@@ -8,8 +8,10 @@ import android.view.animation.Animation;
 * @since 2014-04-01
 */
 public class AnimationAction implements LazyAction {
+
     private View view;
     private Animation animation;
+    private Runnable listener;
 
     public AnimationAction(View view, Animation animation) {
         this.view = view;
@@ -17,22 +19,18 @@ public class AnimationAction implements LazyAction {
     }
 
     public void setListener(final Runnable listener) {
-        this.animation.setAnimationListener(listener != null ? new Animation.AnimationListener() {
-            public void onAnimationStart(Animation animation) {
-            }
-
-            public void onAnimationEnd(Animation animation) {
-                listener.run();
-            }
-
-            public void onAnimationRepeat(Animation animation) {
-            }
-        } : null);
+        this.listener = listener;
     }
 
     public void run() {
-        view.clearAnimation();
         view.startAnimation(animation);
+        if (listener != null) {
+            view.postDelayed(new Runnable() {
+                public void run() {
+                    listener.run();
+                }
+            }, animation.getDuration());
+        }
     }
 
 }

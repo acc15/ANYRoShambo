@@ -114,7 +114,7 @@ public class Animator {
                                 public float getInterpolation(float input) {
                                     // should interpolate between [1 - interpolation; 1]
                                     final float newInterpolation = GeometryUtils.interpolate(input,
-                                            1-interpolation, 1);
+                                            1 - interpolation, 1);
                                     return oldInterpolator.getInterpolation(newInterpolation);
                                 }
                             });

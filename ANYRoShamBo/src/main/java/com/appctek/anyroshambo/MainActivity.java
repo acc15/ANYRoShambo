@@ -16,16 +16,15 @@ import com.appctek.anyroshambo.anim.LazyAction;
 import com.appctek.anyroshambo.anim.Sequencer;
 import com.appctek.anyroshambo.math.GeometryUtils;
 import com.appctek.anyroshambo.model.GameModel;
-import com.appctek.anyroshambo.services.*;
+import com.appctek.anyroshambo.services.AnimationFactory;
+import com.appctek.anyroshambo.services.GameService;
+import com.appctek.anyroshambo.services.ShakeDetector;
+import com.appctek.anyroshambo.services.VibrationService;
 import com.appctek.anyroshambo.util.ViewUtils;
 import com.google.inject.Inject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import roboguice.inject.InjectView;
 
 public class MainActivity extends HardwareAcceleratedActivity {
-
-    private static final Logger logger = LoggerFactory.getLogger(MainActivity.class);
 
     private static final String ANIMATION_POSITION_KEY = "key.animationPosition";
 
@@ -144,6 +143,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.game_with_preloader);
+        initContainer(gameContainer);
 
         icons = new ImageView[] {drinkIcon, walkIcon, partyIcon};
         goForLabel.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/kremlinctt.ttf"));
