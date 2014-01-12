@@ -99,16 +99,14 @@ public class Animator {
                 public LazyAction executeStep(int step, Sequencer sequencer) {
                     switch (step) {
                     case 0:
-                        return new AnimationAction(view, inAnimation);
+                        return animate(view).with(inAnimation).build();
 
                     case 1:
                         return delay > 0 ? new DelayAction(view, delay) : new NopAction();
 
                     case 2:
-
                         final float interpolation = computeInterpolation(inAnimation);
                         if (interpolation < 1.f) {
-
                             final Interpolator oldInterpolator = outAnimation.getInterpolator();
                             outAnimation.setInterpolator(new Interpolator() {
                                 public float getInterpolation(float input) {
@@ -119,14 +117,8 @@ public class Animator {
                                 }
                             });
                             outAnimation.setDuration((long)(outAnimation.getDuration() * interpolation));
-
                         }
-                        if (!inAnimation.hasEnded()) {
-                            inAnimation.setAnimationListener(null);
-                            inAnimation.cancel();
-                        }
-
-                        return new AnimationAction(view, outAnimation);
+                        return animate(view).with(outAnimation).build();
                     }
                     return null;
                 }

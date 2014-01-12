@@ -23,6 +23,7 @@ public class AnimationAction implements LazyAction {
     }
 
     public void run() {
+        view.clearAnimation();
         view.startAnimation(animation);
         if (listener != null) {
             view.postDelayed(new Runnable() {
