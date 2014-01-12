@@ -22,13 +22,12 @@ public class AppInfo {
         this.appPackage = appClass.getPackage().getName();
         final InputStream inputStream = appClass.getResourceAsStream(APP_PROPERTIES);
         if (inputStream == null) {
-            logger.error("Can't find " + APP_PROPERTIES + " resource");
-            return;
+            throw new RuntimeException("Can't find " + APP_PROPERTIES + " resource");
         }
         try {
             properties.load(inputStream);
         } catch (IOException e) {
-            logger.error("Can't parse " + APP_PROPERTIES + " file", e);
+            throw new RuntimeException("Can't read " + APP_PROPERTIES + " file", e);
         } finally {
             try {
                 inputStream.close();

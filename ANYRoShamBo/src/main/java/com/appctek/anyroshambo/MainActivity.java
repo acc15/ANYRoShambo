@@ -53,6 +53,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @InjectView(R.id.splash) private ImageView splash;
     @InjectView(R.id.preloader) private View preloader;
     @InjectView(R.id.game_view) private View gameView;
+    @InjectView(R.id.share_text) private TextView shareText;
 
     private ImageView[] icons;
     private GameModel gameModel = new GameModel();
@@ -151,6 +152,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
         icons = new ImageView[] {drinkIcon, walkIcon, partyIcon};
         goForLabel.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/kremlinctt.ttf"));
+        shareText.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/myriadpro.ttf"));
 
         gameContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             public void onGlobalLayout() {
