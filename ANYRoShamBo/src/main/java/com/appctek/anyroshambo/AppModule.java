@@ -25,7 +25,6 @@ public class AppModule extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(AppInfo.class).toInstance(new AppInfo(AppModule.class));
         bind(AdService.class).to(getAdServiceImplClass().asSubclass(AdService.class)).in(Singleton.class);
     }
 }

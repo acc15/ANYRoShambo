@@ -53,5 +53,9 @@ public class AboutActivity extends FullScreenActivity {
             }
         });
 
+        if (AppBuild.AD_ENABLED) {
+            // TODO add image with url to download version without Ads
+        }
+
     }
 }
