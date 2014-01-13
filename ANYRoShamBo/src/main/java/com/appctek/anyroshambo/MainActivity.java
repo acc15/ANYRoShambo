@@ -7,10 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.view.animation.Animation;
-import android.widget.FrameLayout;
-import android.widget.ImageView;
-import android.widget.RelativeLayout;
-import android.widget.TextView;
+import android.widget.*;
 import com.appctek.anyroshambo.anim.ActionSequence;
 import com.appctek.anyroshambo.anim.Animator;
 import com.appctek.anyroshambo.anim.LazyAction;
@@ -21,9 +18,11 @@ import com.appctek.anyroshambo.services.AnimationFactory;
 import com.appctek.anyroshambo.services.GameService;
 import com.appctek.anyroshambo.services.ShakeDetector;
 import com.appctek.anyroshambo.services.VibrationService;
+import com.appctek.anyroshambo.social.SocialNetworkService;
 import com.appctek.anyroshambo.util.MediaPlayerUtils;
 import com.appctek.anyroshambo.util.ViewUtils;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import roboguice.inject.InjectView;
 
 public class MainActivity extends HardwareAcceleratedActivity {
@@ -49,6 +48,8 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @Inject private GameService gameService;
     @Inject private AnimationFactory animationFactory;
     @Inject private MediaPlayer mediaPlayer;
+
+    @Inject @Named("vkontakteService") private SocialNetworkService vkontakteService;
 
     @InjectView(R.id.game_container) private FrameLayout gameContainer;
     @InjectView(R.id.triangle) private ImageView triangle;
@@ -188,9 +189,21 @@ public class MainActivity extends HardwareAcceleratedActivity {
         outState.putInt(ANIMATION_POSITION_KEY, mainSequencer.getStep());
     }
 
-    public void showInfo(View view) {
-        final Intent intent = new Intent(this, AboutActivity.class);
-        startActivity(intent);
+    public void showAbout(View view) {
+        startActivity(new Intent(this, AboutActivity.class));
+    }
+
+    public void shareVk(View view) {
+        vkontakteService.shareText(false, "WTF? Where is this fucking message on my wall");
+    }
+
+    public void shareOk(View view) {
+    }
+
+    public void shareFb(View view) {
+    }
+
+    public void shareTw(View view) {
     }
 
     private float computeRotationAngleInRadians(float degrees) {

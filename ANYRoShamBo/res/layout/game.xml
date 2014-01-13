@@ -20,7 +20,7 @@
                  android:layout_marginRight="8dp"
                  android:layout_marginTop="80dp"
                  android:scaleType="fitXY"
-                 android:onClick="showInfo"/>
+                 android:onClick="showAbout"/>
 
     <TextView android:id="@+id/share_text"
               android:layout_width="wrap_content"
@@ -42,7 +42,9 @@
                  android:layout_below="@id/share_text"
                  android:layout_marginTop="@dimen/game_button_offset"
                  android:scaleType="fitXY"
-                 android:background="@null"/>
+                 android:background="@null"
+                 android:longClickable="true"
+                 android:onClick="shareVk"/>
 
     <ImageButton android:id="@+id/ok_button"
                  android:layout_width="@dimen/game_button_size"
@@ -53,7 +55,8 @@
                  android:layout_marginTop="@dimen/game_button_offset"
                  android:layout_marginLeft="90dp"
                  android:scaleType="fitXY"
-                 android:background="@null"/>
+                 android:background="@null"
+                 android:onClick="shareOk"/>
 
     <ImageButton android:id="@+id/fb_button"
                  android:layout_width="@dimen/game_button_size"
@@ -64,7 +67,8 @@
                  android:layout_marginTop="@dimen/game_button_offset"
                  android:layout_marginLeft="180dp"
                  android:scaleType="fitXY"
-                 android:background="@null"/>
+                 android:background="@null"
+                 android:onClick="shareFb"/>
 
     <ImageButton android:id="@+id/tw_button"
                  android:layout_width="@dimen/game_button_size"
@@ -75,7 +79,8 @@
                  android:layout_marginTop="@dimen/game_button_offset"
                  android:layout_marginLeft="270dp"
                  android:scaleType="fitXY"
-                 android:background="@null"/>
+                 android:background="@null"
+                 android:onClick="shareTw"/>
 
     <ImageView android:id="@+id/triangle"
                android:src="@drawable/triangle"
