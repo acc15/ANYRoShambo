@@ -74,6 +74,42 @@ public class VkontakteService implements SocialNetworkService {
         }
     }
 
+    private static class ContentType {
+
+        private String type;
+        private String subtype;
+        private Map<String,String> params;
+
+        public String getCharset() {
+            return params.get("charset");
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public String getSubtype() {
+            return subtype;
+        }
+
+        public static ContentType valueOf(String val) {
+
+            final String[] values = val.split(";");
+            final String[] typeVals = values[0].split("/", 2);
+            final String type = typeVals[0];
+            final String subtype = typeVals[1];
+            for (String v: values) {
+                final String[] sv = v.trim().split("=", 2);
+                final String key = sv[0];
+                //final String val = sv[1];
+                //if (val.sta)
+            }
+            return null;
+
+        }
+
+    }
+
     public void shareText(boolean forceAuth, final String text) {
         authenticate(forceAuth, new OAuthListener() {
             public void onLogin(final OAuthToken token) {
@@ -92,6 +128,10 @@ public class VkontakteService implements SocialNetworkService {
 
                             final HttpResponse response = httpClient.execute(post);
                             final HttpEntity entity = response.getEntity();
+
+                            // TODO parse ContentType and use charset
+                            final String contentType = entity.getContentType().getValue();
+
                             final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
                             entity.writeTo(byteArrayOutputStream);
 
