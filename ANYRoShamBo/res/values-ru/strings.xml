@@ -11,4 +11,9 @@
     <string name="go_celebrate_text">Праздновать!</string>
     <string name="go_forawalk_text">Гулять!</string>
 
+    <string name="social_share_text">Я скачал прикольное приложение ANYRoShamBo! Не знаешь чем заняться в праздники? Супер-выбиратор поможет!</string>
+
+    <string name="vk_share_success">Сообщение успешно опубликовано</string>
+    <string name="vk_share_error">Ошибка при публикации</string>
+
 </resources>

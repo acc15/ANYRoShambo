@@ -35,6 +35,9 @@
     <string name="glow_description">glow</string>
     <string name="go_for_description">go_for</string>
 
+    <string name="social_share_text">Look! New Year killer-app!! Don’t know what to do on holydays? Super-chooser will help!</string>
 
+    <string name="vk_share_success">Share succeeds</string>
+    <string name="vk_share_error">Share failure</string>
 
 </resources>
