@@ -137,7 +137,6 @@ public class VkontakteService implements SocialNetworkService {
     }
 
     private void showLoginDialog(final boolean revoke, final OAuthListener listener) {
-        final WebView wv = new WebView(context);
 
         final Uri.Builder uriBuilder = Uri.parse("https://oauth.vk.com/authorize").buildUpon().
                 appendQueryParameter("client_id", APP_ID).
@@ -150,15 +149,19 @@ public class VkontakteService implements SocialNetworkService {
             uriBuilder.appendQueryParameter("revoke", "1");
         }
 
+        //https://oauth.vk.com/blank.html#error=access_denied&error_reason=user_denied&error_description=User denied your request
+        //https://oauth.vk.com/blank.html#
+        // access_token=09858b7944d137f44497b49206bbfb3b48543577b7c50ea9094ad868a07fc21a169622998801f85e9b23a&
+        // expires_in=86400& // in seconds
+        // user_id=1114703
+
         final String url = uriBuilder.build().toString();
+
+        final WebView wv = new WebView(context);
         wv.loadUrl(url);
         final AlertDialog ad = new AlertDialog.Builder(context).setView(wv).create();
         final WebViewClient wvc = new WebViewClient() {
-            //https://oauth.vk.com/blank.html#error=access_denied&error_reason=user_denied&error_description=User denied your request
-            //https://oauth.vk.com/blank.html#
-            // access_token=09858b7944d137f44497b49206bbfb3b48543577b7c50ea9094ad868a07fc21a169622998801f85e9b23a&
-            // expires_in=86400& // in seconds
-            // user_id=1114703
+
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 if (!url.startsWith(REDIRECT_URL)) {
