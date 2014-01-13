@@ -150,6 +150,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        shakeDetector.resume();
         MediaPlayerUtils.unmute(mediaPlayer);
     }
 
