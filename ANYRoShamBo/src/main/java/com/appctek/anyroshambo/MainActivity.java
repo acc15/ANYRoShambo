@@ -49,7 +49,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @Inject private AnimationFactory animationFactory;
     @Inject private MediaPlayer mediaPlayer;
 
-    @Inject @Named("vkontakteService") private SocialNetworkService vkontakteService;
+    @Inject @Named("vkService") private SocialNetworkService vkService;
 
     @InjectView(R.id.game_container) private FrameLayout gameContainer;
     @InjectView(R.id.triangle) private ImageView triangle;
@@ -62,6 +62,10 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @InjectView(R.id.preloader) private View preloader;
     @InjectView(R.id.game_view) private View gameView;
     @InjectView(R.id.share_text) private TextView shareText;
+    @InjectView(R.id.vk_button) private ImageButton vkButton;
+    @InjectView(R.id.ok_button) private ImageButton okButton;
+    @InjectView(R.id.fb_button) private ImageButton fbButton;
+    @InjectView(R.id.tw_button) private ImageButton twButton;
 
     private ImageView[] icons;
     private GameModel gameModel = new GameModel();
@@ -160,11 +164,29 @@ public class MainActivity extends HardwareAcceleratedActivity {
         mediaPlayer.release();
     }
 
+    private final class ShareButtonListener implements View.OnLongClickListener {
+        private SocialNetworkService socialNetworkService;
+
+        private ShareButtonListener(SocialNetworkService socialNetworkService) {
+            this.socialNetworkService = socialNetworkService;
+        }
+
+        public boolean onLongClick(View v) {
+            shareGameResults(socialNetworkService, true);
+            return true;
+        }
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.game_with_preloader);
         initContainer(gameContainer);
+
+        vkButton.setOnLongClickListener(new ShareButtonListener(vkService));
+        //okButton.setOnLongClickListener(new ShareButtonListener(okService));
+        //fbButton.setOnLongClickListener(new ShareButtonListener(fbService));
+        //twButton.setOnLongClickListener(new ShareButtonListener(twService));
 
         icons = new ImageView[] {drinkIcon, walkIcon, partyIcon};
         goForLabel.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/kremlinctt.ttf"));
@@ -195,16 +217,24 @@ public class MainActivity extends HardwareAcceleratedActivity {
     }
 
     public void shareVk(View view) {
-        vkontakteService.shareText(false, "WTF? Where is this fucking message on my wall");
+        shareGameResults(vkService, false);
     }
 
     public void shareOk(View view) {
+        //shareGameResults(okService, false);
     }
 
     public void shareFb(View view) {
+        //shareGameResults(fbService, false);
     }
 
     public void shareTw(View view) {
+        //shareGameResults(twService, false);
+    }
+
+    private void shareGameResults(SocialNetworkService service, boolean forceAuth) {
+        final String message = "Test message for testing test service in test social network of this test world";
+        service.shareText(forceAuth, message);
     }
 
     private float computeRotationAngleInRadians(float degrees) {

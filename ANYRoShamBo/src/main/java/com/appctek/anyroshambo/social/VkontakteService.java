@@ -4,8 +4,11 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 import com.appctek.anyroshambo.R;
 import com.appctek.anyroshambo.services.DateTimeService;
@@ -25,7 +28,8 @@ import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
@@ -159,9 +163,17 @@ public class VkontakteService implements SocialNetworkService {
 
         final WebView wv = new WebView(context);
         wv.loadUrl(url);
-        final AlertDialog ad = new AlertDialog.Builder(context).setView(wv).create();
-        final WebViewClient wvc = new WebViewClient() {
 
+        final LinearLayout wrapper = new LinearLayout(context);
+        final EditText keyboardHack = new EditText(context);
+        keyboardHack.setVisibility(View.GONE);
+
+        wrapper.setOrientation(LinearLayout.VERTICAL);
+        wrapper.addView(wv, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT);
+        wrapper.addView(keyboardHack, LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
+        final AlertDialog ad = new AlertDialog.Builder(context).setView(wrapper).create();
+        wv.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 if (!url.startsWith(REDIRECT_URL)) {
@@ -189,8 +201,7 @@ public class VkontakteService implements SocialNetworkService {
                 listener.onLogin(token);
                 return true;
             }
-        };
-        wv.setWebViewClient(wvc);
+        });
         ad.show();
     }
 

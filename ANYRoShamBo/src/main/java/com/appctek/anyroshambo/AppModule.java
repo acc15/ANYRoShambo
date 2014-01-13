@@ -31,7 +31,7 @@ public class AppModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(AdService.class).to(getAdServiceImplClass().asSubclass(AdService.class)).in(Singleton.class);
-        bind(SocialNetworkService.class).annotatedWith(Names.named("vkontakteService")).to(VkontakteService.class);
+        bind(SocialNetworkService.class).annotatedWith(Names.named("vkService")).to(VkontakteService.class);
         bind(HttpClient.class).to(DefaultHttpClient.class);
     }
 }
