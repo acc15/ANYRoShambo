@@ -17,7 +17,6 @@ import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,7 +79,8 @@ public class WebUtils {
         dialog.show();
     }
 
-    public static JSONObject executePost(HttpClient httpClient, String url) throws JSONException {
+    @SuppressWarnings("unchecked")
+    public static <T> T executePost(HttpClient httpClient, String url) throws JSONException {
         final HttpPost post = new HttpPost(url);
         try {
 
@@ -98,9 +98,10 @@ public class WebUtils {
             final String charsetName = charset.name();
             final String decodedString = byteArrayOutputStream.toString(charsetName);
             logger.info("Server responded with response: {}", decodedString);
-            return (JSONObject) new JSONTokener(decodedString).nextValue();
+            return (T) new JSONTokener(decodedString).nextValue();
 
         } catch (IOException e) {
+            // TODO replace exception to custom
             throw new JSONException(e);
         }
     }

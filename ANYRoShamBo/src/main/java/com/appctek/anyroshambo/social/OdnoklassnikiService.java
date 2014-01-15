@@ -104,7 +104,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
     }
 
-    public void shareText(boolean revoke, String text) {
+    public void shareText(boolean revoke, final String text) {
 
         // http://www.odnoklassniki.ru/oauth/authorize?client_id={clientId}&scope={scope}&response_type={responseType}&redirect_uri={redirectUri}
         doWithAuthParams(revoke, new AsyncTask<AuthParams, Object, Boolean>() {
@@ -115,9 +115,23 @@ public class OdnoklassnikiService implements SocialNetworkService {
                     return false;
                 }
 
-                //final String url = Uri.parse()
-                //WebUtils.executePost(httpClient, )
+                //http://api.odnoklassniki.ru/fb.do?method=stream.publish
+                try {
+                    final JSONObject attachment = new JSONObject();
+                    attachment.put("caption", text);
+                    final String url = Uri.parse("http://api.odnoklassniki.ru/fb.do").buildUpon().
+                            appendQueryParameter("access_token", accessToken.getToken()).
+                            appendQueryParameter("method", "stream.publish").
+                            appendQueryParameter("message", "покрутил рулетку и получил Тест ").
+                            appendQueryParameter("attachment", attachment.toString()).
+                            build().toString();
+                    final JSONObject jsonObject = WebUtils.executePost(httpClient, url);
+                    System.out.println(jsonObject);
 
+                } catch (JSONException e) {
+                    logger.error("Can't execute stream.publish Odnoklassniki API method", e);
+                    return false;
+                }
                 return true;
             }
 
@@ -187,6 +201,12 @@ public class OdnoklassnikiService implements SocialNetworkService {
             //}
 
             final String accessTokenStr = jsonObject.getString("access_token");
+            if (accessTokenStr == null) {
+                logger.error("Authentication error occurred and access token wasn't returned. " +
+                        "Analyze server response: " + jsonObject);
+                return null;
+            }
+
             final OAuthToken accessToken = tokenManager.createToken(accessTokenStr, 30, TimeUnit.MINUTES);
             tokenManager.storeToken(OK_TOKEN, accessToken);
 
