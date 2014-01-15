@@ -37,7 +37,7 @@
 
     <string name="social_share_text">Look! New Year killer-app!! Don’t know what to do on holydays? Super-chooser will help!</string>
 
-    <string name="vk_share_success">Share succeeds</string>
-    <string name="vk_share_error">Share failure</string>
+    <string name="share_success">Share succeeds</string>
+    <string name="share_error">Share failure</string>
 
 </resources>

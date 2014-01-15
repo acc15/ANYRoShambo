@@ -54,7 +54,7 @@ public class VkontakteService implements SocialNetworkService {
             @Override
             protected void onPostExecute(Boolean result) {
                 Toast.makeText(context,
-                        result ? R.string.vk_share_success : R.string.vk_share_error,
+                        result ? R.string.share_success : R.string.share_error,
                         Toast.LENGTH_LONG).show();
             }
         });

@@ -4,18 +4,23 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.widget.Toast;
+import com.appctek.anyroshambo.R;
 import com.appctek.anyroshambo.social.auth.OAuthToken;
 import com.appctek.anyroshambo.social.auth.TokenManager;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.google.inject.Inject;
 import org.apache.http.client.HttpClient;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * OAuth help page:
  * http://apiok.ru/wiki/pages/viewpage.action?pageId=42476652
- *
  *
  * @author Vyacheslav Mayorov
  * @since 2014-14-01
@@ -89,6 +94,8 @@ public class OdnoklassnikiService implements SocialNetworkService {
                     return true;
                 }
 
+                dialog.dismiss();
+
                 final String code = uri.getQueryParameter("code");
                 task.execute(AuthParams.withAccessCode(code));
                 return true;
@@ -104,13 +111,21 @@ public class OdnoklassnikiService implements SocialNetworkService {
             @Override
             protected Boolean doInBackground(AuthParams... params) {
                 final OAuthToken accessToken = authenticate(params[0]);
+                if (accessToken == null) {
+                    return false;
+                }
+
+                //final String url = Uri.parse()
+                //WebUtils.executePost(httpClient, )
+
                 return true;
             }
 
             @Override
-            protected void onPostExecute(Boolean aBoolean) {
-                // TODO implement..
-                super.onPostExecute(aBoolean);
+            protected void onPostExecute(Boolean result) {
+                Toast.makeText(context,
+                        result ? R.string.share_success : R.string.share_error,
+                        Toast.LENGTH_LONG).show();
             }
         });
 
@@ -118,34 +133,73 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
     private OAuthToken authenticate(AuthParams authParams) {
 
-        //http://api.odnoklassniki.ru/oauth/token.do
-        //
-        //Параметры
-        //code - код авторизации, полученный в ответном адресе URL пользователя
-        //redirect_uri - тот же URI для переадресации, который был указан при первом вызове
-        //grant_type - _на данный момент поддерживается только код авторизации authorization_code
-        //client_id - идентификатор приложения
-        //client_secret - секретный ключ приложения
-
-        if (authParams.getAccessCode() != null) {
-
-
-
-        } else if (authParams.getRefreshToken() != null) {
-
+        if (authParams.getAccessToken() != null) {
+            return authParams.getAccessToken();
         }
 
+        try {
 
-        // refresh token
-        //
-        //http://api.odnoklassniki.ru/oauth/token.do
-        //
-        //С параметрами
-        //refresh_token - маркер обновления, полученный ранее grant_type = refresh_token
-        //client_id - идентификатор приложения
-        //client_secret - секретный ключ приложения
+            final JSONObject jsonObject;
+            if (authParams.getAccessCode() != null) {
 
-        return null;
+                //http://api.odnoklassniki.ru/oauth/token.do
+                //
+                //Параметры
+                //code - код авторизации, полученный в ответном адресе URL пользователя
+                //redirect_uri - тот же URI для переадресации, который был указан при первом вызове
+                //grant_type - _на данный момент поддерживается только код авторизации authorization_code
+                //client_id - идентификатор приложения
+                //client_secret - секретный ключ приложения
+
+                final String url = Uri.parse("http://api.odnoklassniki.ru/oauth/token.do").buildUpon().
+                        appendQueryParameter("code", authParams.getAccessCode()).
+                        appendQueryParameter("redirect_uri", REDIRECT_URL).
+                        appendQueryParameter("grant_type", "authorization_code").
+                        appendQueryParameter("client_id", APP_ID).
+                        appendQueryParameter("client_secret", SECRET_CODE).
+                        build().toString();
+                jsonObject = WebUtils.executePost(httpClient, url);
+            } else {
+
+                // refresh token
+                //
+                //http://api.odnoklassniki.ru/oauth/token.do
+                //
+                //С параметрами
+                //refresh_token - маркер обновления, полученный ранее
+                //grant_type = refresh_token
+                //client_id - идентификатор приложения
+                //client_secret - секретный ключ приложения
+
+                final String url = Uri.parse("http://api.odnoklassniki.ru/oauth/token.do").buildUpon().
+                        appendQueryParameter("refresh_token", authParams.getRefreshToken().getToken()).
+                        appendQueryParameter("grant_type", "refresh_token").
+                        appendQueryParameter("client_id", APP_ID).
+                        appendQueryParameter("client_secret", SECRET_CODE).
+                        build().toString();
+                jsonObject = WebUtils.executePost(httpClient, url);
+            }
+
+            //{
+            //    access_token: 'kjdhfldjfhgldsjhfglkdjfg9ds8fg0sdf8gsd8fg',
+            //            token_type: 'session',
+            //        refresh_token: 'klsdjhf0e9dyfasduhfpasdfasdfjaspdkfjp'
+            //}
+
+            final String accessTokenStr = jsonObject.getString("access_token");
+            final OAuthToken accessToken = tokenManager.createToken(accessTokenStr, 30, TimeUnit.MINUTES);
+            tokenManager.storeToken(OK_TOKEN, accessToken);
+
+            final String refreshTokenStr = jsonObject.getString("refresh_token");
+            final OAuthToken refreshToken = tokenManager.createToken(refreshTokenStr, 30, TimeUnit.DAYS);
+            tokenManager.storeToken(OK_REFRESH_TOKEN, refreshToken);
+
+            return accessToken;
+
+        } catch (JSONException e) {
+            logger.error("Error occurred during authentication", e);
+            return null;
+        }
     }
 
 
