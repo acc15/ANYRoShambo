@@ -7,6 +7,6 @@ package com.appctek.anyroshambo.social;
 public interface SocialNetworkService {
 
 
-    void shareText(boolean forceAuth, String text);
+    void shareText(boolean revoke, String text);
 
 }

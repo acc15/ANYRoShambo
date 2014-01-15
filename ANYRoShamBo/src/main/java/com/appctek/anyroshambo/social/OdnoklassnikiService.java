@@ -1,5 +1,10 @@
 package com.appctek.anyroshambo.social;
 
+import android.content.Context;
+import com.appctek.anyroshambo.social.auth.OAuthToken;
+import com.appctek.anyroshambo.social.auth.TokenManager;
+import com.google.inject.Inject;
+
 /**
  * OAuth help page:
  * http://apiok.ru/wiki/pages/viewpage.action?pageId=42476652
@@ -14,7 +19,15 @@ public class OdnoklassnikiService implements SocialNetworkService {
     private static final String SERVICE_ID = "odnoklassniki";
     private static final String SECRET_CODE = "83B562785858040AF1E5DF41";
 
-    public void shareText(boolean forceAuth, String text) {
+    @Inject private Context context;
+    @Inject private TokenManager tokenManager;
+
+    private void share(OAuthToken token, String text) {
+
+
+    }
+
+    public void shareText(boolean revoke, String text) {
 
         // http://www.odnoklassniki.ru/oauth/authorize?client_id={clientId}&scope={scope}&response_type={responseType}&redirect_uri={redirectUri}
 

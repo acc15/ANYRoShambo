@@ -6,6 +6,8 @@ import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * @author Vyacheslav Mayorov
  * @since 2014-13-01
@@ -27,31 +29,56 @@ public class TokenManager {
         this.dateTimeService = dateTimeService;
     }
 
-    public OAuthToken getToken(String serviceId) {
-        final String token = sharedPreferences.getString(composeProperty(serviceId, TOKEN), null);
+    /**
+     * Fetches token from storage.
+     * Returns {@code null} if token isn't present in storage or it's expired.
+     * @param tokenName name of token
+     * @return early stored token or {@code null} if token isn't present in storage or it's expired.
+     */
+    public OAuthToken getToken(String tokenName) {
+        final String token = sharedPreferences.getString(composeProperty(tokenName, TOKEN), null);
         if (token == null) {
-            logger.debug("Token for service \"" + serviceId + "\" isn't stored yet. Returning null");
+            logger.debug("Token for service \"" + tokenName + "\" isn't stored yet. Returning null");
             return null;
         }
-        final long expiresAfter = sharedPreferences.getLong(composeProperty(serviceId, EXPIRES_AFTER), 0);
+        final long expiresAfter = sharedPreferences.getLong(composeProperty(tokenName, EXPIRES_AFTER), 0);
         if (dateTimeService.getTimeInMillis() > expiresAfter) {
-            logger.info("Token for service \"" + serviceId + "\" has been expired at " + expiresAfter + ". Returning null");
+            logger.info("Token for service \"" + tokenName + "\" has been expired at " + expiresAfter + ". Returning null");
             return null;
         }
-        logger.debug("Token for service \"" + serviceId + "\" has been successfully loaded: " + token +
+        logger.debug("Token for service \"" + tokenName + "\" has been successfully loaded: " + token +
                 ". Expires after " + expiresAfter);
         return new OAuthToken(token, expiresAfter);
     }
 
-    public void storeToken(String serviceId, OAuthToken token) {
+    /**
+     * Stores token
+     * @param tokenName name of token
+     * @param token token data
+     */
+    public void storeToken(String tokenName, OAuthToken token) {
         sharedPreferences.edit().
-                putString(composeProperty(serviceId, TOKEN), token.getToken()).
-                putLong(composeProperty(serviceId, EXPIRES_AFTER), token.getExpiresAfter()).
+                putString(composeProperty(tokenName, TOKEN), token.getToken()).
+                putLong(composeProperty(tokenName, EXPIRES_AFTER), token.getExpiresAfter()).
                 commit();
     }
 
-    private static String composeProperty(String serviceId, String propertyName) {
-        return serviceId + "." + propertyName;
+    /**
+     * Removes token from storage
+     * @param tokenName name of token
+     */
+    public void revokeToken(String tokenName) {
+        sharedPreferences.edit().
+                remove(composeProperty(tokenName, TOKEN)).
+                remove(composeProperty(tokenName, EXPIRES_AFTER)).
+                commit();
     }
 
+    private static String composeProperty(String tokenName, String propertyName) {
+        return "token." + tokenName + "." + propertyName;
+    }
+
+    public OAuthToken createToken(String token, long expireTime, TimeUnit expireUnit) {
+        return new OAuthToken(token, dateTimeService.getTimeInMillis() + expireUnit.toMillis(expireTime));
+    }
 }
