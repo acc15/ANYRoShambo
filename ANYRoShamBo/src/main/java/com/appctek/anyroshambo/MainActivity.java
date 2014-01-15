@@ -50,6 +50,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @Inject private MediaPlayer mediaPlayer;
 
     @Inject @Named("vkService") private SocialNetworkService vkService;
+    @Inject @Named("okService") private SocialNetworkService okService;
 
     @InjectView(R.id.game_container) private FrameLayout gameContainer;
     @InjectView(R.id.triangle) private ImageView triangle;
@@ -184,7 +185,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
         initContainer(gameContainer);
 
         vkButton.setOnLongClickListener(new ShareButtonListener(vkService));
-        //okButton.setOnLongClickListener(new ShareButtonListener(okService));
+        okButton.setOnLongClickListener(new ShareButtonListener(okService));
         //fbButton.setOnLongClickListener(new ShareButtonListener(fbService));
         //twButton.setOnLongClickListener(new ShareButtonListener(twService));
 
@@ -221,7 +222,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     }
 
     public void shareOk(View view) {
-        //shareGameResults(okService, false);
+        shareGameResults(okService, false);
     }
 
     public void shareFb(View view) {

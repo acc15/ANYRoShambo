@@ -28,7 +28,7 @@ public class VkontakteService implements SocialNetworkService {
     private static final Logger logger = LoggerFactory.getLogger(VkontakteService.class);
 
     private static final String APP_ID = "4087551"; // look at https://vk.com/editapp?id=4087551&section=options
-    private static final String VK_TOKEN = "vkontakte";
+    private static final String VK_TOKEN = "vk";
 
     private static final String API_VERSION = "5.5";
     private static final String REDIRECT_URL = "https://oauth.vk.com/blank.html";
@@ -116,13 +116,17 @@ public class VkontakteService implements SocialNetworkService {
 
                 final Uri uri = Uri.parse(url);
 
-                final Map<String, String> hashParams = WebUtils.parseUriFragmentParameters(uri.getFragment());
-                final String accessToken = hashParams.get("access_token");
-                if (accessToken == null) {
+                final String error = uri.getQueryParameter("error");
+                if (error != null) {
+                    final String errorDescription = uri.getQueryParameter("error_description");
+                    logger.info("Vkontakte authentication cancelled (returned error: " + error +
+                            ") with description: " + errorDescription);
                     dialog.cancel();
                     return true;
                 }
 
+                final Map<String, String> hashParams = WebUtils.parseUriFragmentParameters(uri.getFragment());
+                final String accessToken = hashParams.get("access_token");
                 final String expiresInString = hashParams.get("expires_in");
                 final long expiresIn = Long.parseLong(expiresInString);
 
