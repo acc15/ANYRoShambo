@@ -8,7 +8,7 @@ import android.widget.Toast;
 import com.appctek.anyroshambo.R;
 import com.appctek.anyroshambo.social.auth.OAuthToken;
 import com.appctek.anyroshambo.social.auth.TokenManager;
-import com.appctek.anyroshambo.util.DigestUtils;
+import com.appctek.anyroshambo.util.HexUtils;
 import com.appctek.anyroshambo.util.JSONUtils;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.google.inject.Inject;
@@ -119,10 +119,10 @@ public class OdnoklassnikiService implements SocialNetworkService {
             stringBuilder.append(param.getKey()).append('=').append(param.getValue());
         }
 
-        final String authMd5 = DigestUtils.calculateMD5(accessToken.getToken() + SECRET_KEY);
+        final String authMd5 = HexUtils.md5Hex(accessToken.getToken() + SECRET_KEY);
         stringBuilder.append(authMd5);
 
-        return DigestUtils.calculateMD5(stringBuilder.toString());
+        return HexUtils.md5Hex(stringBuilder.toString());
     }
 
     public void shareText(boolean revoke, final String text) {

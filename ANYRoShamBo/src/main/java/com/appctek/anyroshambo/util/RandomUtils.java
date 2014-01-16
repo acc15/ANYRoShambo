@@ -19,7 +19,6 @@ public class RandomUtils {
         return ch;
     }
 
-
     public static String randomAlphaNumericString(Random random, int length) {
         final StringBuilder stringBuilder = new StringBuilder();
         for (int i=0; i<length; i++) {
