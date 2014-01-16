@@ -8,6 +8,7 @@ import android.widget.Toast;
 import com.appctek.anyroshambo.R;
 import com.appctek.anyroshambo.social.auth.OAuthToken;
 import com.appctek.anyroshambo.social.auth.TokenManager;
+import com.appctek.anyroshambo.util.JSONUtils;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.google.inject.Inject;
 import org.apache.http.client.HttpClient;
@@ -16,6 +17,7 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -66,17 +68,18 @@ public class VkontakteService implements SocialNetworkService {
                 appendQueryParameter("access_token", token.getToken()).
                 build().toString();
         try {
-
-            final JSONObject jsonObject = WebUtils.executePost(httpClient, url);
+            final JSONObject jsonObject = JSONUtils.parseJSON(WebUtils.executePost(httpClient, url));
             if (!jsonObject.has("response")) {
                 return false;
             }
             final String postId = jsonObject.getJSONObject("response").getString("post_id");
             logger.info("Post has been created with id " + postId);
             return true;
-
         } catch (JSONException e) {
-            logger.error("Error occured while executing JSON POST request", e);
+            logger.error("Error occurred while executing JSON POST request", e);
+            return false;
+        } catch (IOException e) {
+            logger.error("I/O error occurred", e);
             return false;
         }
     }

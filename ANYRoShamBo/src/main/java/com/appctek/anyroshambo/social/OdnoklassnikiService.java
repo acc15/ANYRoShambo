@@ -8,6 +8,8 @@ import android.widget.Toast;
 import com.appctek.anyroshambo.R;
 import com.appctek.anyroshambo.social.auth.OAuthToken;
 import com.appctek.anyroshambo.social.auth.TokenManager;
+import com.appctek.anyroshambo.util.DigestUtils;
+import com.appctek.anyroshambo.util.JSONUtils;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.google.inject.Inject;
 import org.apache.http.client.HttpClient;
@@ -16,6 +18,10 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -32,8 +38,11 @@ public class OdnoklassnikiService implements SocialNetworkService {
     private static final String APP_ID = "216398080";
     private static final String OK_TOKEN = "ok";
     private static final String OK_REFRESH_TOKEN = "ok.refresh";
-    private static final String SECRET_CODE = "83B562785858040AF1E5DF41";
+
+    private static final String PUBLIC_KEY = "CBAKPGONABABABABA";
+    private static final String SECRET_KEY = "83B562785858040AF1E5DF41";
     private static final String REDIRECT_URL = "http://appctek.com/anyroshambo";
+    public static final String METHOD_SUFFIX = "Odnoklassniki API";
 
     private final Context context;
     private final TokenManager tokenManager;
@@ -104,6 +113,18 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
     }
 
+    private static String calculateSignature(SortedMap<String, String> params, OAuthToken accessToken) {
+        final StringBuilder stringBuilder = new StringBuilder();
+        for (Map.Entry<String, String> param : params.entrySet()) {
+            stringBuilder.append(param.getKey()).append('=').append(param.getValue());
+        }
+
+        final String authMd5 = DigestUtils.calculateMD5(accessToken.getToken() + SECRET_KEY);
+        stringBuilder.append(authMd5);
+
+        return DigestUtils.calculateMD5(stringBuilder.toString());
+    }
+
     public void shareText(boolean revoke, final String text) {
 
         // http://www.odnoklassniki.ru/oauth/authorize?client_id={clientId}&scope={scope}&response_type={responseType}&redirect_uri={redirectUri}
@@ -116,20 +137,44 @@ public class OdnoklassnikiService implements SocialNetworkService {
                 }
 
                 //http://api.odnoklassniki.ru/fb.do?method=stream.publish
+                final String apiMethod = "stream.publish";
                 try {
                     final JSONObject attachment = new JSONObject();
                     attachment.put("caption", text);
-                    final String url = Uri.parse("http://api.odnoklassniki.ru/fb.do").buildUpon().
-                            appendQueryParameter("access_token", accessToken.getToken()).
-                            appendQueryParameter("method", "stream.publish").
-                            appendQueryParameter("message", "покрутил рулетку и получил Тест ").
-                            appendQueryParameter("attachment", attachment.toString()).
+
+                    final TreeMap<String, String> sortedParams = new TreeMap<String, String>();
+                    sortedParams.put("method", apiMethod);
+                    sortedParams.put("message", "покрутил рулетку и получил");
+                    sortedParams.put("attachment", attachment.toString());
+                    sortedParams.put("application_key", PUBLIC_KEY);
+
+                    final String signature = calculateSignature(sortedParams, accessToken);
+                    sortedParams.put("sig", signature);
+                    sortedParams.put("access_token", accessToken.getToken());
+
+                    final String uri = WebUtils.appendQueryParameters(
+                            Uri.parse("http://api.odnoklassniki.ru/fb.do").buildUpon(), sortedParams).
                             build().toString();
-                    final JSONObject jsonObject = WebUtils.executePost(httpClient, url);
-                    System.out.println(jsonObject);
+
+                    final Object reply = JSONUtils.parseJSON(WebUtils.executePost(httpClient, uri));
+                    if (reply instanceof JSONObject) {
+                        final JSONObject jsonReply = (JSONObject) reply;
+                        // error sample:
+                        // {"error_data":null,"error_code":104,"error_msg":"PARAM_SIGNATURE : No signature specified"}
+                        if (jsonReply.has("error_code")) {
+                            //final String error
+                            logger.error("Error returned from server which executing " + apiMethod + ": " + jsonReply);
+                            return false;
+                        }
+
+                    }
+                    System.out.println(reply);
 
                 } catch (JSONException e) {
-                    logger.error("Can't execute stream.publish Odnoklassniki API method", e);
+                    logger.error("Can't execute " + apiMethod + " in " + METHOD_SUFFIX, e);
+                    return false;
+                } catch (IOException e) {
+                    logger.error("I/O error occurred while executing " + apiMethod + " in " + METHOD_SUFFIX, e);
                     return false;
                 }
                 return true;
@@ -154,27 +199,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
         try {
 
             final JSONObject jsonObject;
-            if (authParams.getAccessCode() != null) {
-
-                //http://api.odnoklassniki.ru/oauth/token.do
-                //
-                //Параметры
-                //code - код авторизации, полученный в ответном адресе URL пользователя
-                //redirect_uri - тот же URI для переадресации, который был указан при первом вызове
-                //grant_type - _на данный момент поддерживается только код авторизации authorization_code
-                //client_id - идентификатор приложения
-                //client_secret - секретный ключ приложения
-
-                final String url = Uri.parse("http://api.odnoklassniki.ru/oauth/token.do").buildUpon().
-                        appendQueryParameter("code", authParams.getAccessCode()).
-                        appendQueryParameter("redirect_uri", REDIRECT_URL).
-                        appendQueryParameter("grant_type", "authorization_code").
-                        appendQueryParameter("client_id", APP_ID).
-                        appendQueryParameter("client_secret", SECRET_CODE).
-                        build().toString();
-                jsonObject = WebUtils.executePost(httpClient, url);
-            } else {
-
+            if (authParams.getRefreshToken() != null) {
                 // refresh token
                 //
                 //http://api.odnoklassniki.ru/oauth/token.do
@@ -189,9 +214,27 @@ public class OdnoklassnikiService implements SocialNetworkService {
                         appendQueryParameter("refresh_token", authParams.getRefreshToken().getToken()).
                         appendQueryParameter("grant_type", "refresh_token").
                         appendQueryParameter("client_id", APP_ID).
-                        appendQueryParameter("client_secret", SECRET_CODE).
+                        appendQueryParameter("client_secret", SECRET_KEY).
                         build().toString();
-                jsonObject = WebUtils.executePost(httpClient, url);
+                jsonObject = JSONUtils.parseJSON(WebUtils.executePost(httpClient, url));
+            } else {
+                //http://api.odnoklassniki.ru/oauth/token.do
+                //
+                //Параметры
+                //code - код авторизации, полученный в ответном адресе URL пользователя
+                //redirect_uri - тот же URI для переадресации, который был указан при первом вызове
+                //grant_type - _на данный момент поддерживается только код авторизации authorization_code
+                //client_id - идентификатор приложения
+                //client_secret - секретный ключ приложения
+
+                final String url = Uri.parse("http://api.odnoklassniki.ru/oauth/token.do").buildUpon().
+                        appendQueryParameter("code", authParams.getAccessCode()).
+                        appendQueryParameter("redirect_uri", REDIRECT_URL).
+                        appendQueryParameter("grant_type", "authorization_code").
+                        appendQueryParameter("client_id", APP_ID).
+                        appendQueryParameter("client_secret", SECRET_KEY).
+                        build().toString();
+                jsonObject = JSONUtils.parseJSON(WebUtils.executePost(httpClient, url));
             }
 
             //{
@@ -210,14 +253,19 @@ public class OdnoklassnikiService implements SocialNetworkService {
             final OAuthToken accessToken = tokenManager.createToken(accessTokenStr, 30, TimeUnit.MINUTES);
             tokenManager.storeToken(OK_TOKEN, accessToken);
 
-            final String refreshTokenStr = jsonObject.getString("refresh_token");
-            final OAuthToken refreshToken = tokenManager.createToken(refreshTokenStr, 30, TimeUnit.DAYS);
-            tokenManager.storeToken(OK_REFRESH_TOKEN, refreshToken);
+            if (jsonObject.has("refresh_token")) {
+                final String refreshTokenStr = jsonObject.getString("refresh_token");
+                final OAuthToken refreshToken = tokenManager.createToken(refreshTokenStr, 30, TimeUnit.DAYS);
+                tokenManager.storeToken(OK_REFRESH_TOKEN, refreshToken);
+            }
 
             return accessToken;
 
+        } catch (IOException e) {
+            logger.error("I/O error occurred during authentication in " + METHOD_SUFFIX);
+            return null;
         } catch (JSONException e) {
-            logger.error("Error occurred during authentication", e);
+            logger.error("Error occurred during authentication in " + METHOD_SUFFIX, e);
             return null;
         }
     }

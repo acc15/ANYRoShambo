@@ -3,6 +3,7 @@ package com.appctek.anyroshambo.util;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.net.Uri;
 import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -16,8 +17,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.json.JSONException;
-import org.json.JSONTokener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,30 +79,30 @@ public class WebUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T executePost(HttpClient httpClient, String url) throws JSONException {
+    public static String executePost(HttpClient httpClient, String url) throws IOException {
         final HttpPost post = new HttpPost(url);
-        try {
-
-            final HttpResponse response = httpClient.execute(post);
-            final int statusCode = response.getStatusLine().getStatusCode();
-            if (statusCode != HttpStatus.SC_OK) {
-                throw new JSONException("Server responded with error status: " + statusCode);
-            }
-
-            final HttpEntity entity = response.getEntity();
-            final Charset charset = parseCharset(entity.getContentType());
-            final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            entity.writeTo(byteArrayOutputStream);
-
-            final String charsetName = charset.name();
-            final String decodedString = byteArrayOutputStream.toString(charsetName);
-            logger.info("Server responded with response: {}", decodedString);
-            return (T) new JSONTokener(decodedString).nextValue();
-
-        } catch (IOException e) {
-            // TODO replace exception to custom
-            throw new JSONException(e);
+        final HttpResponse response = httpClient.execute(post);
+        final int statusCode = response.getStatusLine().getStatusCode();
+        if (statusCode != HttpStatus.SC_OK) {
+            throw new IOException("Server responded with error status: " + statusCode);
         }
+
+        final HttpEntity entity = response.getEntity();
+        final Charset charset = parseCharset(entity.getContentType());
+        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        entity.writeTo(byteArrayOutputStream);
+
+        final String charsetName = charset.name();
+        final String decodedString = byteArrayOutputStream.toString(charsetName);
+        logger.info("Server responded with response: {}", decodedString);
+        return decodedString;
+    }
+
+    public static Uri.Builder appendQueryParameters(Uri.Builder uriBuilder, Map<String,String> params) {
+        for (Map.Entry<String,String> param: params.entrySet()) {
+            uriBuilder.appendQueryParameter(param.getKey(), param.getValue());
+        }
+        return uriBuilder;
     }
 
     public static interface UrlHandler {

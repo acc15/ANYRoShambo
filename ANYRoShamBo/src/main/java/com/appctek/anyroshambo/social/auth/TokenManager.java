@@ -79,6 +79,7 @@ public class TokenManager {
     }
 
     public OAuthToken createToken(String token, long expireTime, TimeUnit expireUnit) {
-        return new OAuthToken(token, dateTimeService.getTimeInMillis() + expireUnit.toMillis(expireTime));
+        final long millisTime = expireUnit.toMillis(expireTime) - 1000;
+        return new OAuthToken(token, dateTimeService.getTimeInMillis() + millisTime);
     }
 }
