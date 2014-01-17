@@ -9,7 +9,6 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import com.appctek.anyroshambo.social.VkontakteService;
 import com.google.common.net.MediaType;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -17,8 +16,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -34,7 +31,7 @@ public class WebUtils {
 
 
     public static final Charset DEFAULT_CHARSET = Charset.forName("utf-8");
-    public static final Logger logger = LoggerFactory.getLogger(VkontakteService.class);
+    //public static final Logger logger = LoggerFactory.getLogger(WebUtils.class);
 
     public static Charset parseCharset(Header contentTypeHeader) {
         if (contentTypeHeader == null) {
@@ -94,7 +91,8 @@ public class WebUtils {
 
         final String charsetName = charset.name();
         final String decodedString = byteArrayOutputStream.toString(charsetName);
-        logger.info("Server responded with response: {}", decodedString);
+        // TODO how to log messages in unit tests?
+        //logger.info("Server responded with response: {}", decodedString);
         return decodedString;
     }
 
