@@ -1,9 +1,9 @@
 package com.appctek.anyroshambo.util;
 
+import ru.vmsoftware.parser.builder.CaptureContext;
 import ru.vmsoftware.parser.builder.CaptureListener;
-import ru.vmsoftware.parser.builder.iterators.CharSequenceIterator;
+import ru.vmsoftware.parser.builder.ParserBuilder;
 import ru.vmsoftware.parser.builder.matchers.TokenMatcher;
-import ru.vmsoftware.parser.builder.util.Pair;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,7 +45,6 @@ public class MediaType {
     public static MediaType valueOf(String val) {
         final MediaType mediaType = new MediaType();
         final StringBuilder quotedStrValue = new StringBuilder();
-        final Pair<String, String> paramValue = new Pair<String, String>();
 
         final TokenMatcher separators = charInArray(
                 '\t', ' ', '"', '(', ')', ',', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '{', '}');
@@ -54,70 +53,69 @@ public class MediaType {
         final TokenMatcher whitespace = any(charValue(' '), charValue('\t'));
         final TokenMatcher skipWS = oneOrMore(whitespace);
         final TokenMatcher token = oneOrMore(all(anyChar(), invert(any(separators, ctl))));
-        final TokenMatcher lws = sequence(optional(crlf), whitespace);
+        final TokenMatcher lws = sequence(zeroOrOne(crlf), whitespace);
 
         final TokenMatcher quotedText = all(
                 invert(charValue('\"')),
                 any(
                         capture(new CaptureListener() {
-                            public void onMatch(CharSequence sequence) {
-                                quotedStrValue.append(sequence);
+                            public void onCapture(CaptureContext context) {
+                                quotedStrValue.append(context.getCapture().toString());
                             }
                         }, all(anyChar(), invert(ctl))),
                         lws)
         );
 
         final TokenMatcher quotedPair = capture(new CaptureListener() {
-            public void onMatch(CharSequence sequence) {
-                quotedStrValue.append(sequence.charAt(1));
+            public void onCapture(CaptureContext context) {
+                quotedStrValue.append(context.getCapture().charAt(1));
             }
         }, sequence(charValue('\\'), anyChar()));
 
         final TokenMatcher quotedStr = sequence(
-                capture(new CaptureListener() {
-                    public void onMatch(CharSequence sequence) {
-                        quotedStrValue.setLength(0);
-                    }
-                }, charValue('\"')),
+                charValue('\"'),
                 repeat(0, UNBOUNDED, any(quotedPair, quotedText)),
                 charValue('\"'));
 
-        final TokenMatcher contentType = sequenceWithSkip(skipWS,
+        final TokenMatcher contentType = tokens(
                 capture(new CaptureListener() {
-                    public void onMatch(CharSequence sequence) {
-                        mediaType.type = sequence.toString();
+                    public void onCapture(CaptureContext context) {
+                        mediaType.type = context.getCapture().toString();
                     }
                 }, token),
                 charValue('/'),
                 capture(new CaptureListener() {
-                    public void onMatch(CharSequence sequence) {
-                        mediaType.subtype = sequence.toString();
+                    public void onCapture(CaptureContext context) {
+                        mediaType.subtype = context.getCapture().toString();
                     }
                 }, token),
-                repeat(0, UNBOUNDED, sequenceWithSkip(skipWS, charValue(';'),
+                repeat(0, UNBOUNDED, capture(new CaptureListener() {
+                    public void onCapture(CaptureContext context) {
+                        mediaType.params.put(context.<String>getValue("name"), context.<String>getValue("value"));
+                    }
+                }, tokens(
+                        charValue(';'),
                         capture(new CaptureListener() {
-                            public void onMatch(CharSequence sequence) {
-                                paramValue.first = sequence.toString();
+                            public void onCapture(CaptureContext context) {
+                                context.addValue("name", context.getCapture().toString());
                             }
                         }, token),
                         charValue('='),
                         any(
                                 capture(new CaptureListener() {
-                                    public void onMatch(CharSequence sequence) {
-                                        paramValue.second = sequence.toString();
-                                        mediaType.params.put(paramValue.first, paramValue.second);
+                                    public void onCapture(CaptureContext context) {
+                                        context.addValue("value", context.getCapture().toString());
                                     }
                                 }, token),
                                 capture(new CaptureListener() {
-                                    public void onMatch(CharSequence sequence) {
-                                        paramValue.second = quotedStrValue.toString();
-                                        mediaType.params.put(paramValue.first, paramValue.second);
+                                    public void onCapture(CaptureContext context) {
+                                        context.addValue("value", quotedStrValue.toString());
+                                        quotedStrValue.setLength(0);
                                     }
                                 }, quotedStr)
-                        ))));
+                        )))));
 
-        final CharSequenceIterator iterator = new CharSequenceIterator(val);
-        if (!contentType.match(iterator) || iterator.hasChar()) {
+        if (!ParserBuilder.parse(val).by(contentType).skip(skipWS).match()) {
             throw new IllegalArgumentException("\"" + val + "\" isn't valid Content-Type value.");
         }
         return mediaType;
