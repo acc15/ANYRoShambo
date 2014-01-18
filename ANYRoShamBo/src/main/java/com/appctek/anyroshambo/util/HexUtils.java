@@ -11,15 +11,15 @@ import java.security.NoSuchAlgorithmException;
 public class HexUtils {
 
 
+    public static final int HEX_MASK = 0x0f;
+
     private static char hexChar(int val, boolean upperCase) {
         return (char) (val < 10 ? '0' + val : (upperCase ? 'A' : 'a') + (val - 10));
     }
 
     public static void appendByteAsHex(StringBuilder stringBuilder, byte value, boolean upperCase) {
-        final int hexBase = 16;
-        final int v = value & 0xff;
-        stringBuilder.append(hexChar((v / hexBase) % hexBase, upperCase)).
-                      append(hexChar(v % hexBase, upperCase));
+        stringBuilder.append(hexChar((value >>> 4) & HEX_MASK, upperCase)).
+                      append(hexChar(value & HEX_MASK, upperCase));
     }
 
     public static String convertBytesToHexString(byte[] byteArray, boolean upperCase) {
