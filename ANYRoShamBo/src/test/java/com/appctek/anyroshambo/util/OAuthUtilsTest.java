@@ -2,7 +2,9 @@ package com.appctek.anyroshambo.util;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -20,6 +22,36 @@ public class OAuthUtilsTest {
         assertThat(OAuthUtils.percentEncode("Dogs, Cats & Mice")).isEqualTo("Dogs%2C%20Cats%20%26%20Mice");
         assertThat(OAuthUtils.percentEncode("☃")).isEqualTo("%E2%98%83");
 
+    }
+
+    @Test
+    public void testBuildSignature() throws Exception {
+
+        final List<Pair<String,String>> urlParams = new ArrayList<Pair<String, String>>();
+        urlParams.add(new Pair<String, String>("include_entities", "true"));
+
+        final List<Pair<String,String>> postParams = new ArrayList<Pair<String, String>>();
+        postParams.add(new Pair<String, String>("status", "Hello Ladies + Gentlemen, a signed OAuth request!"));
+
+        final List<Pair<String,String>> oauthParams = new ArrayList<Pair<String, String>>();
+        oauthParams.add(new Pair<String,String>("oauth_consumer_key", "xvz1evFS4wEEPTGEFPHBog"));
+        oauthParams.add(new Pair<String,String>("oauth_nonce", "kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg"));
+        oauthParams.add(new Pair<String,String>("oauth_signature_method", "HMAC-SHA1"));
+        oauthParams.add(new Pair<String,String>("oauth_timestamp", "1318622958"));
+        oauthParams.add(new Pair<String,String>("oauth_token", "370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb"));
+        oauthParams.add(new Pair<String,String>("oauth_version", "1.0"));
+
+        final String signature = OAuthUtils.buildSignature(
+                "POST",
+                "https://api.twitter.com/1/statuses/update.json",
+                "kAcSOqF21Fu85e7zjz7ZN2U4ZRhfV3WpwPAoE3Z7kBw",
+                "LswwdoUaIvS8ltyTt5jkRh4J50vUPVVHtR2YPi5kE",
+                urlParams,
+                postParams,
+                oauthParams
+        );
+
+        assertThat(signature).isEqualTo("tnnArxj06cWHq44gCs1OSKk/jLY=");
     }
 
     @Test

@@ -1,17 +1,89 @@
 package com.appctek.anyroshambo.util;
 
+import com.google.common.io.BaseEncoding;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.GeneralSecurityException;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.TreeMap;
 
 /**
  * @author Vyacheslav Mayorov
  * @since 2014-19-01
  */
 public class OAuthUtils {
+
+    public static final String HMAC_SHA_1 = "HmacSHA1";
+
     private static boolean dontPercentEncode(byte b) {
         return b >= 0x30 && b <= 0x39 ||
                b >= 0x41 && b <= 0x5A ||
                b >= 0x61 && b <= 0x7A ||
                b == 0x2D || b == 0x2E || b == 0x5F || b == 0x7E;
+    }
+
+    public static String generateNonce(Random random) {
+        return RandomUtils.randomAlphaNumericString(random, 40);
+    }
+
+    private static void addAndPercentEncodeAll(List<Pair<String, String>> params, TreeMap<String, String> values) {
+        for (final Pair<String,String> param: params) {
+            final String key = percentEncode(param.first);
+            final String value = percentEncode(param.second);
+            values.put(key, value);
+        }
+    }
+
+    public static String buildSignature(
+            final String method,
+            final String baseUrl,
+            final String consumerSecret,
+            final String tokenSecret,
+            final List<Pair<String,String>> urlParams,
+            final List<Pair<String,String>> httpParams,
+            final List<Pair<String,String>> oauthParams) {
+
+        final TreeMap<String,String> paramMap = new TreeMap<String, String>();
+        addAndPercentEncodeAll(urlParams, paramMap);
+        addAndPercentEncodeAll(httpParams, paramMap);
+        addAndPercentEncodeAll(oauthParams, paramMap);
+
+        final StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String,String> e: paramMap.entrySet()) {
+            if (sb.length() > 0) {
+                sb.append('&');
+            }
+            sb.append(e.getKey()).append('=').append(e.getValue());
+        }
+
+        final String paramString = sb.toString();
+
+        sb.setLength(0);
+        sb.append(method.toUpperCase()).append('&').
+           append(percentEncode(baseUrl)).append('&').
+           append(percentEncode(paramString));
+
+        final String signKey = percentEncode(consumerSecret) + "&" + percentEncode(tokenSecret);
+        final String signData = sb.toString();
+
+        final byte[] encodedSignature = encodeHmacSHA1(signKey, signData);
+        final String signature = BaseEncoding.base64().encode(encodedSignature);
+        return signature;
+    }
+
+    private static byte[] encodeHmacSHA1(String key, String data) {
+        final SecretKeySpec keySpec = new SecretKeySpec(HexUtils.getBytesInUTF8(key), HMAC_SHA_1);
+        try {
+            final Mac mac = Mac.getInstance(HMAC_SHA_1);
+            mac.init(keySpec);
+            final byte[] result = mac.doFinal(HexUtils.getBytesInUTF8(data));
+            return result;
+        } catch (GeneralSecurityException e) {
+            throw new RuntimeException("Can't encode values by " + HMAC_SHA_1 + " algorithm", e);
+        }
     }
 
     /**
