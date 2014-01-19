@@ -1,5 +1,7 @@
-package com.appctek.anyroshambo.util;
+package com.appctek.anyroshambo.social.auth;
 
+import com.appctek.anyroshambo.util.HexUtils;
+import com.appctek.anyroshambo.util.RandomUtils;
 import com.google.common.io.BaseEncoding;
 
 import javax.crypto.Mac;

@@ -1,8 +1,10 @@
-package com.appctek.anyroshambo.util;
+package com.appctek.anyroshambo.social.auth;
 
 import org.junit.Test;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
 
