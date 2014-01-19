@@ -1,5 +1,7 @@
 package com.appctek.anyroshambo.util;
 
+import java.util.Map;
+
 /**
  * @author Vyacheslav Mayorov
  * @since 2014-19-01
@@ -34,4 +36,17 @@ public class OAuthUtils {
         }
         return encoded.toString();
     }
+
+    public static String buildOAuthHeader(Map<String,String> values) {
+        final StringBuilder sb = new StringBuilder();
+        for (final Map.Entry<String,String> e: values.entrySet()) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            sb.append(percentEncode(e.getKey())).append("=\"").append(percentEncode(e.getValue())).append("\"");
+        }
+        sb.insert(0, "OAuth ");
+        return sb.toString();
+    }
+
 }
