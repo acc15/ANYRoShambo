@@ -20,9 +20,5 @@ public class HexUtilsTest {
     public void testCalculateMD5() throws Exception {
         assertThat(HexUtils.md5Hex("xyz")).isEqualTo("d16fb36f0911f878998c136191af705e");
         assertThat(HexUtils.md5Hex("qwertyu")).isEqualTo("e86fdc2283aff4717103f2d44d0610f7");
-
-        final String str = "application_key=CBAKPGONABABABABAattachment={\"caption\":\"Test message for testing test service in test social network of this test world\"}message=покрутил рулетку и получилmethod=stream.publish83B562785858040AF1E5DF41";
-        final String md5 = HexUtils.md5Hex(str);
-
     }
 }
