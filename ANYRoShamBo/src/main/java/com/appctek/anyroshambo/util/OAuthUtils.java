@@ -5,7 +5,6 @@ import com.google.common.io.BaseEncoding;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.GeneralSecurityException;
-import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.TreeMap;
@@ -29,10 +28,10 @@ public class OAuthUtils {
         return RandomUtils.randomAlphaNumericString(random, 40);
     }
 
-    private static void addAndPercentEncodeAll(List<Pair<String, String>> params, TreeMap<String, String> values) {
-        for (final Pair<String,String> param: params) {
-            final String key = percentEncode(param.first);
-            final String value = percentEncode(param.second);
+    private static void addAndPercentEncodeAll(Map<String, String> params, Map<String, String> values) {
+        for (final Map.Entry<String,String> param: params.entrySet()) {
+            final String key = percentEncode(param.getKey());
+            final String value = percentEncode(param.getValue());
             values.put(key, value);
         }
     }
@@ -42,9 +41,9 @@ public class OAuthUtils {
             final String baseUrl,
             final String consumerSecret,
             final String tokenSecret,
-            final List<Pair<String,String>> urlParams,
-            final List<Pair<String,String>> httpParams,
-            final List<Pair<String,String>> oauthParams) {
+            final Map<String,String> urlParams,
+            final Map<String,String> httpParams,
+            final Map<String,String> oauthParams) {
 
         final TreeMap<String,String> paramMap = new TreeMap<String, String>();
         addAndPercentEncodeAll(urlParams, paramMap);

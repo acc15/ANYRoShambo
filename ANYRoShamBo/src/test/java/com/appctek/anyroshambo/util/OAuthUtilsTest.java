@@ -2,10 +2,7 @@ package com.appctek.anyroshambo.util;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -27,19 +24,19 @@ public class OAuthUtilsTest {
     @Test
     public void testBuildSignature() throws Exception {
 
-        final List<Pair<String,String>> urlParams = new ArrayList<Pair<String, String>>();
-        urlParams.add(new Pair<String, String>("include_entities", "true"));
+        final Map<String,String> urlParams = new HashMap<String, String>();
+        urlParams.put("include_entities", "true");
 
-        final List<Pair<String,String>> postParams = new ArrayList<Pair<String, String>>();
-        postParams.add(new Pair<String, String>("status", "Hello Ladies + Gentlemen, a signed OAuth request!"));
+        final Map<String,String> postParams = new HashMap<String, String>();
+        postParams.put("status", "Hello Ladies + Gentlemen, a signed OAuth request!");
 
-        final List<Pair<String,String>> oauthParams = new ArrayList<Pair<String, String>>();
-        oauthParams.add(new Pair<String,String>("oauth_consumer_key", "xvz1evFS4wEEPTGEFPHBog"));
-        oauthParams.add(new Pair<String,String>("oauth_nonce", "kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg"));
-        oauthParams.add(new Pair<String,String>("oauth_signature_method", "HMAC-SHA1"));
-        oauthParams.add(new Pair<String,String>("oauth_timestamp", "1318622958"));
-        oauthParams.add(new Pair<String,String>("oauth_token", "370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb"));
-        oauthParams.add(new Pair<String,String>("oauth_version", "1.0"));
+        final Map<String,String> oauthParams = new HashMap<String, String>();
+        oauthParams.put("oauth_consumer_key", "xvz1evFS4wEEPTGEFPHBog");
+        oauthParams.put("oauth_nonce", "kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg");
+        oauthParams.put("oauth_signature_method", "HMAC-SHA1");
+        oauthParams.put("oauth_timestamp", "1318622958");
+        oauthParams.put("oauth_token", "370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb");
+        oauthParams.put("oauth_version", "1.0");
 
         final String signature = OAuthUtils.buildSignature(
                 "POST",
