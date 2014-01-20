@@ -4,6 +4,7 @@ import com.appctek.anyroshambo.services.AdService;
 import com.appctek.anyroshambo.services.NoAdService;
 import com.appctek.anyroshambo.social.OdnoklassnikiService;
 import com.appctek.anyroshambo.social.SocialNetworkService;
+import com.appctek.anyroshambo.social.TwitterService;
 import com.appctek.anyroshambo.social.VkontakteService;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
@@ -34,6 +35,7 @@ public class AppModule extends AbstractModule {
         bind(AdService.class).to(getAdServiceImplClass().asSubclass(AdService.class)).in(Singleton.class);
         bind(SocialNetworkService.class).annotatedWith(Names.named("vkService")).to(VkontakteService.class);
         bind(SocialNetworkService.class).annotatedWith(Names.named("okService")).to(OdnoklassnikiService.class);
+        bind(SocialNetworkService.class).annotatedWith(Names.named("twService")).to(TwitterService.class);
         bind(HttpClient.class).to(DefaultHttpClient.class);
     }
 }

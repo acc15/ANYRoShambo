@@ -1,10 +1,12 @@
 package com.appctek.anyroshambo.social.auth;
 
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.robolectric.RobolectricTestRunner;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -12,6 +14,7 @@ import static org.fest.assertions.Assertions.assertThat;
  * @author Vyacheslav Mayorov
  * @since 2014-17-01
  */
+@RunWith(RobolectricTestRunner.class)
 public class OAuthUtilsTest {
     @Test
     public void testPercentEncode() throws Exception {
@@ -26,19 +29,19 @@ public class OAuthUtilsTest {
     @Test
     public void testBuildSignature() throws Exception {
 
-        final Map<String,String> urlParams = new HashMap<String, String>();
-        urlParams.put("include_entities", "true");
+        final List<NameValuePair> urlParams = new ArrayList<NameValuePair>();
+        urlParams.add(new BasicNameValuePair("include_entities", "true"));
 
-        final Map<String,String> postParams = new HashMap<String, String>();
-        postParams.put("status", "Hello Ladies + Gentlemen, a signed OAuth request!");
+        final List<NameValuePair> postParams = new ArrayList<NameValuePair>();
+        postParams.add(new BasicNameValuePair("status", "Hello Ladies + Gentlemen, a signed OAuth request!"));
 
-        final Map<String,String> oauthParams = new HashMap<String, String>();
-        oauthParams.put("oauth_consumer_key", "xvz1evFS4wEEPTGEFPHBog");
-        oauthParams.put("oauth_nonce", "kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg");
-        oauthParams.put("oauth_signature_method", "HMAC-SHA1");
-        oauthParams.put("oauth_timestamp", "1318622958");
-        oauthParams.put("oauth_token", "370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb");
-        oauthParams.put("oauth_version", "1.0");
+        final List<NameValuePair> oauthParams = new ArrayList<NameValuePair>();
+        oauthParams.add(new BasicNameValuePair("oauth_consumer_key", "xvz1evFS4wEEPTGEFPHBog"));
+        oauthParams.add(new BasicNameValuePair("oauth_nonce", "kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg"));
+        oauthParams.add(new BasicNameValuePair("oauth_signature_method", "HMAC-SHA1"));
+        oauthParams.add(new BasicNameValuePair("oauth_timestamp", "1318622958"));
+        oauthParams.add(new BasicNameValuePair("oauth_token", "370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb"));
+        oauthParams.add(new BasicNameValuePair("oauth_version", "1.0"));
 
         final String signature = OAuthUtils.buildSignature(
                 "POST",

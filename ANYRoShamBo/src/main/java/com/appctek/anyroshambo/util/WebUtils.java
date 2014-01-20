@@ -9,20 +9,20 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import com.google.common.net.MediaType;
-import org.apache.http.Header;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
+import org.apache.http.*;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.utils.URLEncodedUtils;
+import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,8 +39,13 @@ public class WebUtils {
         if (contentTypeHeader == null) {
             return DEFAULT_CHARSET;
         }
-        final MediaType mediaType = MediaType.parse(contentTypeHeader.getValue());
-        return mediaType.charset().or(DEFAULT_CHARSET);
+        for (final HeaderElement headerElement: contentTypeHeader.getElements()) {
+            if ("charset".equals(headerElement.getName())) {
+                final String cs = headerElement.getValue();
+                return Charset.forName(cs);
+            }
+        }
+        return DEFAULT_CHARSET;
     }
 
     public static Map<String,String> parseUriFragmentParameters(String fragment) {
@@ -102,6 +107,34 @@ public class WebUtils {
             uriBuilder.appendQueryParameter(param.getKey(), param.getValue());
         }
         return uriBuilder;
+    }
+
+    public static String getUriWithoutParams(String uri) {
+        final int paramPos = uri.indexOf('?');
+        if (paramPos >= 0) {
+            return uri.substring(0, paramPos);
+        }
+        final int hashPos = uri.indexOf('#');
+        if (hashPos >= 0) {
+            return uri.substring(0, hashPos);
+        }
+        return uri;
+    }
+
+    public static List<NameValuePair> entriesToNameValuePairs(Iterable<Map.Entry<String,String>> entries) {
+        final List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+        for (Map.Entry<String,String> e: entries) {
+            pairs.add(new BasicNameValuePair(e.getKey(), e.getValue()));
+        }
+        return pairs;
+    }
+
+    public static List<NameValuePair> parseParams(HttpEntity entity) {
+        try {
+            return URLEncodedUtils.parse(entity);
+        } catch (IOException e) {
+            throw new RuntimeException("Can't parse params from http entity", e);
+        }
     }
 
     public static interface UrlHandler {

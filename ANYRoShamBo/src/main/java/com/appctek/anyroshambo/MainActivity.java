@@ -51,6 +51,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
     @Inject @Named("vkService") private SocialNetworkService vkService;
     @Inject @Named("okService") private SocialNetworkService okService;
+    @Inject @Named("twService") private SocialNetworkService twService;
 
     @InjectView(R.id.game_container) private FrameLayout gameContainer;
     @InjectView(R.id.triangle) private ImageView triangle;
@@ -187,7 +188,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
         vkButton.setOnLongClickListener(new ShareButtonListener(vkService));
         okButton.setOnLongClickListener(new ShareButtonListener(okService));
         //fbButton.setOnLongClickListener(new ShareButtonListener(fbService));
-        //twButton.setOnLongClickListener(new ShareButtonListener(twService));
+        twButton.setOnLongClickListener(new ShareButtonListener(twService));
 
         icons = new ImageView[] {drinkIcon, walkIcon, partyIcon};
         goForLabel.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/kremlinctt.ttf"));
@@ -230,7 +231,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     }
 
     public void shareTw(View view) {
-        //shareGameResults(twService, false);
+        shareGameResults(twService, false);
     }
 
     private void shareGameResults(SocialNetworkService service, boolean forceAuth) {

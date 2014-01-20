@@ -1,15 +1,15 @@
 package com.appctek.anyroshambo.social.auth;
 
+import android.util.Base64;
 import com.appctek.anyroshambo.util.HexUtils;
 import com.appctek.anyroshambo.util.RandomUtils;
-import com.google.common.io.BaseEncoding;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.GeneralSecurityException;
-import java.util.Map;
-import java.util.Random;
-import java.util.TreeMap;
+import java.util.*;
 
 /**
  * @author Vyacheslav Mayorov
@@ -30,11 +30,13 @@ public class OAuthUtils {
         return RandomUtils.randomAlphaNumericString(random, 40);
     }
 
-    private static void addAndPercentEncodeAll(Map<String, String> params, Map<String, String> values) {
-        for (final Map.Entry<String,String> param: params.entrySet()) {
-            final String key = percentEncode(param.getKey());
-            final String value = percentEncode(param.getValue());
-            values.put(key, value);
+    private static void addAndPercentEncodeAll(
+            Iterable<NameValuePair> pairs,
+            Collection<NameValuePair> params) {
+        for (final NameValuePair pair: pairs) {
+            final String key = percentEncode(pair.getName());
+            final String value = percentEncode(pair.getValue());
+            params.add(new BasicNameValuePair(key, value));
         }
     }
 
@@ -43,21 +45,31 @@ public class OAuthUtils {
             final String baseUrl,
             final String consumerSecret,
             final String tokenSecret,
-            final Map<String,String> urlParams,
-            final Map<String,String> httpParams,
-            final Map<String,String> oauthParams) {
+            final Iterable<NameValuePair> urlParams,
+            final Iterable<NameValuePair> postParams,
+            final Iterable<NameValuePair> oauthParams) {
 
-        final TreeMap<String,String> paramMap = new TreeMap<String, String>();
-        addAndPercentEncodeAll(urlParams, paramMap);
-        addAndPercentEncodeAll(httpParams, paramMap);
-        addAndPercentEncodeAll(oauthParams, paramMap);
+        final List<NameValuePair> percentEncodedParams = new ArrayList<NameValuePair>();
+        addAndPercentEncodeAll(urlParams, percentEncodedParams);
+        addAndPercentEncodeAll(postParams, percentEncodedParams);
+        addAndPercentEncodeAll(oauthParams, percentEncodedParams);
+
+        Collections.sort(percentEncodedParams, new Comparator<NameValuePair>() {
+            public int compare(NameValuePair nameValuePair, NameValuePair nameValuePair2) {
+                final int keyCmp = nameValuePair.getName().compareTo(nameValuePair2.getName());
+                if (keyCmp != 0) {
+                    return keyCmp;
+                }
+                return nameValuePair.getValue().compareTo(nameValuePair2.getValue());
+            }
+        });
 
         final StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String,String> e: paramMap.entrySet()) {
+        for (final NameValuePair param: percentEncodedParams) {
             if (sb.length() > 0) {
                 sb.append('&');
             }
-            sb.append(e.getKey()).append('=').append(e.getValue());
+            sb.append(param.getName()).append('=').append(param.getValue());
         }
 
         final String paramString = sb.toString();
@@ -71,7 +83,7 @@ public class OAuthUtils {
         final String signData = sb.toString();
 
         final byte[] encodedSignature = encodeHmacSHA1(signKey, signData);
-        final String signature = BaseEncoding.base64().encode(encodedSignature);
+        final String signature = Base64.encodeToString(encodedSignature, Base64.NO_WRAP);
         return signature;
     }
 
