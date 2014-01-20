@@ -12,6 +12,7 @@ import android.widget.LinearLayout;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
@@ -19,11 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Vyacheslav Mayorov
@@ -32,20 +29,27 @@ import java.util.Map;
 public class WebUtils {
 
 
-    public static final Charset DEFAULT_CHARSET = Charset.forName("utf-8");
+    public static final String DEFAULT_CHARSET = "utf-8";
     public static final Logger logger = LoggerFactory.getLogger(WebUtils.class);
 
-    public static Charset parseCharset(Header contentTypeHeader) {
+    public static String parseCharset(Header contentTypeHeader) {
         if (contentTypeHeader == null) {
             return DEFAULT_CHARSET;
         }
-        for (final HeaderElement headerElement: contentTypeHeader.getElements()) {
-            if ("charset".equals(headerElement.getName())) {
-                final String cs = headerElement.getValue();
-                return Charset.forName(cs);
-            }
+
+        final HeaderElement[] elements = contentTypeHeader.getElements();
+        if (elements.length == 0) {
+            return DEFAULT_CHARSET;
         }
-        return DEFAULT_CHARSET;
+
+        final HeaderElement first = elements[0];
+        final NameValuePair charsetPair = first.getParameterByName("charset");
+        if (charsetPair == null) {
+            return DEFAULT_CHARSET;
+        }
+
+        final String charset = charsetPair.getValue();
+        return charset;
     }
 
     public static Map<String,String> parseUriFragmentParameters(String fragment) {
@@ -82,24 +86,43 @@ public class WebUtils {
         dialog.show();
     }
 
+    private static class ResponseData {
+        private String charset;
+        private String data;
+
+        private ResponseData(String charset, String data) {
+            this.charset = charset;
+            this.data = data;
+        }
+    }
+
     @SuppressWarnings("unchecked")
-    public static String executePost(HttpClient httpClient, String url) throws IOException {
-        final HttpPost post = new HttpPost(url);
-        final HttpResponse response = httpClient.execute(post);
+    private static ResponseData executeRequest(HttpClient httpClient, HttpUriRequest request) throws IOException {
+        final HttpResponse response = httpClient.execute(request);
         final int statusCode = response.getStatusLine().getStatusCode();
         if (statusCode != HttpStatus.SC_OK) {
             throw new IOException("Server responded with error status: " + statusCode);
         }
 
         final HttpEntity entity = response.getEntity();
-        final Charset charset = parseCharset(entity.getContentType());
+        final String charset = parseCharset(entity.getContentType());
         final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         entity.writeTo(byteArrayOutputStream);
 
-        final String charsetName = charset.name();
-        final String decodedString = byteArrayOutputStream.toString(charsetName);
+        final String decodedString = byteArrayOutputStream.toString(charset);
         logger.info("Server responded with response: {}", decodedString);
-        return decodedString;
+        return new ResponseData(charset, decodedString);
+    }
+
+    public static String executeRequestString(HttpClient httpClient, HttpUriRequest request) throws IOException {
+        return executeRequest(httpClient, request).data;
+    }
+
+    public static List<NameValuePair> executeRequestParams(HttpClient httpClient, HttpUriRequest request) throws IOException {
+        final ResponseData response = executeRequest(httpClient, request);
+        final List<NameValuePair> params = new ArrayList<NameValuePair>();
+        URLEncodedUtils.parse(params, new Scanner(response.data), response.charset);
+        return params;
     }
 
     public static Uri.Builder appendQueryParameters(Uri.Builder uriBuilder, Map<String,String> params) {
@@ -129,12 +152,27 @@ public class WebUtils {
         return pairs;
     }
 
-    public static List<NameValuePair> parseParams(HttpEntity entity) {
+    public static List<NameValuePair> parseRequestParams(HttpUriRequest httpUriRequest) {
+        if (!(httpUriRequest instanceof HttpPost)) {
+            return Collections.emptyList();
+        }
+        final HttpEntity entity = ((HttpPost) httpUriRequest).getEntity();
+        if (entity == null) {
+            return Collections.emptyList();
+        }
         try {
             return URLEncodedUtils.parse(entity);
         } catch (IOException e) {
             throw new RuntimeException("Can't parse params from http entity", e);
         }
+    }
+
+    public static Map<String,String> nameValuePairsToMap(Iterable<NameValuePair> pairs) {
+        final Map<String,String> params = new HashMap<String, String>();
+        for (NameValuePair nvp: pairs) {
+            params.put(nvp.getName(), nvp.getValue());
+        }
+        return params;
     }
 
     public static interface UrlHandler {

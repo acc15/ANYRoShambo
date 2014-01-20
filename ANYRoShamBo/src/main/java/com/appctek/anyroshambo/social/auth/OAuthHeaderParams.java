@@ -3,10 +3,7 @@ package com.appctek.anyroshambo.social.auth;
 import com.appctek.anyroshambo.util.WebUtils;
 import org.apache.http.NameValuePair;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Vyacheslav Mayorov
@@ -33,7 +30,10 @@ public class OAuthHeaderParams {
     private Iterable<NameValuePair> urlParams = Collections.emptyList();
     private Iterable<NameValuePair> postParams = Collections.emptyList();
 
-    private Map<String,String> oauthParams = new HashMap<String, String>();
+    private String consumerSecret = null;
+    private String tokenSecret = "";
+
+    private Map<String,String> oauthParams = new TreeMap<String, String>();
 
     private OAuthHeaderParams putOAuthParam(String param, String value) {
         this.oauthParams.put(param, value);
@@ -88,31 +88,33 @@ public class OAuthHeaderParams {
         return this;
     }
 
-    public String build() {
-        if (baseUrl == null) {
-            throw new NullPointerException("baseUrl parameter missing");
-        }
-        if (httpMethod == null) {
-            throw new NullPointerException("httpMethod parameter missing");
-        }
+    public OAuthHeaderParams signature(String signature) {
+        return putOAuthParam(SIGNATURE_PARAM, signature);
+    }
 
-        final String consumerKey = oauthParams.get(CONSUMER_KEY_PARAM);
-        if (consumerKey == null) {
-            throw new IllegalStateException("consumer key parameter missing");
-        }
+    public OAuthHeaderParams consumerSecret(String consumerSecret) {
+        this.consumerSecret = consumerSecret;
+        return this;
+    }
 
+    public OAuthHeaderParams tokenSecret(String tokenSecret) {
+        this.tokenSecret = tokenSecret;
+        return this;
+    }
+
+    public OAuthHeaderParams sign() {
         final List<NameValuePair> oauthPairs = WebUtils.entriesToNameValuePairs(oauthParams.entrySet());
-
-        final String token = oauthParams.get(TOKEN_PARAM);
-        final String signature = OAuthUtils.buildSignature(
+        return signature(OAuthUtils.buildSignature(
                 httpMethod,
                 baseUrl,
-                consumerKey,
-                token != null ? token : "",
+                consumerSecret,
+                tokenSecret,
                 urlParams,
                 postParams,
-                oauthPairs);
-        oauthParams.put(SIGNATURE_PARAM, signature);
+                oauthPairs));
+    }
+
+    public String toString() {
         return OAuthUtils.buildOAuthHeader(oauthParams);
     }
 

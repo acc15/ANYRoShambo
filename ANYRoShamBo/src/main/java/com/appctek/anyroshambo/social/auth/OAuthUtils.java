@@ -49,6 +49,20 @@ public class OAuthUtils {
             final Iterable<NameValuePair> postParams,
             final Iterable<NameValuePair> oauthParams) {
 
+        if (baseUrl == null) {
+            throw new NullPointerException("baseUrl parameter missing");
+        }
+        if (method == null) {
+            throw new NullPointerException("httpMethod parameter missing");
+        }
+        if (consumerSecret == null) {
+            throw new NullPointerException("consumerSecret is null");
+        }
+        if (tokenSecret == null) {
+            throw new NullPointerException("tokenSecret is null");
+        }
+
+
         final List<NameValuePair> percentEncodedParams = new ArrayList<NameValuePair>();
         addAndPercentEncodeAll(urlParams, percentEncodedParams);
         addAndPercentEncodeAll(postParams, percentEncodedParams);

@@ -13,6 +13,7 @@ import com.appctek.anyroshambo.util.JSONUtils;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.google.inject.Inject;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -156,7 +157,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
                             Uri.parse("http://api.odnoklassniki.ru/fb.do").buildUpon(), sortedParams).
                             build().toString();
 
-                    final Object reply = JSONUtils.parseJSON(WebUtils.executePost(httpClient, uri));
+                    final Object reply = JSONUtils.parseJSON(WebUtils.executeRequestString(httpClient, new HttpPost(uri)));
                     if (reply instanceof JSONObject) {
                         final JSONObject jsonReply = (JSONObject) reply;
                         // error sample:
@@ -216,7 +217,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
                         appendQueryParameter("client_id", APP_ID).
                         appendQueryParameter("client_secret", SECRET_KEY).
                         build().toString();
-                jsonObject = JSONUtils.parseJSON(WebUtils.executePost(httpClient, url));
+                jsonObject = JSONUtils.parseJSON(WebUtils.executeRequestString(httpClient, new HttpPost(url)));
             } else {
                 //http://api.odnoklassniki.ru/oauth/token.do
                 //
@@ -234,7 +235,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
                         appendQueryParameter("client_id", APP_ID).
                         appendQueryParameter("client_secret", SECRET_KEY).
                         build().toString();
-                jsonObject = JSONUtils.parseJSON(WebUtils.executePost(httpClient, url));
+                jsonObject = JSONUtils.parseJSON(WebUtils.executeRequestString(httpClient, new HttpPost(url)));
             }
 
             //{

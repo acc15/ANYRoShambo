@@ -12,6 +12,7 @@ import com.appctek.anyroshambo.util.JSONUtils;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.google.inject.Inject;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -68,7 +69,7 @@ public class VkontakteService implements SocialNetworkService {
                 appendQueryParameter("access_token", token.getToken()).
                 build().toString();
         try {
-            final JSONObject jsonObject = JSONUtils.parseJSON(WebUtils.executePost(httpClient, url));
+            final JSONObject jsonObject = JSONUtils.parseJSON(WebUtils.executeRequestString(httpClient, new HttpPost(url)));
             if (!jsonObject.has("response")) {
                 return false;
             }
