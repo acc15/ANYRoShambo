@@ -4,25 +4,18 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.Toast;
 import com.appctek.anyroshambo.R;
-import com.appctek.anyroshambo.services.DateTimeService;
 import com.appctek.anyroshambo.social.auth.OAuthHeaderParams;
-import com.appctek.anyroshambo.social.auth.OAuthUtils;
+import com.appctek.anyroshambo.social.auth.OAuthService;
+import com.appctek.anyroshambo.social.auth.OAuthToken;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.google.inject.Inject;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.List;
 import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Vyacheslav Mayorov
@@ -36,72 +29,32 @@ public class TwitterService implements SocialNetworkService {
 
     private static final Logger logger = LoggerFactory.getLogger(TwitterService.class);
 
-    private Random random;
-    private DateTimeService dateTimeService;
+    private OAuthService oAuthService;
     private HttpClient httpClient;
     private Context context;
 
     @Inject
-    public TwitterService(Context context, Random random, DateTimeService dateTimeService, HttpClient httpClient) {
+    public TwitterService(Context context, OAuthService oAuthService, HttpClient httpClient) {
         this.context = context;
-        this.random = random;
-        this.dateTimeService = dateTimeService;
         this.httpClient = httpClient;
+        this.oAuthService = oAuthService;
     }
 
-    private static class TokenPair {
-        private String token;
-        private String tokenSecret;
-
-        private TokenPair(String token, String tokenSecret) {
-            this.token = token;
-            this.tokenSecret = tokenSecret;
-        }
-
-        public String getToken() {
-            return token;
-        }
-
-        public String getTokenSecret() {
-            return tokenSecret;
-        }
-    }
-
-    private HttpUriRequest authorizeRequest(HttpUriRequest request, OAuthHeaderParams params) {
-
-        final String httpMethod = request.getMethod();
-        final URI uri = request.getURI();
-
-        final List<NameValuePair> postParams = WebUtils.parseRequestParams(request);
-        final List<NameValuePair> urlParams = URLEncodedUtils.parse(uri, WebUtils.DEFAULT_CHARSET);
-
-        final String headerValue = params.
-                httpMethod(httpMethod).
-                baseUrl(WebUtils.getUriWithoutParams(uri.toString())).
-                version(OAuthHeaderParams.DEFAULT_VERSION).
-                signatureMethod(OAuthHeaderParams.DEFAULT_SIGNATURE_METHOD).
+    private OAuthHeaderParams createParams() {
+        return OAuthHeaderParams.create().
                 consumerKey(CONSUMER_KEY).
-                consumerSecret(CONSUMER_SECRET).
-                nonce(OAuthUtils.generateNonce(random)).
-                timestamp(TimeUnit.MILLISECONDS.toSeconds(dateTimeService.getTimeInMillis())).
-                urlParams(urlParams).
-                postParams(postParams).
-                sign().
-                toString();
-
-        request.setHeader("Authorization", headerValue);
-        return request;
+                consumerSecret(CONSUMER_SECRET);
     }
 
     private void authenticate() {
 
-        new AsyncTask<Object, Object, TokenPair>() {
+        new AsyncTask<Object, Object, OAuthToken>() {
             @Override
-            protected TokenPair doInBackground(Object... params) {
+            protected OAuthToken doInBackground(Object... params) {
 
                 final String url = "https://api.twitter.com/oauth/request_token";
                 final HttpPost request = new HttpPost(url);
-                authorizeRequest(request, new OAuthHeaderParams().callbackUri(CALLBACK_URI));
+                oAuthService.authorize(request, createParams().callbackUri(CALLBACK_URI));
 
                 try {
                     final Map<String,String> responseValues = WebUtils.nameValuePairsToMap(
@@ -113,7 +66,7 @@ public class TwitterService implements SocialNetworkService {
                     }
                     final String token = responseValues.get("oauth_token");
                     final String tokenSecret = responseValues.get("oauth_token_secret");
-                    return new TokenPair(token, tokenSecret);
+                    return new OAuthToken(token, tokenSecret);
 
                 } catch (IOException e) {
                     logger.error("Can't obtain request token", e);
@@ -122,7 +75,7 @@ public class TwitterService implements SocialNetworkService {
             }
 
             @Override
-            protected void onPostExecute(TokenPair requestToken) {
+            protected void onPostExecute(OAuthToken requestToken) {
                 if (requestToken == null) {
                     Toast.makeText(context, R.string.share_error, Toast.LENGTH_LONG).show();
                     return;

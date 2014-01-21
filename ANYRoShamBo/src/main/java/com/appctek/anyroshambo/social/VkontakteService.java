@@ -6,11 +6,12 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.widget.Toast;
 import com.appctek.anyroshambo.R;
-import com.appctek.anyroshambo.social.auth.OAuthToken;
+import com.appctek.anyroshambo.social.auth.Token;
 import com.appctek.anyroshambo.social.auth.TokenManager;
 import com.appctek.anyroshambo.util.JSONUtils;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.json.JSONException;
@@ -30,7 +31,6 @@ public class VkontakteService implements SocialNetworkService {
 
     private static final Logger logger = LoggerFactory.getLogger(VkontakteService.class);
 
-    private static final String APP_ID = "4087551"; // look at https://vk.com/editapp?id=4087551&section=options
     private static final String VK_TOKEN = "vk";
 
     private static final String API_VERSION = "5.5";
@@ -39,18 +39,24 @@ public class VkontakteService implements SocialNetworkService {
     private Context context;
     private TokenManager tokenManager;
     private HttpClient httpClient;
+    private String appId;
+    private String redirectUri;
 
     @Inject
-    public VkontakteService(Context context, TokenManager tokenManager, HttpClient httpClient) {
+    public VkontakteService(Context context, TokenManager tokenManager, HttpClient httpClient,
+                            @Named("vkAppId") String appId,
+                            @Named("vkRedirectUri") String redirectUri) {
         this.context = context;
         this.tokenManager = tokenManager;
         this.httpClient = httpClient;
+        this.appId = appId;
+        this.redirectUri = redirectUri;
     }
 
     public void shareText(boolean revoke, final String text) {
-        doWithToken(revoke, new AsyncTask<OAuthToken, Object, Boolean>() {
+        doWithToken(revoke, new AsyncTask<Token, Object, Boolean>() {
             @Override
-            protected Boolean doInBackground(OAuthToken... token) {
+            protected Boolean doInBackground(Token... token) {
                 return postOnWall(token[0], text);
             }
 
@@ -63,7 +69,7 @@ public class VkontakteService implements SocialNetworkService {
         });
     }
 
-    private boolean postOnWall(OAuthToken token, String message) {
+    private boolean postOnWall(Token token, String message) {
         final String url = Uri.parse("https://api.vk.com/method/wall.post").buildUpon().
                 appendQueryParameter("message", message).
                 appendQueryParameter("access_token", token.getToken()).
@@ -85,9 +91,9 @@ public class VkontakteService implements SocialNetworkService {
         }
     }
 
-    private void doWithToken(final boolean revoke, final AsyncTask<OAuthToken, Object, Boolean> task) {
+    private void doWithToken(final boolean revoke, final AsyncTask<Token, Object, Boolean> task) {
         if (!revoke) {
-            final OAuthToken token = tokenManager.getToken(VK_TOKEN);
+            final Token token = tokenManager.getToken(VK_TOKEN);
             if (token != null) {
                 task.execute(token);
                 return;
@@ -97,9 +103,9 @@ public class VkontakteService implements SocialNetworkService {
         }
 
         final Uri.Builder uriBuilder = Uri.parse("https://oauth.vk.com/authorize").buildUpon().
-                appendQueryParameter("client_id", APP_ID).
+                appendQueryParameter("client_id", appId).
                 appendQueryParameter("scope", "wall").
-                appendQueryParameter("redirect_uri", REDIRECT_URL).
+                appendQueryParameter("redirect_uri", redirectUri).
                 appendQueryParameter("display", "mobile").
                 appendQueryParameter("v", API_VERSION).
                 appendQueryParameter("response_type", "token");
@@ -134,7 +140,7 @@ public class VkontakteService implements SocialNetworkService {
                 final String expiresInString = hashParams.get("expires_in");
                 final long expiresIn = Long.parseLong(expiresInString);
 
-                final OAuthToken token = tokenManager.createToken(accessToken, expiresIn, TimeUnit.SECONDS);
+                final Token token = tokenManager.createToken(accessToken, expiresIn, TimeUnit.SECONDS);
                 tokenManager.storeToken(VK_TOKEN, token);
                 dialog.dismiss();
 

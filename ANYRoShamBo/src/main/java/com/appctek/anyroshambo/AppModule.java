@@ -37,5 +37,7 @@ public class AppModule extends AbstractModule {
         bind(SocialNetworkService.class).annotatedWith(Names.named("okService")).to(OdnoklassnikiService.class);
         bind(SocialNetworkService.class).annotatedWith(Names.named("twService")).to(TwitterService.class);
         bind(HttpClient.class).to(DefaultHttpClient.class);
+
+        bindConstant().annotatedWith(Names.named("vkontakteAppId")).to("4087551");
     }
 }

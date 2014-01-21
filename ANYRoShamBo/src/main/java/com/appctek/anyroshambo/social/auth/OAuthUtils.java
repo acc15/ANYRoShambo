@@ -106,8 +106,7 @@ public class OAuthUtils {
         try {
             final Mac mac = Mac.getInstance(HMAC_SHA_1);
             mac.init(keySpec);
-            final byte[] result = mac.doFinal(HexUtils.getBytesInUTF8(data));
-            return result;
+            return mac.doFinal(HexUtils.getBytesInUTF8(data));
         } catch (GeneralSecurityException e) {
             throw new RuntimeException("Can't encode values by " + HMAC_SHA_1 + " algorithm", e);
         }
@@ -136,13 +135,13 @@ public class OAuthUtils {
         return encoded.toString();
     }
 
-    public static String buildOAuthHeader(Map<String,String> values) {
+    public static String buildOAuthHeader(List<NameValuePair> values) {
         final StringBuilder sb = new StringBuilder();
-        for (final Map.Entry<String,String> e: values.entrySet()) {
+        for (final NameValuePair e: values) {
             if (sb.length() > 0) {
                 sb.append(", ");
             }
-            sb.append(percentEncode(e.getKey())).append("=\"").append(percentEncode(e.getValue())).append("\"");
+            sb.append(percentEncode(e.getName())).append("=\"").append(percentEncode(e.getValue())).append("\"");
         }
         sb.insert(0, "OAuth ");
         return sb.toString();

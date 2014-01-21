@@ -6,7 +6,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.widget.Toast;
 import com.appctek.anyroshambo.R;
-import com.appctek.anyroshambo.social.auth.OAuthToken;
+import com.appctek.anyroshambo.social.auth.Token;
 import com.appctek.anyroshambo.social.auth.TokenManager;
 import com.appctek.anyroshambo.util.HexUtils;
 import com.appctek.anyroshambo.util.JSONUtils;
@@ -65,13 +65,13 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
         } else {
 
-            final OAuthToken accessToken = tokenManager.getToken(OK_TOKEN);
+            final Token accessToken = tokenManager.getToken(OK_TOKEN);
             if (accessToken != null) {
                 task.execute(AuthParams.withAccessToken(accessToken));
                 return;
             }
 
-            final OAuthToken refreshToken = tokenManager.getToken(OK_REFRESH_TOKEN);
+            final Token refreshToken = tokenManager.getToken(OK_REFRESH_TOKEN);
             if (refreshToken != null) {
                 task.execute(AuthParams.withRefreshToken(refreshToken));
                 return;
@@ -114,7 +114,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
     }
 
-    private static String calculateSignature(SortedMap<String, String> params, OAuthToken accessToken) {
+    private static String calculateSignature(SortedMap<String, String> params, Token accessToken) {
         final StringBuilder stringBuilder = new StringBuilder();
         for (Map.Entry<String, String> param : params.entrySet()) {
             stringBuilder.append(param.getKey()).append('=').append(param.getValue());
@@ -132,7 +132,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
         doWithAuthParams(revoke, new AsyncTask<AuthParams, Object, Boolean>() {
             @Override
             protected Boolean doInBackground(AuthParams... params) {
-                final OAuthToken accessToken = authenticate(params[0]);
+                final Token accessToken = authenticate(params[0]);
                 if (accessToken == null) {
                     return false;
                 }
@@ -191,7 +191,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
     }
 
-    private OAuthToken authenticate(AuthParams authParams) {
+    private Token authenticate(AuthParams authParams) {
 
         if (authParams.getAccessToken() != null) {
             return authParams.getAccessToken();
@@ -251,12 +251,12 @@ public class OdnoklassnikiService implements SocialNetworkService {
                 return null;
             }
 
-            final OAuthToken accessToken = tokenManager.createToken(accessTokenStr, 30, TimeUnit.MINUTES);
+            final Token accessToken = tokenManager.createToken(accessTokenStr, 30, TimeUnit.MINUTES);
             tokenManager.storeToken(OK_TOKEN, accessToken);
 
             if (jsonObject.has("refresh_token")) {
                 final String refreshTokenStr = jsonObject.getString("refresh_token");
-                final OAuthToken refreshToken = tokenManager.createToken(refreshTokenStr, 30, TimeUnit.DAYS);
+                final Token refreshToken = tokenManager.createToken(refreshTokenStr, 30, TimeUnit.DAYS);
                 tokenManager.storeToken(OK_REFRESH_TOKEN, refreshToken);
             }
 
@@ -274,20 +274,20 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
     private static class AuthParams {
 
-        private OAuthToken accessToken;
-        private OAuthToken refreshToken;
+        private Token accessToken;
+        private Token refreshToken;
         private String accessCode;
 
         private AuthParams() {
         }
 
-        public static AuthParams withAccessToken(OAuthToken accessToken) {
+        public static AuthParams withAccessToken(Token accessToken) {
             final AuthParams authParams = new AuthParams();
             authParams.accessToken = accessToken;
             return authParams;
         }
 
-        public static AuthParams withRefreshToken(OAuthToken refreshToken) {
+        public static AuthParams withRefreshToken(Token refreshToken) {
             final AuthParams authParams = new AuthParams();
             authParams.refreshToken = refreshToken;
             return authParams;
@@ -299,11 +299,11 @@ public class OdnoklassnikiService implements SocialNetworkService {
             return authParams;
         }
 
-        public OAuthToken getAccessToken() {
+        public Token getAccessToken() {
             return accessToken;
         }
 
-        public OAuthToken getRefreshToken() {
+        public Token getRefreshToken() {
             return refreshToken;
         }
 

@@ -35,7 +35,7 @@ public class TokenManager {
      * @param tokenName name of token
      * @return early stored token or {@code null} if token isn't present in storage or it's expired.
      */
-    public OAuthToken getToken(String tokenName) {
+    public Token getToken(String tokenName) {
         final String token = sharedPreferences.getString(composeProperty(tokenName, TOKEN), null);
         if (token == null) {
             logger.debug("Token for service \"" + tokenName + "\" isn't stored yet. Returning null");
@@ -48,7 +48,7 @@ public class TokenManager {
         }
         logger.debug("Token for service \"" + tokenName + "\" has been successfully loaded: " + token +
                 ". Expires after " + expiresAfter);
-        return new OAuthToken(token, expiresAfter);
+        return new Token(token, expiresAfter);
     }
 
     /**
@@ -56,7 +56,7 @@ public class TokenManager {
      * @param tokenName name of token
      * @param token token data
      */
-    public void storeToken(String tokenName, OAuthToken token) {
+    public void storeToken(String tokenName, Token token) {
         sharedPreferences.edit().
                 putString(composeProperty(tokenName, TOKEN), token.getToken()).
                 putLong(composeProperty(tokenName, EXPIRES_AFTER), token.getExpiresAfter()).
@@ -78,8 +78,8 @@ public class TokenManager {
         return "token." + tokenName + "." + propertyName;
     }
 
-    public OAuthToken createToken(String token, long expireTime, TimeUnit expireUnit) {
+    public Token createToken(String token, long expireTime, TimeUnit expireUnit) {
         final long millisTime = expireUnit.toMillis(expireTime) - 1000;
-        return new OAuthToken(token, dateTimeService.getTimeInMillis() + millisTime);
+        return new Token(token, dateTimeService.getTimeInMillis() + millisTime);
     }
 }

@@ -53,7 +53,7 @@ public class OAuthHeaderParams {
     }
 
     public OAuthHeaderParams signatureMethod(String method) {
-        return putOAuthParam(SIGNATURE_METHOD_PARAM, DEFAULT_SIGNATURE_METHOD);
+        return putOAuthParam(SIGNATURE_METHOD_PARAM, method);
     }
 
     public OAuthHeaderParams version(String version) {
@@ -115,9 +115,11 @@ public class OAuthHeaderParams {
     }
 
     public String toString() {
-        return OAuthUtils.buildOAuthHeader(oauthParams);
+        final List<NameValuePair> oauthPairs = WebUtils.entriesToNameValuePairs(oauthParams.entrySet());
+        return OAuthUtils.buildOAuthHeader(oauthPairs);
     }
 
-
-
+    public static OAuthHeaderParams create() {
+        return new OAuthHeaderParams();
+    }
 }

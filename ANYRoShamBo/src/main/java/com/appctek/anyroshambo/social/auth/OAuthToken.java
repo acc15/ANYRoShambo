@@ -2,23 +2,22 @@ package com.appctek.anyroshambo.social.auth;
 
 /**
 * @author Vyacheslav Mayorov
-* @since 2014-13-01
+* @since 2014-22-01
 */
 public class OAuthToken {
+    private String key;
+    private String secret;
 
-    private String token;
-    private long expiresAfter;
-
-    public OAuthToken(String token, long expiresAfter) {
-        this.token = token;
-        this.expiresAfter = expiresAfter;
+    public OAuthToken(String key, String secret) {
+        this.key = key;
+        this.secret = secret;
     }
 
-    public String getToken() {
-        return token;
+    public String getKey() {
+        return key;
     }
 
-    public long getExpiresAfter() {
-        return expiresAfter;
+    public String getSecret() {
+        return secret;
     }
 }
