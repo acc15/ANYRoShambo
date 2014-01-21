@@ -5,6 +5,9 @@ package com.appctek.anyroshambo.social.auth;
 * @since 2014-22-01
 */
 public class OAuthToken {
+
+    public static final OAuthToken EMPTY = new OAuthToken(null, "");
+
     private String key;
     private String secret;
 

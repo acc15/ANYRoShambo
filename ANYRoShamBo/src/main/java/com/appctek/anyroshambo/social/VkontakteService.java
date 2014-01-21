@@ -30,11 +30,8 @@ import java.util.concurrent.TimeUnit;
 public class VkontakteService implements SocialNetworkService {
 
     private static final Logger logger = LoggerFactory.getLogger(VkontakteService.class);
-
     private static final String VK_TOKEN = "vk";
-
     private static final String API_VERSION = "5.5";
-    private static final String REDIRECT_URL = "https://oauth.vk.com/blank.html";
 
     private Context context;
     private TokenManager tokenManager;
@@ -120,7 +117,7 @@ public class VkontakteService implements SocialNetworkService {
         // user_id=1114703
         WebUtils.showWebViewDialog(context, uriBuilder.build().toString(), new WebUtils.UrlHandler() {
             public boolean handleUrl(DialogInterface dialog, String url) {
-                if (!url.startsWith(REDIRECT_URL)) {
+                if (!url.startsWith(redirectUri)) {
                     return false;
                 }
 

@@ -4,13 +4,15 @@ import android.content.Context;
 import android.os.AsyncTask;
 import android.widget.Toast;
 import com.appctek.anyroshambo.R;
-import com.appctek.anyroshambo.social.auth.OAuthHeaderParams;
+import com.appctek.anyroshambo.social.auth.OAuthHeader;
 import com.appctek.anyroshambo.social.auth.OAuthService;
 import com.appctek.anyroshambo.social.auth.OAuthToken;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,27 +25,27 @@ import java.util.Map;
  */
 public class TwitterService implements SocialNetworkService {
 
-    private static final String CONSUMER_KEY = "eNAz8lhCSpXog4F0UbScQA";
-    private static final String CONSUMER_SECRET = "KbVJTv5BlHMJlETCARFWwBHlTq53wim7XJocuG5N5So";
-    private static final String CALLBACK_URI = "http://appctek.com/anyroshambo";
-
     private static final Logger logger = LoggerFactory.getLogger(TwitterService.class);
 
     private OAuthService oAuthService;
     private HttpClient httpClient;
     private Context context;
+    private OAuthToken consumerToken;
+    private String redirectUri;
 
     @Inject
-    public TwitterService(Context context, OAuthService oAuthService, HttpClient httpClient) {
+    public TwitterService(Context context, OAuthService oAuthService, HttpClient httpClient,
+                          @Named("twConsumerToken") OAuthToken consumerToken,
+                          @Named("twRedirectUri") String redirectUri) {
         this.context = context;
         this.httpClient = httpClient;
         this.oAuthService = oAuthService;
+        this.consumerToken = consumerToken;
+        this.redirectUri = redirectUri;
     }
 
-    private OAuthHeaderParams createParams() {
-        return OAuthHeaderParams.create().
-                consumerKey(CONSUMER_KEY).
-                consumerSecret(CONSUMER_SECRET);
+    private void authorizeRequest(HttpUriRequest rq, OAuthToken token, OAuthHeader header) {
+        oAuthService.authorize(rq, header, consumerToken, token);
     }
 
     private void authenticate() {
@@ -54,14 +56,14 @@ public class TwitterService implements SocialNetworkService {
 
                 final String url = "https://api.twitter.com/oauth/request_token";
                 final HttpPost request = new HttpPost(url);
-                oAuthService.authorize(request, createParams().callbackUri(CALLBACK_URI));
+                authorizeRequest(request, OAuthToken.EMPTY, OAuthHeader.create().callbackUri(redirectUri));
 
                 try {
                     final Map<String,String> responseValues = WebUtils.nameValuePairsToMap(
                             WebUtils.executeRequestParams(httpClient, request));
                     final boolean isCallbackConfirmed = Boolean.parseBoolean(responseValues.get("oauth_callback_confirmed"));
                     if (!isCallbackConfirmed) {
-                        logger.error("Callback \"" + CALLBACK_URI + "\" wasn't confirmed");
+                        logger.error("Callback \"" + redirectUri + "\" wasn't confirmed");
                         return null;
                     }
                     final String token = responseValues.get("oauth_token");

@@ -12,6 +12,7 @@ import com.appctek.anyroshambo.util.HexUtils;
 import com.appctek.anyroshambo.util.JSONUtils;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.google.inject.Inject;
+import com.google.inject.name.Named;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.json.JSONException;
@@ -36,24 +37,32 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
     private static final Logger logger = LoggerFactory.getLogger(OdnoklassnikiService.class);
 
-    private static final String APP_ID = "216398080";
     private static final String OK_TOKEN = "ok";
     private static final String OK_REFRESH_TOKEN = "ok.refresh";
-
-    private static final String PUBLIC_KEY = "CBAKPGONABABABABA";
-    private static final String SECRET_KEY = "83B562785858040AF1E5DF41";
-    private static final String REDIRECT_URL = "http://appctek.com/anyroshambo";
     public static final String METHOD_SUFFIX = "Odnoklassniki API";
 
     private final Context context;
     private final TokenManager tokenManager;
     private final HttpClient httpClient;
 
+    private final String appId;
+    private final String publicKey;
+    private final String secretKey;
+    private final String redirectUri;
+
     @Inject
-    public OdnoklassnikiService(Context context, TokenManager tokenManager, HttpClient httpClient) {
+    public OdnoklassnikiService(Context context, TokenManager tokenManager, HttpClient httpClient,
+                                @Named("okAppId") String appId,
+                                @Named("okPublicKey") String publicKey,
+                                @Named("okSecretKey") String secretKey,
+                                @Named("okRedirectUri") String redirectUri) {
         this.context = context;
         this.tokenManager = tokenManager;
         this.httpClient = httpClient;
+        this.appId = appId;
+        this.secretKey = secretKey;
+        this.publicKey = publicKey;
+        this.redirectUri = redirectUri;
     }
 
     private void doWithAuthParams(boolean revoke, final AsyncTask<AuthParams, Object, Boolean> task) {
@@ -80,16 +89,16 @@ public class OdnoklassnikiService implements SocialNetworkService {
         }
 
         final String url = Uri.parse("http://www.odnoklassniki.ru/oauth/authorize").buildUpon().
-                appendQueryParameter("client_id", APP_ID).
+                appendQueryParameter("client_id", appId).
                 appendQueryParameter("response_type", "code").
                 appendQueryParameter("layout", "m").
                 appendQueryParameter("scope", "VALUABLE_ACCESS").
-                appendQueryParameter("redirect_uri", REDIRECT_URL).
+                appendQueryParameter("redirect_uri", redirectUri).
                 build().toString();
 
         WebUtils.showWebViewDialog(context, url, new WebUtils.UrlHandler() {
             public boolean handleUrl(DialogInterface dialog, String url) {
-                if (!url.startsWith(REDIRECT_URL)) {
+                if (!url.startsWith(redirectUri)) {
                     return false;
                 }
 
@@ -114,13 +123,13 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
     }
 
-    private static String calculateSignature(SortedMap<String, String> params, Token accessToken) {
+    private String calculateSignature(SortedMap<String, String> params, Token accessToken) {
         final StringBuilder stringBuilder = new StringBuilder();
         for (Map.Entry<String, String> param : params.entrySet()) {
             stringBuilder.append(param.getKey()).append('=').append(param.getValue());
         }
 
-        final String authMd5 = HexUtils.md5Hex(accessToken.getToken() + SECRET_KEY);
+        final String authMd5 = HexUtils.md5Hex(accessToken.getToken() + secretKey);
         stringBuilder.append(authMd5);
 
         return HexUtils.md5Hex(stringBuilder.toString());
@@ -147,7 +156,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
                     sortedParams.put("method", apiMethod);
                     sortedParams.put("message", "покрутил рулетку и получил");
                     sortedParams.put("attachment", attachment.toString());
-                    sortedParams.put("application_key", PUBLIC_KEY);
+                    sortedParams.put("application_key", publicKey);
 
                     final String signature = calculateSignature(sortedParams, accessToken);
                     sortedParams.put("sig", signature);
@@ -214,8 +223,8 @@ public class OdnoklassnikiService implements SocialNetworkService {
                 final String url = Uri.parse("http://api.odnoklassniki.ru/oauth/token.do").buildUpon().
                         appendQueryParameter("refresh_token", authParams.getRefreshToken().getToken()).
                         appendQueryParameter("grant_type", "refresh_token").
-                        appendQueryParameter("client_id", APP_ID).
-                        appendQueryParameter("client_secret", SECRET_KEY).
+                        appendQueryParameter("client_id", appId).
+                        appendQueryParameter("client_secret", secretKey).
                         build().toString();
                 jsonObject = JSONUtils.parseJSON(WebUtils.executeRequestString(httpClient, new HttpPost(url)));
             } else {
@@ -230,10 +239,10 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
                 final String url = Uri.parse("http://api.odnoklassniki.ru/oauth/token.do").buildUpon().
                         appendQueryParameter("code", authParams.getAccessCode()).
-                        appendQueryParameter("redirect_uri", REDIRECT_URL).
+                        appendQueryParameter("redirect_uri", redirectUri).
                         appendQueryParameter("grant_type", "authorization_code").
-                        appendQueryParameter("client_id", APP_ID).
-                        appendQueryParameter("client_secret", SECRET_KEY).
+                        appendQueryParameter("client_id", appId).
+                        appendQueryParameter("client_secret", secretKey).
                         build().toString();
                 jsonObject = JSONUtils.parseJSON(WebUtils.executeRequestString(httpClient, new HttpPost(url)));
             }

@@ -28,26 +28,35 @@ public class OAuthService {
     }
 
     public void authorize(HttpUriRequest request,
-                          OAuthHeaderParams params) {
+                          OAuthHeader header,
+                          OAuthToken consumerToken,
+                          OAuthToken accessToken) {
 
         final String httpMethod = request.getMethod();
         final URI uri = request.getURI();
+        final String baseUri = WebUtils.getUriWithoutParams(uri.toString());
 
         final List<NameValuePair> postParams = WebUtils.parseRequestParams(request);
         final List<NameValuePair> urlParams = URLEncodedUtils.parse(uri, WebUtils.DEFAULT_CHARSET);
-
-        final String headerValue = params.
-                httpMethod(httpMethod).
-                baseUrl(WebUtils.getUriWithoutParams(uri.toString())).
-                version(OAuthHeaderParams.DEFAULT_VERSION).
-                signatureMethod(OAuthHeaderParams.DEFAULT_SIGNATURE_METHOD).
+        final List<NameValuePair> oauthParams = header.
+                version(OAuthHeader.DEFAULT_VERSION).
+                signatureMethod(OAuthHeader.DEFAULT_SIGNATURE_METHOD).
                 nonce(OAuthUtils.generateNonce(random)).
                 timestamp(TimeUnit.MILLISECONDS.toSeconds(dateTimeService.getTimeInMillis())).
-                urlParams(urlParams).
-                postParams(postParams).
-                sign().
-                toString();
+                consumerKey(consumerToken.getKey()).
+                token(accessToken.getKey()).
+                asNameValuePairs();
 
+        final String signature = OAuthUtils.buildSignature(
+                httpMethod,
+                baseUri,
+                consumerToken.getSecret(),
+                accessToken.getSecret(),
+                urlParams,
+                postParams,
+                oauthParams);
+
+        final String headerValue = header.signature(signature).toString();
         request.setHeader("Authorization", headerValue);
     }
 
