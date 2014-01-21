@@ -37,7 +37,7 @@ public class OAuthService {
         final String baseUri = WebUtils.getUriWithoutParams(uri.toString());
 
         final List<NameValuePair> postParams = WebUtils.parseRequestParams(request);
-        final List<NameValuePair> urlParams = URLEncodedUtils.parse(uri, WebUtils.DEFAULT_CHARSET);
+        final List<NameValuePair> urlParams = URLEncodedUtils.parse(uri, WebUtils.UTF_8);
         final List<NameValuePair> oauthParams = header.
                 version(OAuthHeader.DEFAULT_VERSION).
                 signatureMethod(OAuthHeader.DEFAULT_SIGNATURE_METHOD).

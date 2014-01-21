@@ -3,6 +3,7 @@ package com.appctek.anyroshambo.social.auth;
 import android.util.Base64;
 import com.appctek.anyroshambo.util.HexUtils;
 import com.appctek.anyroshambo.util.RandomUtils;
+import com.appctek.anyroshambo.util.WebUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
@@ -97,16 +98,15 @@ public class OAuthUtils {
         final String signData = sb.toString();
 
         final byte[] encodedSignature = encodeHmacSHA1(signKey, signData);
-        final String signature = Base64.encodeToString(encodedSignature, Base64.NO_WRAP);
-        return signature;
+        return Base64.encodeToString(encodedSignature, Base64.NO_WRAP);
     }
 
     private static byte[] encodeHmacSHA1(String key, String data) {
-        final SecretKeySpec keySpec = new SecretKeySpec(HexUtils.getBytesInUTF8(key), HMAC_SHA_1);
+        final SecretKeySpec keySpec = new SecretKeySpec(WebUtils.getBytesInUTF8(key), HMAC_SHA_1);
         try {
             final Mac mac = Mac.getInstance(HMAC_SHA_1);
             mac.init(keySpec);
-            return mac.doFinal(HexUtils.getBytesInUTF8(data));
+            return mac.doFinal(WebUtils.getBytesInUTF8(data));
         } catch (GeneralSecurityException e) {
             throw new RuntimeException("Can't encode values by " + HMAC_SHA_1 + " algorithm", e);
         }
@@ -122,7 +122,7 @@ public class OAuthUtils {
      * @return percent encoded string
      */
     public static String percentEncode(String str) {
-        final byte[] bytes = HexUtils.getBytesInUTF8(str);
+        final byte[] bytes = WebUtils.getBytesInUTF8(str);
         final StringBuilder encoded = new StringBuilder();
         for (byte b: bytes) {
             if (dontPercentEncode(b)) {

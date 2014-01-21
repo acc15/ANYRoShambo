@@ -12,7 +12,7 @@ public class HexUtilsTest {
     @Test
     public void testBytesToHexString() throws Exception {
         final byte[] byteArray = new byte[] {0x00, 0x7f, (byte)0xff, 0x01, (byte)0xec, 0x22};
-        final String str = HexUtils.convertBytesToHexString(byteArray, false);
+        final String str = HexUtils.bytesToHexString(byteArray, false);
         assertThat(str).isEqualTo("007fff01ec22");
     }
 

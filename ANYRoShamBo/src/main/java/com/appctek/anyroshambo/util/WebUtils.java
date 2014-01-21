@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 /**
@@ -29,27 +30,25 @@ import java.util.*;
 public class WebUtils {
 
 
-    public static final String DEFAULT_CHARSET = "utf-8";
+    public static final String UTF_8 = "utf-8";
     public static final Logger logger = LoggerFactory.getLogger(WebUtils.class);
 
     public static String parseCharset(Header contentTypeHeader) {
         if (contentTypeHeader == null) {
-            return DEFAULT_CHARSET;
+            return UTF_8;
         }
 
         final HeaderElement[] elements = contentTypeHeader.getElements();
         if (elements.length == 0) {
-            return DEFAULT_CHARSET;
+            return UTF_8;
         }
 
         final HeaderElement first = elements[0];
         final NameValuePair charsetPair = first.getParameterByName("charset");
         if (charsetPair == null) {
-            return DEFAULT_CHARSET;
+            return UTF_8;
         }
-
-        final String charset = charsetPair.getValue();
-        return charset;
+        return charsetPair.getValue();
     }
 
     public static Map<String,String> parseUriFragmentParameters(String fragment) {
@@ -84,6 +83,14 @@ public class WebUtils {
             }
         });
         dialog.show();
+    }
+
+    public static byte[] getBytesInUTF8(String str) {
+        try {
+            return str.getBytes(UTF_8);
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException("Encoding \"" + UTF_8 + "\" isn't supported on current VM", e);
+        }
     }
 
     private static class ResponseData {

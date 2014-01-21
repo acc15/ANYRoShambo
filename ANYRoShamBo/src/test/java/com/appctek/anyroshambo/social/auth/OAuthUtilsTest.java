@@ -1,5 +1,6 @@
 package com.appctek.anyroshambo.social.auth;
 
+import com.appctek.anyroshambo.util.WebUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.junit.Test;
@@ -68,7 +69,7 @@ public class OAuthUtilsTest {
         values.put("oauth_token", "370773112-GmHxMAgYyLbNEtIKZeRNFsMKPR9EyMZeS9weJAEb");
         values.put("oauth_version", "1.0");
 
-        final String header = OAuthUtils.buildOAuthHeader(values);
+        final String header = OAuthUtils.buildOAuthHeader(WebUtils.entriesToNameValuePairs(values.entrySet()));
         final String expectedStr = "OAuth " +
                 "oauth_consumer_key=\"xvz1evFS4wEEPTGEFPHBog\", " +
                 "oauth_nonce=\"kYjzVBB8Y0ZFabxSWbWovY3uYSQ2pTgmZeNu2VS4cg\", " +
