@@ -6,10 +6,15 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.widget.Toast;
 import com.appctek.anyroshambo.R;
-import com.appctek.anyroshambo.social.auth.*;
+import com.appctek.anyroshambo.social.auth.ErrorInfo;
+import com.appctek.anyroshambo.social.auth.OAuthHeader;
+import com.appctek.anyroshambo.social.auth.OAuthService;
+import com.appctek.anyroshambo.social.auth.OAuthToken;
 import com.appctek.anyroshambo.social.task.Task;
 import com.appctek.anyroshambo.social.task.TaskManager;
+import com.appctek.anyroshambo.social.token.Token;
 import com.appctek.anyroshambo.social.token.TokenManager;
+import com.appctek.anyroshambo.util.Pair;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
@@ -32,6 +37,12 @@ import java.util.Map;
 public class TwitterService implements SocialNetworkService {
 
     private static final Logger logger = LoggerFactory.getLogger(TwitterService.class);
+
+    public static final int REDIRECT_URI_CONFIRM_ERROR = 10;
+    public static final int AUTH_ERROR = 11;
+    public static final int USER_CANCELLED = 12;
+    public static final int REQUEST_TOKEN_MISMATCH = 13;
+    public static final int ACCESS_TOKEN_MISSING = 14;
 
     private static final String TW_TOKEN = "tw";
     private static final String TW_TOKEN_SECRET = "tw.secret";
@@ -71,9 +82,9 @@ public class TwitterService implements SocialNetworkService {
             }
         }
 
-        new AsyncTask<Object, Object, OAuthToken>() {
+        new AsyncTask<Object, Object, Pair<ErrorInfo, OAuthToken>>() {
             @Override
-            protected OAuthToken doInBackground(Object... params) {
+            protected Pair<ErrorInfo, OAuthToken> doInBackground(Object... params) {
 
                 final String url = "https://api.twitter.com/oauth/request_token";
                 final HttpPost request = new HttpPost(url);
@@ -86,25 +97,25 @@ public class TwitterService implements SocialNetworkService {
                             responseValues.get("oauth_callback_confirmed"));
                     if (!isCallbackConfirmed) {
                         logger.error("Callback \"" + redirectUri + "\" wasn't confirmed");
-                        return null;
+                        return Pair.keyOnly(
+                                ErrorInfo.create(REDIRECT_URI_CONFIRM_ERROR).withDetail("redirect.uri", redirectUri));
                     }
                     final String token = responseValues.get("oauth_token");
                     final String tokenSecret = responseValues.get("oauth_token_secret");
-                    return new OAuthToken(token, tokenSecret);
+                    return Pair.makePair(ErrorInfo.success(), new OAuthToken(token, tokenSecret));
 
                 } catch (IOException e) {
                     logger.error("Can't obtain request token", e);
+                    return Pair.keyOnly(ErrorInfo.create(AUTH_ERROR).withThrowable(e));
                 }
-                return null;
             }
 
             @Override
-            protected void onPostExecute(final OAuthToken requestToken) {
-                if (requestToken == null) {
-                    Toast.makeText(context, R.string.share_error, Toast.LENGTH_LONG).show();
-                    return;
+            protected void onPostExecute(final Pair<ErrorInfo, OAuthToken> result) {
+                if (result.key.isError()) {
+                    task.onFinish(result.key);
                 }
-                showAuthDialog(revoke, requestToken, task);
+                showAuthDialog(revoke, result.value, task);
             }
         }.execute();
 
@@ -132,8 +143,8 @@ public class TwitterService implements SocialNetworkService {
                     logger.error("Returned oauth_token mismatch. Either User cancelled authentication. " +
                             "Expected: " + requestToken.getKey() +
                             "; But received: " + returnedToken);
-                    Toast.makeText(context, R.string.share_error, Toast.LENGTH_LONG).show();
                     dialog.cancel();
+                    task.onFinish(ErrorInfo.create(returnedToken == null ? USER_CANCELLED : REQUEST_TOKEN_MISMATCH));
                     return true;
                 }
 
@@ -148,9 +159,9 @@ public class TwitterService implements SocialNetworkService {
 
     private void obtainAccessToken(final OAuthToken requestToken, final String verifier,
                                    final Task<OAuthToken, ErrorInfo> task) {
-        new AsyncTask<Object,Object,OAuthToken>() {
+        new AsyncTask<Object,Object,Pair<ErrorInfo,OAuthToken>>() {
             @Override
-            protected OAuthToken doInBackground(Object... params) {
+            protected Pair<ErrorInfo,OAuthToken> doInBackground(Object... params) {
 
                 final HttpPost httpPost = new HttpPost("https://api.twitter.com/oauth/access_token");
 
@@ -167,23 +178,27 @@ public class TwitterService implements SocialNetworkService {
                     final String accessTokenSecret = responseParams.get("oauth_token_secret");
                     if (accessToken == null || accessTokenSecret == null) {
                         logger.error("Access token or access token secret wasn't returned");
-                        return null;
+                        return Pair.keyOnly(ErrorInfo.create(ACCESS_TOKEN_MISSING));
                     }
-                    return new OAuthToken(accessToken, accessTokenSecret);
+
+                    tokenManager.storeToken(TW_TOKEN, new Token(accessToken, 0));
+                    tokenManager.storeToken(TW_TOKEN_SECRET, new Token(accessTokenSecret, 0));
+
+                    return Pair.makePair(ErrorInfo.success(), new OAuthToken(accessToken, accessTokenSecret));
 
                 } catch (IOException e) {
                     logger.error("Can't obtain access token", e);
+                    return Pair.keyOnly(ErrorInfo.create(AUTH_ERROR).withThrowable(e));
                 }
-                return null;
             }
 
             @Override
-            protected void onPostExecute(OAuthToken token) {
-                if (token == null) {
-                    return;
+            protected void onPostExecute(Pair<ErrorInfo, OAuthToken> result) {
+                if (result.key.isError()) {
+                    task.onFinish(result.key);
                 }
-                logger.info("Access token obtained: " + token);
-                task.execute(token);
+                logger.info("Access token obtained: " + result);
+                taskManager.executeAsync(task, result.value);
             }
         }.execute();
     }
@@ -196,8 +211,11 @@ public class TwitterService implements SocialNetworkService {
             }
 
             public void onFinish(ErrorInfo error) {
-                Toast.makeText(context, R.string.share_error, Toast.LENGTH_LONG).show();
-
+                if (error.is(USER_CANCELLED)) {
+                    return;
+                }
+                Toast.makeText(context, error.isError() ? R.string.share_error : R.string.share_success,
+                        Toast.LENGTH_LONG).show();
             }
         });
     }

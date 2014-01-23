@@ -76,7 +76,7 @@ public class VkontakteService implements SocialNetworkService {
                     return;
                 }
                 Toast.makeText(context,
-                    error.isError() ? R.string.share_success : R.string.share_error,
+                    error.isError() ? R.string.share_error : R.string.share_success,
                     Toast.LENGTH_LONG).show();
             }
         });
