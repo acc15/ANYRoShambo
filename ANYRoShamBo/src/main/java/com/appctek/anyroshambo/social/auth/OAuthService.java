@@ -28,9 +28,7 @@ public class OAuthService {
     }
 
     public void authorize(HttpUriRequest request,
-                          OAuthHeader header,
-                          OAuthToken consumerToken,
-                          OAuthToken accessToken) {
+                          OAuthToken consumerToken, OAuthToken accessToken, OAuthHeader header) {
 
         final String httpMethod = request.getMethod();
         final URI uri = request.getURI();

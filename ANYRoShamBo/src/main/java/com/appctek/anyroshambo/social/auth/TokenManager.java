@@ -51,6 +51,11 @@ public class TokenManager {
         return new Token(token, expiresAfter);
     }
 
+    public String getTokenAsString(String tokenName) {
+        final Token token = getToken(tokenName);
+        return token != null ? token.getToken() : null;
+    }
+
     /**
      * Stores token
      * @param tokenName name of token
@@ -74,12 +79,16 @@ public class TokenManager {
                 commit();
     }
 
+    public boolean isValid(Token token) {
+        return dateTimeService.getTimeInMillis() <= token.getExpiresAfter();
+    }
+
     private static String composeProperty(String tokenName, String propertyName) {
         return "token." + tokenName + "." + propertyName;
     }
 
     public Token createToken(String token, long expireTime, TimeUnit expireUnit) {
-        final long millisTime = expireUnit.toMillis(expireTime) - 1000;
+        final long millisTime = expireUnit.toMillis(expireTime) - 5000;
         return new Token(token, dateTimeService.getTimeInMillis() + millisTime);
     }
 }

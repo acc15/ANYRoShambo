@@ -78,7 +78,4 @@ public class OAuthHeader {
         return WebUtils.entriesToNameValuePairs(oauthParams.entrySet());
     }
 
-    public static OAuthHeader create() {
-        return new OAuthHeader();
-    }
 }

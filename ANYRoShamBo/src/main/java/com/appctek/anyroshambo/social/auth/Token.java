@@ -6,8 +6,8 @@ package com.appctek.anyroshambo.social.auth;
 */
 public class Token {
 
-    private String token;
-    private long expiresAfter;
+    private final String token;
+    private final long expiresAfter;
 
     public Token(String token, long expiresAfter) {
         this.token = token;

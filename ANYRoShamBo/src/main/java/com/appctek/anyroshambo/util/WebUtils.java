@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.utils.URLEncodedUtils;
@@ -84,11 +85,23 @@ public class WebUtils {
         dialog.show();
     }
 
+    private static RuntimeException createEncodingEx(UnsupportedEncodingException e) {
+        return new RuntimeException("Encoding \"" + UTF_8 + "\" isn't supported on current VM", e);
+    }
+
+    public static HttpEntity createUrlEncodedFormEntity(List<? extends NameValuePair> pairs) {
+        try {
+            return new UrlEncodedFormEntity(pairs, UTF_8);
+        } catch (UnsupportedEncodingException e) {
+            throw createEncodingEx(e);
+        }
+    }
+
     public static byte[] getBytesInUTF8(String str) {
         try {
             return str.getBytes(UTF_8);
         } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException("Encoding \"" + UTF_8 + "\" isn't supported on current VM", e);
+            throw createEncodingEx(e);
         }
     }
 
