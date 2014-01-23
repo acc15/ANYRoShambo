@@ -4,10 +4,11 @@ import com.appctek.anyroshambo.util.WebUtils;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -15,7 +16,6 @@ import static org.fest.assertions.Assertions.assertThat;
  * @author Vyacheslav Mayorov
  * @since 2014-17-01
  */
-@RunWith(RobolectricTestRunner.class)
 public class OAuthUtilsTest {
     @Test
     public void testPercentEncode() throws Exception {

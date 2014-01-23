@@ -29,9 +29,8 @@ import java.util.*;
  */
 public class WebUtils {
 
-
-    public static final String UTF_8 = "utf-8";
     public static final Logger logger = LoggerFactory.getLogger(WebUtils.class);
+    public static final String UTF_8 = "utf-8";
 
     public static String parseCharset(Header contentTypeHeader) {
         if (contentTypeHeader == null) {

@@ -1,5 +1,8 @@
 package com.appctek.anyroshambo.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -9,8 +12,9 @@ import java.security.NoSuchAlgorithmException;
  */
 public class HexUtils {
 
-
     public static final int HEX_MASK = 0x0f;
+
+    private static final Logger logger = LoggerFactory.getLogger(HexUtils.class);
 
     private static char hexChar(int val, boolean upperCase) {
         return (char) (val < 10 ? '0' + val : (upperCase ? 'A' : 'a') + (val - 10));
@@ -34,7 +38,9 @@ public class HexUtils {
             final MessageDigest md5Digest = MessageDigest.getInstance("MD5");
             final byte[] paramBytes = WebUtils.getBytesInUTF8(str);
             final byte[] digest = md5Digest.digest(paramBytes);
-            return bytesToHexString(digest, false);
+            final String hexStr = bytesToHexString(digest, false);
+            logger.debug("Generated MD5 for string \"" + str + "\": " + hexStr);
+            return hexStr;
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("Can't find md5 digest algorithm", e);
         }

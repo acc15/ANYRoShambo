@@ -1,9 +1,9 @@
 package com.appctek.anyroshambo.social.auth;
 
-import android.util.Base64;
 import com.appctek.anyroshambo.util.HexUtils;
 import com.appctek.anyroshambo.util.RandomUtils;
 import com.appctek.anyroshambo.util.WebUtils;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 
@@ -98,7 +98,7 @@ public class OAuthUtils {
         final String signData = sb.toString();
 
         final byte[] encodedSignature = encodeHmacSHA1(signKey, signData);
-        return Base64.encodeToString(encodedSignature, Base64.NO_WRAP);
+        return new String(Base64.encodeBase64(encodedSignature));
     }
 
     private static byte[] encodeHmacSHA1(String key, String data) {
