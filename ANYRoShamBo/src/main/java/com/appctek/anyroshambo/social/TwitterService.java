@@ -38,7 +38,7 @@ public class TwitterService implements SocialNetworkService {
 
     private static final Logger logger = LoggerFactory.getLogger(TwitterService.class);
 
-    public static final int REDIRECT_URI_CONFIRM_ERROR = 10;
+    public static final int URI_NOT_CONFIRMED = 10;
     public static final int AUTH_ERROR = 11;
     public static final int USER_CANCELLED = 12;
     public static final int REQUEST_TOKEN_MISMATCH = 13;
@@ -98,7 +98,7 @@ public class TwitterService implements SocialNetworkService {
                     if (!isCallbackConfirmed) {
                         logger.error("Callback \"" + redirectUri + "\" wasn't confirmed");
                         return Pair.keyOnly(
-                                ErrorInfo.create(REDIRECT_URI_CONFIRM_ERROR).withDetail("redirect.uri", redirectUri));
+                                ErrorInfo.create(URI_NOT_CONFIRMED).withDetail("redirect.uri", redirectUri));
                     }
                     final String token = responseValues.get("oauth_token");
                     final String tokenSecret = responseValues.get("oauth_token_secret");
