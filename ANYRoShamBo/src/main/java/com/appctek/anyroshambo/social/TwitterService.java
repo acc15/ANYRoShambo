@@ -1,6 +1,8 @@
 package com.appctek.anyroshambo.social;
 
 import android.content.Context;
+import android.content.DialogInterface;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.widget.Toast;
 import com.appctek.anyroshambo.R;
@@ -48,7 +50,7 @@ public class TwitterService implements SocialNetworkService {
         oAuthService.authorize(rq, header, consumerToken, token);
     }
 
-    private void authenticate() {
+    private void authenticate(final boolean revoke) {
 
         new AsyncTask<Object, Object, OAuthToken>() {
             @Override
@@ -77,19 +79,49 @@ public class TwitterService implements SocialNetworkService {
             }
 
             @Override
-            protected void onPostExecute(OAuthToken requestToken) {
+            protected void onPostExecute(final OAuthToken requestToken) {
                 if (requestToken == null) {
                     Toast.makeText(context, R.string.share_error, Toast.LENGTH_LONG).show();
                     return;
                 }
 
-                System.out.println(requestToken);
+                final Uri.Builder uriBuilder = Uri.parse("https://api.twitter.com/oauth/authenticate").buildUpon().
+                        appendQueryParameter("oauth_token", requestToken.getKey());
+                if (revoke) {
+                    uriBuilder.appendQueryParameter("force_login", "true");
+                }
+
+                final String requestUrl = uriBuilder.build().toString();
+                WebUtils.showWebViewDialog(context, requestUrl, new WebUtils.UrlHandler() {
+                    public boolean handleUrl(DialogInterface dialog, String url) {
+                        if (!url.startsWith(redirectUri)) {
+                            return false;
+                        }
+
+                        final Uri uri = Uri.parse(url);
+                        final String returnedToken = uri.getQueryParameter("oauth_token");
+                        if (!requestToken.getKey().equals(returnedToken)) {
+                            logger.error("Returned oauth_token mismatch. Either User cancelled authentication. " +
+                                    "Expected: " + requestToken.getKey() +
+                                    "; But received: " + returnedToken);
+                            Toast.makeText(context, R.string.share_error, Toast.LENGTH_LONG).show();
+                            dialog.cancel();
+                            return true;
+                        }
+
+                        final String verifier = uri.getQueryParameter("oauth_verifier");
+
+
+                        logger.debug("User login: " + url);
+                        return true;
+                    }
+                });
             }
         }.execute();
 
     }
 
     public void shareText(boolean revoke, String text) {
-        authenticate();
+        authenticate(revoke);
     }
 }
