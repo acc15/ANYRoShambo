@@ -222,6 +222,15 @@
                     <target>1.5</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.16</version>
+                <configuration>
+                    <classpathDependencyExcludes>
+                        <dependencyExclude>org.slf4j:slf4j-android</dependencyExclude>
+                    </classpathDependencyExcludes>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
