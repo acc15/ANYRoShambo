@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.widget.Toast;
 import com.appctek.anyroshambo.R;
+import com.appctek.anyroshambo.social.auth.ErrorInfo;
 import com.appctek.anyroshambo.social.auth.Token;
 import com.appctek.anyroshambo.social.auth.TokenManager;
 import com.appctek.anyroshambo.util.JSONUtils;
@@ -29,6 +30,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class VkontakteService implements SocialNetworkService {
 
+    public static final String EMPTY_RESPONSE = "empty.response";
+    public static final String RESPONSE_DETAIL = "response";
+
     private static final Logger logger = LoggerFactory.getLogger(VkontakteService.class);
     private static final String VK_TOKEN = "vk";
     private static final String API_VERSION = "5.5";
@@ -51,22 +55,22 @@ public class VkontakteService implements SocialNetworkService {
     }
 
     public void shareText(boolean revoke, final String text) {
-        doWithToken(revoke, new AsyncTask<Token, Object, Boolean>() {
+        doWithToken(revoke, new AsyncTask<Token, Object, ErrorInfo>() {
             @Override
-            protected Boolean doInBackground(Token... token) {
+            protected ErrorInfo doInBackground(Token... token) {
                 return postOnWall(token[0], text);
             }
 
             @Override
-            protected void onPostExecute(Boolean result) {
+            protected void onPostExecute(ErrorInfo result) {
                 Toast.makeText(context,
-                        result ? R.string.share_success : R.string.share_error,
+                        result.isError() ? R.string.share_success : R.string.share_error,
                         Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    private boolean postOnWall(Token token, String message) {
+    private ErrorInfo postOnWall(Token token, String message) {
         final String url = Uri.parse("https://api.vk.com/method/wall.post").buildUpon().
                 appendQueryParameter("message", message).
                 appendQueryParameter("access_token", token.getToken()).
@@ -74,21 +78,21 @@ public class VkontakteService implements SocialNetworkService {
         try {
             final JSONObject jsonObject = JSONUtils.parseJSON(WebUtils.executeRequestString(httpClient, new HttpPost(url)));
             if (!jsonObject.has("response")) {
-                return false;
+                return ErrorInfo.create(EMPTY_RESPONSE).withDetail(RESPONSE_DETAIL, jsonObject);
             }
             final String postId = jsonObject.getJSONObject("response").getString("post_id");
             logger.info("Post has been created with id " + postId);
-            return true;
+            return ErrorInfo.success();
         } catch (JSONException e) {
             logger.error("Error occurred while executing JSON POST request", e);
-            return false;
+            return ErrorInfo.create().fromThrowable(e);
         } catch (IOException e) {
             logger.error("I/O error occurred", e);
-            return false;
+            return ErrorInfo.create().fromThrowable(e);
         }
     }
 
-    private void doWithToken(final boolean revoke, final AsyncTask<Token, Object, Boolean> task) {
+    private void doWithToken(final boolean revoke, final AsyncTask<Token, ?, ?> task) {
         if (!revoke) {
             final Token token = tokenManager.getToken(VK_TOKEN);
             if (token != null) {

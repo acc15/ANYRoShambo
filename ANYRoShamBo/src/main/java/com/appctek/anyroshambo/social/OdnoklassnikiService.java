@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.widget.Toast;
 import com.appctek.anyroshambo.R;
+import com.appctek.anyroshambo.social.auth.ErrorInfo;
 import com.appctek.anyroshambo.social.auth.Token;
 import com.appctek.anyroshambo.social.auth.TokenManager;
 import com.appctek.anyroshambo.util.HexUtils;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -34,6 +36,12 @@ import java.util.concurrent.TimeUnit;
  * @since 2014-14-01
  */
 public class OdnoklassnikiService implements SocialNetworkService {
+
+    public static final String AUTH_ERROR = "auth.error";
+    public static final String RESPONSE_DETAIL = "response";
+
+    public static final String STREAM_PUBLISH_ERROR = "stream.publish.error";
+
 
     private static final Logger logger = LoggerFactory.getLogger(OdnoklassnikiService.class);
 
@@ -65,7 +73,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
         this.redirectUri = redirectUri;
     }
 
-    private void doWithAuthParams(boolean revoke, final AsyncTask<AuthParams, Object, Boolean> task) {
+    private void doWithAuthParams(boolean revoke, final AsyncTask<AuthParams, ?, ?> task) {
 
         if (revoke) {
 
@@ -138,12 +146,13 @@ public class OdnoklassnikiService implements SocialNetworkService {
     public void shareText(boolean revoke, final String text) {
 
         // http://www.odnoklassniki.ru/oauth/authorize?client_id={clientId}&scope={scope}&response_type={responseType}&redirect_uri={redirectUri}
-        doWithAuthParams(revoke, new AsyncTask<AuthParams, Object, Boolean>() {
+        doWithAuthParams(revoke, new AsyncTask<AuthParams, Object, ErrorInfo>() {
             @Override
-            protected Boolean doInBackground(AuthParams... params) {
-                final Token accessToken = authenticate(params[0]);
-                if (accessToken == null) {
-                    return false;
+            protected ErrorInfo doInBackground(AuthParams... params) {
+                final ErrorInfo errorInfo = ErrorInfo.success();
+                final Token accessToken = authenticate(params[0], errorInfo);
+                if (errorInfo.isError()) {
+                    return errorInfo;
                 }
 
                 //http://api.odnoklassniki.ru/fb.do?method=stream.publish
@@ -172,35 +181,43 @@ public class OdnoklassnikiService implements SocialNetworkService {
                         // error sample:
                         // {"error_data":null,"error_code":104,"error_msg":"PARAM_SIGNATURE : No signature specified"}
                         if (jsonReply.has("error_code")) {
-                            //final String error
+                            final Iterator keyIter = jsonReply.keys();
+                            errorInfo.withCode(STREAM_PUBLISH_ERROR);
+                            while (keyIter.hasNext()) {
+                                final String key = (String) keyIter.next();
+                                final String value = jsonReply.getString(key);
+                                errorInfo.withDetail(key, value);
+                            }
                             logger.error("Error returned from server which executing " + apiMethod + ": " + jsonReply);
-                            return false;
+                            return errorInfo;
                         }
+
+
 
                     }
                     System.out.println(reply);
 
                 } catch (JSONException e) {
                     logger.error("Can't execute " + apiMethod + " in " + METHOD_SUFFIX, e);
-                    return false;
+                    return errorInfo.fromThrowable(e);
                 } catch (IOException e) {
                     logger.error("I/O error occurred while executing " + apiMethod + " in " + METHOD_SUFFIX, e);
-                    return false;
+                    return errorInfo.fromThrowable(e);
                 }
-                return true;
+                return errorInfo;
             }
 
             @Override
-            protected void onPostExecute(Boolean result) {
+            protected void onPostExecute(ErrorInfo result) {
                 Toast.makeText(context,
-                        result ? R.string.share_success : R.string.share_error,
+                        result.isError() ? R.string.share_success : R.string.share_error,
                         Toast.LENGTH_LONG).show();
             }
         });
 
     }
 
-    private Token authenticate(AuthParams authParams) {
+    private Token authenticate(AuthParams authParams, ErrorInfo errorInfo) {
 
         if (authParams.getAccessToken() != null) {
             return authParams.getAccessToken();
@@ -257,6 +274,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
             if (accessTokenStr == null) {
                 logger.error("Authentication error occurred and access token wasn't returned. " +
                         "Analyze server response: " + jsonObject);
+                errorInfo.withCode(AUTH_ERROR).withDetail(RESPONSE_DETAIL, jsonObject);
                 return null;
             }
 
@@ -273,9 +291,11 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
         } catch (IOException e) {
             logger.error("I/O error occurred during authentication in " + METHOD_SUFFIX);
+            errorInfo.fromThrowable(e);
             return null;
         } catch (JSONException e) {
             logger.error("Error occurred during authentication in " + METHOD_SUFFIX, e);
+            errorInfo.fromThrowable(e);
             return null;
         }
     }
