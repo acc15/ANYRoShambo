@@ -1,12 +1,15 @@
 package com.appctek.anyroshambo.social.task;
 
 import android.os.AsyncTask;
+import android.view.View;
 
 /**
  * @author Vyacheslav Mayorov
  * @since 2014-24-01
  */
 public class TaskManager {
+
+    private View context;
 
     public <P,R> void executeAsync(final Task<P,R> task, final P param) {
         new AsyncTask<Object, Object, R>() {
@@ -21,6 +24,14 @@ public class TaskManager {
                 task.onFinish(r);
             }
         }.execute(param);
+    }
+
+    public <P,R> void executeFinish(final Task<P,R> task, final R result) {
+        context.post(new Runnable() {
+            public void run() {
+                task.onFinish(result);
+            }
+        });
     }
 
     public <P,R> void execute(final Task<P,R> task, final P param) {

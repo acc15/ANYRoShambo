@@ -31,9 +31,11 @@ import java.util.concurrent.TimeUnit;
  */
 public class VkontakteService implements SocialNetworkService {
 
-    public static final String EMPTY_RESPONSE = "empty.response";
+    public static final int EMPTY_RESPONSE = 10;
+    public static final int USER_CANCELLED = 11;
+    public static final int POST_ON_WALL_ERROR = 12;
+
     public static final String RESPONSE_DETAIL = "response";
-    public static final String USER_CANCELLED = "user.cancelled";
 
     private static final Logger logger = LoggerFactory.getLogger(VkontakteService.class);
     private static final String VK_TOKEN = "vk";
@@ -95,10 +97,10 @@ public class VkontakteService implements SocialNetworkService {
             return ErrorInfo.success();
         } catch (JSONException e) {
             logger.error("Error occurred while executing JSON POST request", e);
-            return ErrorInfo.create().fromThrowable(e);
+            return ErrorInfo.create(POST_ON_WALL_ERROR).withThrowable(e);
         } catch (IOException e) {
             logger.error("I/O error occurred", e);
-            return ErrorInfo.create().fromThrowable(e);
+            return ErrorInfo.create(POST_ON_WALL_ERROR).withThrowable(e);
         }
     }
 

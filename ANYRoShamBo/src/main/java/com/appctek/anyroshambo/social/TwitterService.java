@@ -7,6 +7,8 @@ import android.os.AsyncTask;
 import android.widget.Toast;
 import com.appctek.anyroshambo.R;
 import com.appctek.anyroshambo.social.auth.*;
+import com.appctek.anyroshambo.social.task.Task;
+import com.appctek.anyroshambo.social.task.TaskManager;
 import com.appctek.anyroshambo.social.token.TokenManager;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.google.inject.Inject;
@@ -40,19 +42,23 @@ public class TwitterService implements SocialNetworkService {
     private OAuthToken consumerToken;
     private String redirectUri;
     private TokenManager tokenManager;
+    private TaskManager taskManager;
 
     @Inject
-    public TwitterService(Context context, OAuthService oAuthService, HttpClient httpClient, TokenManager tokenManager,
+    public TwitterService(Context context, TokenManager tokenManager, TaskManager taskManager,
+                          OAuthService oAuthService, HttpClient httpClient,
                           @Named("twConsumerToken") OAuthToken consumerToken,
                           @Named("twRedirectUri") String redirectUri) {
         this.context = context;
+        this.tokenManager = tokenManager;
+        this.taskManager = taskManager;
         this.httpClient = httpClient;
         this.oAuthService = oAuthService;
         this.consumerToken = consumerToken;
         this.redirectUri = redirectUri;
     }
 
-    private void doWithToken(final boolean revoke, final AsyncTask<OAuthToken, Object, Object> task) {
+    private void doWithToken(final boolean revoke, final Task<OAuthToken, ErrorInfo> task) {
         if (revoke) {
             tokenManager.revokeToken(TW_TOKEN);
             tokenManager.revokeToken(TW_TOKEN_SECRET);
@@ -60,7 +66,7 @@ public class TwitterService implements SocialNetworkService {
             final String token = tokenManager.getTokenAsString(TW_TOKEN);
             final String tokenSecret = tokenManager.getTokenAsString(TW_TOKEN_SECRET);
             if (token != null && tokenSecret != null) {
-                task.execute(new OAuthToken(token, tokenSecret));
+                taskManager.executeAsync(task, new OAuthToken(token, tokenSecret));
                 return;
             }
         }
@@ -105,7 +111,7 @@ public class TwitterService implements SocialNetworkService {
     }
 
     private void showAuthDialog(final boolean revoke, final OAuthToken requestToken,
-                                final AsyncTask<OAuthToken, Object, Object> task) {
+                                final Task<OAuthToken, ErrorInfo> task) {
 
         final Uri.Builder uriBuilder = Uri.parse("https://api.twitter.com/oauth/authenticate").buildUpon().
                 appendQueryParameter("oauth_token", requestToken.getKey());
@@ -141,7 +147,7 @@ public class TwitterService implements SocialNetworkService {
     }
 
     private void obtainAccessToken(final OAuthToken requestToken, final String verifier,
-                                   final AsyncTask<OAuthToken, Object, Object> task) {
+                                   final Task<OAuthToken, ErrorInfo> task) {
         new AsyncTask<Object,Object,OAuthToken>() {
             @Override
             protected OAuthToken doInBackground(Object... params) {
@@ -153,7 +159,6 @@ public class TwitterService implements SocialNetworkService {
                 httpPost.setEntity(WebUtils.createUrlEncodedFormEntity(requestParams));
 
                 oAuthService.authorize(httpPost, consumerToken, requestToken, new OAuthHeader());
-
                 try {
                     final Map<String,String> responseParams = WebUtils.nameValuePairsToMap(
                             WebUtils.executeRequestParams(httpClient, httpPost));
@@ -175,7 +180,6 @@ public class TwitterService implements SocialNetworkService {
             @Override
             protected void onPostExecute(OAuthToken token) {
                 if (token == null) {
-                    Toast.makeText(context, R.string.share_error, Toast.LENGTH_LONG).show();
                     return;
                 }
                 logger.info("Access token obtained: " + token);
@@ -185,12 +189,15 @@ public class TwitterService implements SocialNetworkService {
     }
 
     public void shareText(boolean revoke, String text) {
-        doWithToken(revoke, new AsyncTask<OAuthToken, Object, Object>() {
-            @Override
-            protected Object doInBackground(OAuthToken... params) {
-                final OAuthToken token = params[0];
-                // TODO implement update status
-                return null;
+        doWithToken(revoke, new Task<OAuthToken, ErrorInfo>() {
+            public ErrorInfo execute(final OAuthToken token) {
+                // TODO implement...
+                return ErrorInfo.success();
+            }
+
+            public void onFinish(ErrorInfo error) {
+                Toast.makeText(context, R.string.share_error, Toast.LENGTH_LONG).show();
+
             }
         });
     }

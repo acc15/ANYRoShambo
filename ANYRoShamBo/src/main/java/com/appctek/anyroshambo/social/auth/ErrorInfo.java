@@ -10,59 +10,65 @@ import java.util.Map;
  */
 public class ErrorInfo {
 
-    public static final String ERROR_CODE = "error";
-    public static final String EXCEPTION_DETAIL = "exception";
+    public static final int SUCCESS = 0;
+    public static final int GENERIC_ERROR = 1;
 
-    private String code;
-    private final Map<String,Object> params = new LinkedHashMap<String, Object>();
+    private int code;
+    private Throwable throwable;
+    private final Map<String,Object> details = new LinkedHashMap<String, Object>();
 
     private ErrorInfo() {
-        this.code = "";
+        this.code = 0;
     }
 
-    public ErrorInfo withCode(String code) {
+    public ErrorInfo withCode(int code) {
         this.code = code;
         return this;
     }
 
+    public ErrorInfo withThrowable(Throwable e) {
+        this.throwable = e;
+        return this;
+    }
+
     public ErrorInfo withDetail(String name, Object value) {
-        this.params.put(name, value);
+        this.details.put(name, value);
         return this;
     }
 
     public boolean isError() {
-        return code.length() > 0;
+        return code != SUCCESS;
     }
 
-    public String getCode() {
+    public int getCode() {
         return code;
     }
 
-    public Object getDetail(String name) {
-        return params.get(name);
+    public Throwable getThrowable() {
+        return throwable;
     }
 
-    public boolean is(String code) {
-        return code.equals(this.code);
+    public Object getDetail(String name) {
+        return details.get(name);
     }
 
     public Map<String,Object> getDetails() {
-        return Collections.unmodifiableMap(params);
+        return Collections.unmodifiableMap(details);
     }
 
-    public ErrorInfo fromThrowable(Throwable e) {
-        return withCode(ERROR_CODE).withDetail(EXCEPTION_DETAIL, e);
+    public boolean is(int code) {
+        return code == this.code;
     }
 
     public static ErrorInfo success() {
-        return create();
+        return create(SUCCESS);
     }
 
-    public static ErrorInfo create(String code) {
-        return create().withCode(code);
+    public static ErrorInfo create(int code) {
+        return new ErrorInfo().withCode(code);
     }
 
     public static ErrorInfo create() {
-        return new ErrorInfo();
+        return create(GENERIC_ERROR);
     }
 }

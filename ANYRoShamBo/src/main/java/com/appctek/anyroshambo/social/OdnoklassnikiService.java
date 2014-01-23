@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -38,18 +37,17 @@ import java.util.concurrent.TimeUnit;
  */
 public class OdnoklassnikiService implements SocialNetworkService {
 
-    public static final String AUTH_ERROR = "auth.error";
+    public static final int USER_CANCELLED = 10;
+    public static final int AUTH_ERROR = 11;
+    public static final int STREAM_PUBLISH_ERROR = 12;
+
     public static final String RESPONSE_DETAIL = "response";
-
-    public static final String STREAM_PUBLISH_ERROR = "stream.publish.error";
-
 
     private static final Logger logger = LoggerFactory.getLogger(OdnoklassnikiService.class);
 
     private static final String OK_TOKEN = "ok";
     private static final String OK_REFRESH_TOKEN = "ok.refresh";
     public static final String METHOD_SUFFIX = "Odnoklassniki API";
-    public static final String USER_CANCELLED = "user.cancelled";
 
     private final Context context;
     private final TokenManager tokenManager;
@@ -186,17 +184,9 @@ public class OdnoklassnikiService implements SocialNetworkService {
                         // error sample:
                         // {"error_data":null,"error_code":104,"error_msg":"PARAM_SIGNATURE : No signature specified"}
                         if (jsonReply.has("error_code")) {
-                            final Iterator keyIter = jsonReply.keys();
-                            errorInfo.withCode(STREAM_PUBLISH_ERROR);
-                            while (keyIter.hasNext()) {
-                                final String key = (String) keyIter.next();
-                                final String value = jsonReply.getString(key);
-                                errorInfo.withDetail(key, value);
-                            }
                             logger.error("Error returned from server which executing " + apiMethod + ": " + jsonReply);
-                            return errorInfo;
+                            return errorInfo.withCode(STREAM_PUBLISH_ERROR).withDetail(RESPONSE_DETAIL, jsonReply);
                         }
-
 
 
                     }
@@ -204,10 +194,10 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
                 } catch (JSONException e) {
                     logger.error("Can't execute " + apiMethod + " in " + METHOD_SUFFIX, e);
-                    return errorInfo.fromThrowable(e);
+                    return errorInfo.withCode(STREAM_PUBLISH_ERROR).withThrowable(e);
                 } catch (IOException e) {
                     logger.error("I/O error occurred while executing " + apiMethod + " in " + METHOD_SUFFIX, e);
-                    return errorInfo.fromThrowable(e);
+                    return errorInfo.withCode(STREAM_PUBLISH_ERROR).withThrowable(e);
                 }
                 return errorInfo;
             }
@@ -298,11 +288,11 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
         } catch (IOException e) {
             logger.error("I/O error occurred during authentication in " + METHOD_SUFFIX);
-            errorInfo.fromThrowable(e);
+            errorInfo.withCode(AUTH_ERROR).withThrowable(e);
             return null;
         } catch (JSONException e) {
             logger.error("Error occurred during authentication in " + METHOD_SUFFIX, e);
-            errorInfo.fromThrowable(e);
+            errorInfo.withCode(AUTH_ERROR).withThrowable(e);
             return null;
         }
     }
