@@ -42,6 +42,10 @@ public class ErrorInfo {
         return params.get(name);
     }
 
+    public boolean is(String code) {
+        return code.equals(this.code);
+    }
+
     public Map<String,Object> getDetails() {
         return Collections.unmodifiableMap(params);
     }
@@ -61,5 +65,4 @@ public class ErrorInfo {
     public static ErrorInfo create() {
         return new ErrorInfo();
     }
-
 }

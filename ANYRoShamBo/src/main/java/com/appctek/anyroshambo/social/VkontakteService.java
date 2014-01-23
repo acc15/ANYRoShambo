@@ -3,12 +3,13 @@ package com.appctek.anyroshambo.social;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.widget.Toast;
 import com.appctek.anyroshambo.R;
-import com.appctek.anyroshambo.social.auth.ErrorInfo;
-import com.appctek.anyroshambo.social.auth.Token;
-import com.appctek.anyroshambo.social.auth.TokenManager;
+import com.appctek.anyroshambo.social.auth.*;
+import com.appctek.anyroshambo.social.task.Task;
+import com.appctek.anyroshambo.social.task.TaskManager;
+import com.appctek.anyroshambo.social.token.Token;
+import com.appctek.anyroshambo.social.token.TokenManager;
 import com.appctek.anyroshambo.util.JSONUtils;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.google.inject.Inject;
@@ -32,40 +33,49 @@ public class VkontakteService implements SocialNetworkService {
 
     public static final String EMPTY_RESPONSE = "empty.response";
     public static final String RESPONSE_DETAIL = "response";
+    public static final String USER_CANCELLED = "user.cancelled";
 
     private static final Logger logger = LoggerFactory.getLogger(VkontakteService.class);
     private static final String VK_TOKEN = "vk";
     private static final String API_VERSION = "5.5";
 
-    private Context context;
-    private TokenManager tokenManager;
-    private HttpClient httpClient;
-    private String appId;
-    private String redirectUri;
+    private final Context context;
+    private final TokenManager tokenManager;
+    private final TaskManager taskManager;
+    private final HttpClient httpClient;
+
+    private final String appId;
+    private final String redirectUri;
+
 
     @Inject
-    public VkontakteService(Context context, TokenManager tokenManager, HttpClient httpClient,
+    public VkontakteService(Context context,
+                            TokenManager tokenManager,
+                            TaskManager taskManager,
+                            HttpClient httpClient,
                             @Named("vkAppId") String appId,
                             @Named("vkRedirectUri") String redirectUri) {
         this.context = context;
         this.tokenManager = tokenManager;
         this.httpClient = httpClient;
+        this.taskManager = taskManager;
         this.appId = appId;
         this.redirectUri = redirectUri;
     }
 
     public void shareText(boolean revoke, final String text) {
-        doWithToken(revoke, new AsyncTask<Token, Object, ErrorInfo>() {
-            @Override
-            protected ErrorInfo doInBackground(Token... token) {
-                return postOnWall(token[0], text);
+        doWithToken(revoke, new Task<Token, ErrorInfo>() {
+            public ErrorInfo execute(Token param) {
+                return postOnWall(param, text);
             }
 
-            @Override
-            protected void onPostExecute(ErrorInfo result) {
+            public void onFinish(ErrorInfo error) {
+                if (error.is(USER_CANCELLED)) {
+                    return;
+                }
                 Toast.makeText(context,
-                        result.isError() ? R.string.share_success : R.string.share_error,
-                        Toast.LENGTH_LONG).show();
+                    error.isError() ? R.string.share_success : R.string.share_error,
+                    Toast.LENGTH_LONG).show();
             }
         });
     }
@@ -92,11 +102,11 @@ public class VkontakteService implements SocialNetworkService {
         }
     }
 
-    private void doWithToken(final boolean revoke, final AsyncTask<Token, ?, ?> task) {
+    private void doWithToken(final boolean revoke, final Task<Token, ErrorInfo> task) {
         if (!revoke) {
             final Token token = tokenManager.getToken(VK_TOKEN);
             if (token != null) {
-                task.execute(token);
+                taskManager.executeAsync(task, token);
                 return;
             }
         } else {
@@ -133,6 +143,7 @@ public class VkontakteService implements SocialNetworkService {
                     logger.info("Vkontakte authentication cancelled (returned error: " + error +
                             ") with description: " + errorDescription);
                     dialog.cancel();
+                    task.onFinish(ErrorInfo.create(USER_CANCELLED).withDetail("error_description", errorDescription));
                     return true;
                 }
 
@@ -145,7 +156,7 @@ public class VkontakteService implements SocialNetworkService {
                 tokenManager.storeToken(VK_TOKEN, token);
                 dialog.dismiss();
 
-                task.execute(token);
+                taskManager.executeAsync(task, token);
                 return true;
             }
         });

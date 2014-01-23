@@ -1,4 +1,4 @@
-package com.appctek.anyroshambo.social.auth;
+package com.appctek.anyroshambo.social.token;
 
 /**
 * @author Vyacheslav Mayorov

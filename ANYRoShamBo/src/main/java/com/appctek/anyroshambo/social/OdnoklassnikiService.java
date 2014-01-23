@@ -3,12 +3,13 @@ package com.appctek.anyroshambo.social;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.widget.Toast;
 import com.appctek.anyroshambo.R;
 import com.appctek.anyroshambo.social.auth.ErrorInfo;
-import com.appctek.anyroshambo.social.auth.Token;
-import com.appctek.anyroshambo.social.auth.TokenManager;
+import com.appctek.anyroshambo.social.task.Task;
+import com.appctek.anyroshambo.social.task.TaskManager;
+import com.appctek.anyroshambo.social.token.Token;
+import com.appctek.anyroshambo.social.token.TokenManager;
 import com.appctek.anyroshambo.util.HexUtils;
 import com.appctek.anyroshambo.util.JSONUtils;
 import com.appctek.anyroshambo.util.WebUtils;
@@ -48,9 +49,11 @@ public class OdnoklassnikiService implements SocialNetworkService {
     private static final String OK_TOKEN = "ok";
     private static final String OK_REFRESH_TOKEN = "ok.refresh";
     public static final String METHOD_SUFFIX = "Odnoklassniki API";
+    public static final String USER_CANCELLED = "user.cancelled";
 
     private final Context context;
     private final TokenManager tokenManager;
+    private final TaskManager taskManager;
     private final HttpClient httpClient;
 
     private final String appId;
@@ -59,13 +62,15 @@ public class OdnoklassnikiService implements SocialNetworkService {
     private final String redirectUri;
 
     @Inject
-    public OdnoklassnikiService(Context context, TokenManager tokenManager, HttpClient httpClient,
+    public OdnoklassnikiService(Context context,
+                                TokenManager tokenManager, TaskManager taskManager, HttpClient httpClient,
                                 @Named("okAppId") String appId,
                                 @Named("okPublicKey") String publicKey,
                                 @Named("okSecretKey") String secretKey,
                                 @Named("okRedirectUri") String redirectUri) {
         this.context = context;
         this.tokenManager = tokenManager;
+        this.taskManager = taskManager;
         this.httpClient = httpClient;
         this.appId = appId;
         this.secretKey = secretKey;
@@ -73,7 +78,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
         this.redirectUri = redirectUri;
     }
 
-    private void doWithAuthParams(boolean revoke, final AsyncTask<AuthParams, ?, ?> task) {
+    private void doWithAuthParams(boolean revoke, final Task<AuthParams, ErrorInfo> task) {
 
         if (revoke) {
 
@@ -84,13 +89,13 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
             final Token accessToken = tokenManager.getToken(OK_TOKEN);
             if (accessToken != null) {
-                task.execute(AuthParams.withAccessToken(accessToken));
+                taskManager.executeAsync(task, AuthParams.withAccessToken(accessToken));
                 return;
             }
 
             final Token refreshToken = tokenManager.getToken(OK_REFRESH_TOKEN);
             if (refreshToken != null) {
-                task.execute(AuthParams.withRefreshToken(refreshToken));
+                taskManager.executeAsync(task, AuthParams.withRefreshToken(refreshToken));
                 return;
             }
 
@@ -118,13 +123,14 @@ public class OdnoklassnikiService implements SocialNetworkService {
                 if (error != null) {
                     logger.info("Odnoklassniki authentication cancelled (returned error: " + error + ")");
                     dialog.cancel();
+                    task.onFinish(ErrorInfo.create(USER_CANCELLED).withDetail("error", error));
                     return true;
                 }
 
                 dialog.dismiss();
 
                 final String code = uri.getQueryParameter("code");
-                task.execute(AuthParams.withAccessCode(code));
+                taskManager.executeAsync(task, AuthParams.withAccessCode(code));
                 return true;
             }
         });
@@ -146,11 +152,10 @@ public class OdnoklassnikiService implements SocialNetworkService {
     public void shareText(boolean revoke, final String text) {
 
         // http://www.odnoklassniki.ru/oauth/authorize?client_id={clientId}&scope={scope}&response_type={responseType}&redirect_uri={redirectUri}
-        doWithAuthParams(revoke, new AsyncTask<AuthParams, Object, ErrorInfo>() {
-            @Override
-            protected ErrorInfo doInBackground(AuthParams... params) {
+        doWithAuthParams(revoke, new Task<AuthParams, ErrorInfo>() {
+            public ErrorInfo execute(AuthParams params) {
                 final ErrorInfo errorInfo = ErrorInfo.success();
-                final Token accessToken = authenticate(params[0], errorInfo);
+                final Token accessToken = authenticate(params, errorInfo);
                 if (errorInfo.isError()) {
                     return errorInfo;
                 }
@@ -207,10 +212,12 @@ public class OdnoklassnikiService implements SocialNetworkService {
                 return errorInfo;
             }
 
-            @Override
-            protected void onPostExecute(ErrorInfo result) {
+            public void onFinish(ErrorInfo error) {
+                if (error.is(USER_CANCELLED)) {
+                    return;
+                }
                 Toast.makeText(context,
-                        result.isError() ? R.string.share_success : R.string.share_error,
+                        error.isError() ? R.string.share_success : R.string.share_error,
                         Toast.LENGTH_LONG).show();
             }
         });

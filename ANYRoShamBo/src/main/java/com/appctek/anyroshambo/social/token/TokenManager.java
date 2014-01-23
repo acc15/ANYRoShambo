@@ -1,4 +1,4 @@
-package com.appctek.anyroshambo.social.auth;
+package com.appctek.anyroshambo.social.token;
 
 import android.content.SharedPreferences;
 import com.appctek.anyroshambo.services.DateTimeService;
