@@ -42,7 +42,7 @@ public class TokenManager {
             return null;
         }
         final long expiresAfter = sharedPreferences.getLong(composeProperty(tokenName, EXPIRES_AFTER), 0);
-        if (dateTimeService.getTimeInMillis() > expiresAfter) {
+        if (expiresAfter != Token.NEVER_EXPIRES && dateTimeService.getTimeInMillis() > expiresAfter) {
             logger.info("Token for service \"" + tokenName + "\" has been expired at " + expiresAfter + ". Returning null");
             return null;
         }
@@ -77,10 +77,6 @@ public class TokenManager {
                 remove(composeProperty(tokenName, TOKEN)).
                 remove(composeProperty(tokenName, EXPIRES_AFTER)).
                 commit();
-    }
-
-    public boolean isValid(Token token) {
-        return dateTimeService.getTimeInMillis() <= token.getExpiresAfter();
     }
 
     private static String composeProperty(String tokenName, String propertyName) {

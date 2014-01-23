@@ -181,8 +181,8 @@ public class TwitterService implements SocialNetworkService {
                         return Pair.keyOnly(ErrorInfo.create(ACCESS_TOKEN_MISSING));
                     }
 
-                    tokenManager.storeToken(TW_TOKEN, new Token(accessToken, 0));
-                    tokenManager.storeToken(TW_TOKEN_SECRET, new Token(accessTokenSecret, 0));
+                    tokenManager.storeToken(TW_TOKEN, new Token(accessToken, Token.NEVER_EXPIRES));
+                    tokenManager.storeToken(TW_TOKEN_SECRET, new Token(accessTokenSecret, Token.NEVER_EXPIRES));
 
                     return Pair.makePair(ErrorInfo.success(), new OAuthToken(accessToken, accessTokenSecret));
 

@@ -6,6 +6,8 @@ package com.appctek.anyroshambo.social.token;
 */
 public class Token {
 
+    public static final long NEVER_EXPIRES = -1;
+
     private final String token;
     private final long expiresAfter;
 
