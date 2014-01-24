@@ -3,21 +3,20 @@ package com.appctek.anyroshambo.social;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.net.Uri;
-import android.widget.Toast;
-import com.appctek.anyroshambo.R;
 import com.appctek.anyroshambo.social.auth.ErrorInfo;
 import com.appctek.anyroshambo.social.auth.OAuthHeader;
 import com.appctek.anyroshambo.social.auth.OAuthService;
 import com.appctek.anyroshambo.social.auth.OAuthToken;
-import com.appctek.anyroshambo.social.task.Task;
-import com.appctek.anyroshambo.social.task.TaskManager;
 import com.appctek.anyroshambo.social.token.Token;
 import com.appctek.anyroshambo.social.token.TokenManager;
+import com.appctek.anyroshambo.util.Action;
+import com.appctek.anyroshambo.util.GenericException;
 import com.appctek.anyroshambo.util.Pair;
 import com.appctek.anyroshambo.util.WebUtils;
-import com.appctek.anyroshambo.util.GenericException;
 import com.appctek.anyroshambo.util.http.HttpExecutor;
 import com.appctek.anyroshambo.util.http.HttpFormat;
+import com.appctek.anyroshambo.util.task.Task;
+import com.appctek.anyroshambo.util.task.TaskManager;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.apache.http.HttpResponse;
@@ -41,13 +40,13 @@ public class TwitterService implements SocialNetworkService {
 
     private static final Logger logger = LoggerFactory.getLogger(TwitterService.class);
 
-    public static final int URI_NOT_CONFIRMED = 10;
-    public static final int AUTH_ERROR = 11;
-    public static final int USER_CANCELLED = 12;
-    public static final int REQUEST_TOKEN_MISMATCH = 13;
-    public static final int ACCESS_TOKEN_MISSING = 14;
-    public static final int UPDATE_STATUS_ERROR = 15;
-    public static final int DUPLICATE_STATUS_ERROR = 16;
+    public static enum Error {
+        URI_NOT_CONFIRMED,
+        REQUEST_TOKEN_MISMATCH,
+        ACCESS_TOKEN_MISSING,
+        UPDATE_STATUS_ERROR,
+        DUPLICATE_STATUS_ERROR
+    }
 
     private static final String TW_TOKEN = "tw";
     private static final String TW_TOKEN_SECRET = "tw.secret";
@@ -100,7 +99,7 @@ public class TwitterService implements SocialNetworkService {
                     if (!isCallbackConfirmed) {
                         logger.error("Callback \"" + redirectUri + "\" wasn't confirmed");
                         return Pair.keyOnly(
-                                ErrorInfo.create(URI_NOT_CONFIRMED).withDetail("redirect.uri", redirectUri));
+                                ErrorInfo.create(Error.URI_NOT_CONFIRMED).withDetail("redirect.uri", redirectUri));
                     }
                     final String token = responseValues.get("oauth_token");
                     final String tokenSecret = responseValues.get("oauth_token_secret");
@@ -108,7 +107,7 @@ public class TwitterService implements SocialNetworkService {
 
                 } catch (GenericException e) {
                     logger.error("Can't obtain request token", e);
-                    return Pair.keyOnly(ErrorInfo.create(AUTH_ERROR).withThrowable(e));
+                    return Pair.keyOnly(ErrorInfo.create(CommonError.AUTH_ERROR).withThrowable(e));
                 }
             }
 
@@ -145,7 +144,9 @@ public class TwitterService implements SocialNetworkService {
                     logger.error("Returned oauth_token mismatch. Either User cancelled authentication. " +
                             "Expected: " + requestToken.getKey() +
                             "; But received: " + returnedToken);
-                    task.onFinish(ErrorInfo.create(returnedToken == null ? USER_CANCELLED : REQUEST_TOKEN_MISMATCH));
+                    task.onFinish(ErrorInfo.create(returnedToken == null
+                            ? CommonError.USER_CANCELLED
+                            : Error.REQUEST_TOKEN_MISMATCH));
                     return true;
                 }
 
@@ -176,7 +177,7 @@ public class TwitterService implements SocialNetworkService {
                     final String accessTokenSecret = responseParams.get("oauth_token_secret");
                     if (accessToken == null || accessTokenSecret == null) {
                         logger.error("Access token or access token secret wasn't returned");
-                        return ErrorInfo.create(ACCESS_TOKEN_MISSING);
+                        return ErrorInfo.create(Error.ACCESS_TOKEN_MISSING);
                     }
                     tokenManager.storeToken(TW_TOKEN, new Token(accessToken, Token.NEVER_EXPIRES));
                     tokenManager.storeToken(TW_TOKEN_SECRET, new Token(accessTokenSecret, Token.NEVER_EXPIRES));
@@ -184,7 +185,7 @@ public class TwitterService implements SocialNetworkService {
 
                 } catch (GenericException e) {
                     logger.error("Can't obtain access token", e);
-                    return ErrorInfo.create(AUTH_ERROR).withThrowable(e);
+                    return ErrorInfo.create(CommonError.AUTH_ERROR).withThrowable(e);
                 }
             }
 
@@ -194,7 +195,7 @@ public class TwitterService implements SocialNetworkService {
         }, requestToken);
     }
 
-    public void shareText(boolean revoke, final String text) {
+    public void shareText(boolean revoke, final String text, final Action<ErrorInfo> errorHandler) {
         doWithToken(revoke, new Task<OAuthToken, ErrorInfo>() {
             public ErrorInfo execute(final OAuthToken token) {
                 final HttpPost httpPost = new HttpPost("https://api.twitter.com/1.1/statuses/update.json");
@@ -207,8 +208,8 @@ public class TwitterService implements SocialNetworkService {
                     final int statusCode = response.getStatusLine().getStatusCode();
                     if (statusCode != HttpStatus.SC_OK) {
                         return ErrorInfo.create(statusCode == HttpStatus.SC_FORBIDDEN
-                                ? DUPLICATE_STATUS_ERROR
-                                : UPDATE_STATUS_ERROR).withDetail("status", statusCode);
+                                ? Error.DUPLICATE_STATUS_ERROR
+                                : Error.UPDATE_STATUS_ERROR).withDetail("status", statusCode);
                     }
 
                     final JSONObject jsonResponse = HttpFormat.<JSONObject>json().convert(response.getEntity());
@@ -216,17 +217,13 @@ public class TwitterService implements SocialNetworkService {
 
                 } catch (GenericException e) {
                     logger.error("Execute POST request failed", e);
-                    return ErrorInfo.create(UPDATE_STATUS_ERROR).withThrowable(e);
+                    return ErrorInfo.create(Error.UPDATE_STATUS_ERROR).withThrowable(e);
                 }
                 return ErrorInfo.success();
             }
 
             public void onFinish(ErrorInfo error) {
-                if (error.is(USER_CANCELLED)) {
-                    return;
-                }
-                Toast.makeText(context, error.isError() ? R.string.share_error : R.string.share_success,
-                        Toast.LENGTH_LONG).show();
+                errorHandler.execute(error);
             }
         });
     }

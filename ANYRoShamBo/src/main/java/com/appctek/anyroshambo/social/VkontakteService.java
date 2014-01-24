@@ -3,17 +3,16 @@ package com.appctek.anyroshambo.social;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.net.Uri;
-import android.widget.Toast;
-import com.appctek.anyroshambo.R;
 import com.appctek.anyroshambo.social.auth.ErrorInfo;
-import com.appctek.anyroshambo.social.task.Task;
-import com.appctek.anyroshambo.social.task.TaskManager;
 import com.appctek.anyroshambo.social.token.Token;
 import com.appctek.anyroshambo.social.token.TokenManager;
+import com.appctek.anyroshambo.util.Action;
 import com.appctek.anyroshambo.util.GenericException;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.appctek.anyroshambo.util.http.HttpExecutor;
 import com.appctek.anyroshambo.util.http.HttpFormat;
+import com.appctek.anyroshambo.util.task.Task;
+import com.appctek.anyroshambo.util.task.TaskManager;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.apache.http.client.methods.HttpPost;
@@ -31,9 +30,10 @@ import java.util.concurrent.TimeUnit;
  */
 public class VkontakteService implements SocialNetworkService {
 
-    public static final int EMPTY_RESPONSE = 10;
-    public static final int USER_CANCELLED = 11;
-    public static final int POST_ON_WALL_ERROR = 12;
+    public static enum Error {
+        EMPTY_RESPONSE,
+        POST_ON_WALL_ERROR
+    }
 
     public static final String RESPONSE_DETAIL = "response";
 
@@ -65,19 +65,14 @@ public class VkontakteService implements SocialNetworkService {
         this.redirectUri = redirectUri;
     }
 
-    public void shareText(boolean revoke, final String text) {
+    public void shareText(boolean revoke, final String text, final Action<ErrorInfo> errorHandler) {
         doWithToken(revoke, new Task<String, ErrorInfo>() {
             public ErrorInfo execute(String token) {
                 return postOnWall(token, text);
             }
 
             public void onFinish(ErrorInfo error) {
-                if (error.is(USER_CANCELLED)) {
-                    return;
-                }
-                Toast.makeText(context,
-                    error.isError() ? R.string.share_error : R.string.share_success,
-                    Toast.LENGTH_LONG).show();
+                errorHandler.execute(error);
             }
         });
     }
@@ -90,17 +85,17 @@ public class VkontakteService implements SocialNetworkService {
         try {
             final JSONObject jsonObject = httpExecutor.execute(new HttpPost(url), HttpFormat.<JSONObject>json());
             if (!jsonObject.has("response")) {
-                return ErrorInfo.create(EMPTY_RESPONSE).withDetail(RESPONSE_DETAIL, jsonObject);
+                return ErrorInfo.create(Error.POST_ON_WALL_ERROR).withDetail(RESPONSE_DETAIL, jsonObject);
             }
             final String postId = jsonObject.getJSONObject("response").getString("post_id");
             logger.info("Post has been created with id " + postId);
             return ErrorInfo.success();
         } catch (JSONException e) {
             logger.error("Can't fetch JSON date from response", e);
-            return ErrorInfo.create(POST_ON_WALL_ERROR).withThrowable(e);
+            return ErrorInfo.create(Error.POST_ON_WALL_ERROR).withThrowable(e);
         } catch (GenericException e) {
             logger.error("Post on wall failed", e);
-            return ErrorInfo.create(POST_ON_WALL_ERROR).withThrowable(e);
+            return ErrorInfo.create(Error.POST_ON_WALL_ERROR).withThrowable(e);
         }
     }
 
@@ -145,7 +140,8 @@ public class VkontakteService implements SocialNetworkService {
                     logger.info("Vkontakte authentication cancelled (returned error: " + error +
                             ") with description: " + errorDescription);
                     dialog.cancel();
-                    task.onFinish(ErrorInfo.create(USER_CANCELLED).withDetail("error_description", errorDescription));
+                    task.onFinish(ErrorInfo.create(CommonError.USER_CANCELLED).
+                            withDetail("error_description", errorDescription));
                     return true;
                 }
 

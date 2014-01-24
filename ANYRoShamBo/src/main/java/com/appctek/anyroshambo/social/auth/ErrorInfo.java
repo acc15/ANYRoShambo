@@ -10,18 +10,14 @@ import java.util.Map;
  */
 public class ErrorInfo {
 
-    public static final int SUCCESS = 0;
-    public static final int GENERIC_ERROR = 1;
-
-    private int code;
+    private Enum<?> code;
     private Throwable throwable;
     private final Map<String,Object> details = new LinkedHashMap<String, Object>();
 
     private ErrorInfo() {
-        this.code = 0;
     }
 
-    public ErrorInfo withCode(int code) {
+    public ErrorInfo withCode(Enum<?> code) {
         this.code = code;
         return this;
     }
@@ -37,10 +33,10 @@ public class ErrorInfo {
     }
 
     public boolean isError() {
-        return code != SUCCESS;
+        return code != null;
     }
 
-    public int getCode() {
+    public Enum<?> getCode() {
         return code;
     }
 
@@ -56,19 +52,16 @@ public class ErrorInfo {
         return Collections.unmodifiableMap(details);
     }
 
-    public boolean is(int code) {
+    public boolean is(Enum<?> code) {
         return code == this.code;
     }
 
     public static ErrorInfo success() {
-        return create(SUCCESS);
+        return new ErrorInfo();
     }
 
-    public static ErrorInfo create(int code) {
+    public static ErrorInfo create(Enum<?> code) {
         return new ErrorInfo().withCode(code);
     }
 
-    public static ErrorInfo create() {
-        return create(GENERIC_ERROR);
-    }
 }

@@ -19,6 +19,8 @@ import com.appctek.anyroshambo.services.GameService;
 import com.appctek.anyroshambo.services.ShakeDetector;
 import com.appctek.anyroshambo.services.VibrationService;
 import com.appctek.anyroshambo.social.SocialNetworkService;
+import com.appctek.anyroshambo.social.auth.ErrorInfo;
+import com.appctek.anyroshambo.util.Action;
 import com.appctek.anyroshambo.util.MediaPlayerUtils;
 import com.appctek.anyroshambo.util.ViewUtils;
 import com.google.inject.Inject;
@@ -236,7 +238,16 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
     private void shareGameResults(SocialNetworkService service, boolean forceAuth) {
         final String message = "Test message for testing test service in test social network of this test world";
-        service.shareText(forceAuth, message);
+        service.shareText(forceAuth, message, new Action<ErrorInfo>() {
+            public void execute(ErrorInfo error) {
+                if (error.is(SocialNetworkService.CommonError.USER_CANCELLED)) {
+                    return;
+                }
+                Toast.makeText(MainActivity.this,
+                        error.isError() ? R.string.share_error : R.string.share_success,
+                        Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     private float computeRotationAngleInRadians(float degrees) {

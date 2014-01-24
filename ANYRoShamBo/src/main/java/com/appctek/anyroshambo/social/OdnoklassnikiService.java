@@ -3,18 +3,17 @@ package com.appctek.anyroshambo.social;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.net.Uri;
-import android.widget.Toast;
-import com.appctek.anyroshambo.R;
 import com.appctek.anyroshambo.social.auth.ErrorInfo;
-import com.appctek.anyroshambo.social.task.Task;
-import com.appctek.anyroshambo.social.task.TaskManager;
 import com.appctek.anyroshambo.social.token.Token;
 import com.appctek.anyroshambo.social.token.TokenManager;
+import com.appctek.anyroshambo.util.Action;
 import com.appctek.anyroshambo.util.GenericException;
 import com.appctek.anyroshambo.util.HexUtils;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.appctek.anyroshambo.util.http.HttpExecutor;
 import com.appctek.anyroshambo.util.http.HttpFormat;
+import com.appctek.anyroshambo.util.task.Task;
+import com.appctek.anyroshambo.util.task.TaskManager;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import org.apache.http.client.methods.HttpPost;
@@ -37,9 +36,9 @@ import java.util.concurrent.TimeUnit;
  */
 public class OdnoklassnikiService implements SocialNetworkService {
 
-    public static final int USER_CANCELLED = 10;
-    public static final int AUTH_ERROR = 11;
-    public static final int STREAM_PUBLISH_ERROR = 12;
+    public static enum Error {
+        STREAM_PUBLISH_ERROR
+    }
 
     public static final String RESPONSE_DETAIL = "response";
 
@@ -121,7 +120,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
                 if (error != null) {
                     logger.info("Odnoklassniki authentication cancelled (returned error: " + error + ")");
                     dialog.cancel();
-                    task.onFinish(ErrorInfo.create(USER_CANCELLED).withDetail("error", error));
+                    task.onFinish(ErrorInfo.create(CommonError.USER_CANCELLED).withDetail("error", error));
                     return true;
                 }
 
@@ -147,7 +146,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
         return HexUtils.md5Hex(stringBuilder.toString());
     }
 
-    public void shareText(boolean revoke, final String text) {
+    public void shareText(boolean revoke, final String text, final Action<ErrorInfo> errorHandler) {
 
         // http://www.odnoklassniki.ru/oauth/authorize?client_id={clientId}&scope={scope}&response_type={responseType}&redirect_uri={redirectUri}
         doWithToken(revoke, new Task<String, ErrorInfo>() {
@@ -180,7 +179,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
                         // {"error_data":null,"error_code":104,"error_msg":"PARAM_SIGNATURE : No signature specified"}
                         if (jsonReply.has("error_code")) {
                             logger.error("Error returned from server which executing " + apiMethod + ": " + jsonReply);
-                            return ErrorInfo.create(STREAM_PUBLISH_ERROR).withDetail(RESPONSE_DETAIL, jsonReply);
+                            return ErrorInfo.create(Error.STREAM_PUBLISH_ERROR).withDetail(RESPONSE_DETAIL, jsonReply);
                         }
 
 
@@ -189,20 +188,16 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
                 } catch (JSONException e) {
                     logger.error("Can't fetch json data", e);
-                    return ErrorInfo.create(STREAM_PUBLISH_ERROR).withThrowable(e);
+                    return ErrorInfo.create(Error.STREAM_PUBLISH_ERROR).withThrowable(e);
                 } catch (GenericException e) {
                     logger.error("Publish to stream failed", e);
-                    return ErrorInfo.create(STREAM_PUBLISH_ERROR).withThrowable(e);
+                    return ErrorInfo.create(Error.STREAM_PUBLISH_ERROR).withThrowable(e);
                 }
                 return ErrorInfo.success();
             }
 
             public void onFinish(ErrorInfo error) {
-                if (error.is(USER_CANCELLED)) {
-                    return;
-                }
-                Toast.makeText(context, error.isError() ? R.string.share_error : R.string.share_success,
-                        Toast.LENGTH_LONG).show();
+                errorHandler.execute(error);
             }
         });
 
@@ -272,7 +267,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
             if (accessTokenStr == null) {
                 logger.error("Authentication error occurred and access token wasn't returned. " +
                         "Analyze server response: " + jsonObject);
-                return ErrorInfo.create(AUTH_ERROR).withDetail(RESPONSE_DETAIL, jsonObject);
+                return ErrorInfo.create(CommonError.AUTH_ERROR).withDetail(RESPONSE_DETAIL, jsonObject);
             }
 
             final Token accessToken = tokenManager.createToken(accessTokenStr, 30, TimeUnit.MINUTES);
@@ -286,10 +281,10 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
         } catch (GenericException e) {
             logger.error("Can't authenticate", e);
-            return ErrorInfo.create(AUTH_ERROR).withThrowable(e);
+            return ErrorInfo.create(CommonError.AUTH_ERROR).withThrowable(e);
         } catch (JSONException e) {
             logger.error("Error occurred during authentication in " + METHOD_SUFFIX, e);
-            return ErrorInfo.create(AUTH_ERROR).withThrowable(e);
+            return ErrorInfo.create(CommonError.AUTH_ERROR).withThrowable(e);
         }
     }
 

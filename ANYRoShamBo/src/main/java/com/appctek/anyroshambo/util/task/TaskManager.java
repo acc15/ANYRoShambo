@@ -1,4 +1,4 @@
-package com.appctek.anyroshambo.social.task;
+package com.appctek.anyroshambo.util.task;
 
 import android.os.AsyncTask;
 
