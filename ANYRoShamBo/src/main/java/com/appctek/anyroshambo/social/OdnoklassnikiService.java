@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
 public class OdnoklassnikiService implements SocialNetworkService {
 
     public static enum Error {
-        STREAM_PUBLISH_ERROR
+        SHARE_ADD_LINK
     }
 
     public static final String RESPONSE_DETAIL = "response";
@@ -78,24 +78,19 @@ public class OdnoklassnikiService implements SocialNetworkService {
     private void doWithToken(boolean revoke, final Task<String, ErrorInfo> task) {
 
         if (revoke) {
-
             tokenManager.revokeToken(OK_TOKEN);
             tokenManager.revokeToken(OK_REFRESH_TOKEN);
-
         } else {
-
             final String accessToken = tokenManager.getTokenAsString(OK_TOKEN);
             if (accessToken != null) {
                 taskManager.executeAsync(task, accessToken);
                 return;
             }
-
             final String refreshToken = tokenManager.getTokenAsString(OK_REFRESH_TOKEN);
             if (refreshToken != null) {
-                authAsync(null, refreshToken, task);
+                authAsync(true, refreshToken, task);
                 return;
             }
-
         }
 
         final String url = Uri.parse("http://www.odnoklassniki.ru/oauth/authorize").buildUpon().
@@ -115,7 +110,6 @@ public class OdnoklassnikiService implements SocialNetworkService {
                 final Uri uri = Uri.parse(url);
                 // example:
                 // http://appctek.com/anyroshambo?code=3fc4aa4351.b59f38ab3b83207e2a84832759d49c01ad7668d67fb60aa_4b8035785363786543325665ab3a118e_1389822226
-
                 final String error = uri.getQueryParameter("error");
                 if (error != null) {
                     logger.info("Odnoklassniki authentication cancelled (returned error: " + error + ")");
@@ -123,11 +117,10 @@ public class OdnoklassnikiService implements SocialNetworkService {
                     task.onFinish(ErrorInfo.create(CommonError.USER_CANCELLED).withDetail("error", error));
                     return true;
                 }
-
                 dialog.dismiss();
 
                 final String code = uri.getQueryParameter("code");
-                authAsync(code, null, task);
+                authAsync(false, code, task);
                 return true;
             }
         });
@@ -142,7 +135,6 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
         final String authMd5 = HexUtils.md5Hex(accessToken + secretKey);
         stringBuilder.append(authMd5);
-
         return HexUtils.md5Hex(stringBuilder.toString());
     }
 
@@ -153,15 +145,14 @@ public class OdnoklassnikiService implements SocialNetworkService {
             public ErrorInfo execute(String token) {
 
                 //http://api.odnoklassniki.ru/fb.do?method=stream.publish
-                final String apiMethod = "stream.publish";
+                //final String apiMethod = "share.addLink";
                 try {
                     final JSONObject attachment = new JSONObject();
                     attachment.put("caption", text);
 
                     final TreeMap<String, String> sortedParams = new TreeMap<String, String>();
-                    sortedParams.put("method", apiMethod);
-                    sortedParams.put("message", "покрутил рулетку и получил");
-                    sortedParams.put("attachment", attachment.toString());
+                    sortedParams.put("linkUrl", "http://appctek.com/");
+                    sortedParams.put("comment", text);
                     sortedParams.put("application_key", publicKey);
 
                     final String signature = calculateSignature(sortedParams, token);
@@ -169,29 +160,23 @@ public class OdnoklassnikiService implements SocialNetworkService {
                     sortedParams.put("access_token", token);
 
                     final String uri = WebUtils.appendQueryParameters(
-                            Uri.parse("http://api.odnoklassniki.ru/fb.do").buildUpon(), sortedParams).
+                            Uri.parse("http://api.odnoklassniki.ru/api/share/addLink").buildUpon(), sortedParams).
                             build().toString();
 
-                    final Object reply = httpExecutor.execute(new HttpPost(uri), HttpFormat.json());
-                    if (reply instanceof JSONObject) {
-                        final JSONObject jsonReply = (JSONObject) reply;
-                        // error sample:
-                        // {"error_data":null,"error_code":104,"error_msg":"PARAM_SIGNATURE : No signature specified"}
-                        if (jsonReply.has("error_code")) {
-                            logger.error("Error returned from server which executing " + apiMethod + ": " + jsonReply);
-                            return ErrorInfo.create(Error.STREAM_PUBLISH_ERROR).withDetail(RESPONSE_DETAIL, jsonReply);
-                        }
-
-
+                    final JSONObject reply = httpExecutor.execute(new HttpPost(uri), HttpFormat.<JSONObject>json());
+                    // error sample:
+                    // {"error_data":null,"error_code":104,"error_msg":"PARAM_SIGNATURE : No signature specified"}
+                    if (reply.has("error_code")) {
+                        logger.error("Error returned from server: " + reply);
+                        return ErrorInfo.create(Error.SHARE_ADD_LINK).withDetail(RESPONSE_DETAIL, reply);
                     }
-                    System.out.println(reply);
 
                 } catch (JSONException e) {
                     logger.error("Can't fetch json data", e);
-                    return ErrorInfo.create(Error.STREAM_PUBLISH_ERROR).withThrowable(e);
+                    return ErrorInfo.create(Error.SHARE_ADD_LINK).withThrowable(e);
                 } catch (GenericException e) {
                     logger.error("Publish to stream failed", e);
-                    return ErrorInfo.create(Error.STREAM_PUBLISH_ERROR).withThrowable(e);
+                    return ErrorInfo.create(Error.SHARE_ADD_LINK).withThrowable(e);
                 }
                 return ErrorInfo.success();
             }
@@ -203,10 +188,10 @@ public class OdnoklassnikiService implements SocialNetworkService {
 
     }
 
-    private void authAsync(final String accessCode, final String refreshToken, final Task<String,ErrorInfo> task) {
+    private void authAsync(final boolean isRefreshToken, final String code, final Task<String,ErrorInfo> task) {
         taskManager.executeAsync(new Task<String, ErrorInfo>() {
             public ErrorInfo execute(String param) {
-                return authenticate(accessCode, refreshToken, task);
+                return authenticate(isRefreshToken, code, task);
             }
 
             public void onFinish(ErrorInfo result) {
@@ -215,11 +200,11 @@ public class OdnoklassnikiService implements SocialNetworkService {
         }, null);
     }
 
-    private ErrorInfo authenticate(String accessCode, String refreshToken, Task<String,ErrorInfo> task) {
+    private ErrorInfo authenticate(boolean isRefreshToken, String code, Task<String,ErrorInfo> task) {
         try {
 
             final JSONObject jsonObject;
-            if (refreshToken != null) {
+            if (isRefreshToken) {
                 // refresh token
                 //
                 //http://api.odnoklassniki.ru/oauth/token.do
@@ -231,7 +216,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
                 //client_secret - секретный ключ приложения
 
                 final String url = Uri.parse("http://api.odnoklassniki.ru/oauth/token.do").buildUpon().
-                        appendQueryParameter("refresh_token", refreshToken).
+                        appendQueryParameter("refresh_token", code).
                         appendQueryParameter("grant_type", "refresh_token").
                         appendQueryParameter("client_id", appId).
                         appendQueryParameter("client_secret", secretKey).
@@ -248,7 +233,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
                 //client_secret - секретный ключ приложения
 
                 final String url = Uri.parse("http://api.odnoklassniki.ru/oauth/token.do").buildUpon().
-                        appendQueryParameter("code", accessCode).
+                        appendQueryParameter("code", code).
                         appendQueryParameter("redirect_uri", redirectUri).
                         appendQueryParameter("grant_type", "authorization_code").
                         appendQueryParameter("client_id", appId).
