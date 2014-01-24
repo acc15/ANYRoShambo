@@ -38,41 +38,71 @@ public class MainActivity extends HardwareAcceleratedActivity {
             R.string.go_party_text
     };
 
-    private static final int[] goForAudioIds = new int[] {
+    private static final int[] goForAudioIds = new int[]{
             R.raw.prazdnovaty,
             R.raw.gulaty,
             R.raw.tancevaty
     };
 
-    @Inject private ShakeDetector shakeDetector;
-    @Inject private VibrationService vibrationService;
-    @Inject private Animator animator;
-    @Inject private GameService gameService;
-    @Inject private AnimationFactory animationFactory;
-    @Inject private MediaPlayer mediaPlayer;
+    @Inject
+    private ShakeDetector shakeDetector;
+    @Inject
+    private VibrationService vibrationService;
+    @Inject
+    private Animator animator;
+    @Inject
+    private GameService gameService;
+    @Inject
+    private AnimationFactory animationFactory;
+    @Inject
+    private MediaPlayer mediaPlayer;
 
-    @Inject @Named("vkService") private SocialNetworkService vkService;
-    @Inject @Named("okService") private SocialNetworkService okService;
-    @Inject @Named("twService") private SocialNetworkService twService;
+    @Inject
+    @Named("vkService")
+    private SocialNetworkService vkService;
+    @Inject
+    @Named("okService")
+    private SocialNetworkService okService;
+    @Inject
+    @Named("twService")
+    private SocialNetworkService twService;
 
-    @InjectView(R.id.game_container) private FrameLayout gameContainer;
-    @InjectView(R.id.triangle) private ImageView triangle;
-    @InjectView(R.id.drink) private ImageView drinkIcon;
-    @InjectView(R.id.walk) private ImageView walkIcon;
-    @InjectView(R.id.party) private ImageView partyIcon;
-    @InjectView(R.id.glow) private ImageView glow;
-    @InjectView(R.id.go_for) private TextView goForLabel;
-    @InjectView(R.id.splash) private ImageView splash;
-    @InjectView(R.id.preloader) private View preloader;
-    @InjectView(R.id.game_view) private View gameView;
-    @InjectView(R.id.share_text) private TextView shareText;
-    @InjectView(R.id.vk_button) private ImageButton vkButton;
-    @InjectView(R.id.ok_button) private ImageButton okButton;
-    @InjectView(R.id.fb_button) private ImageButton fbButton;
-    @InjectView(R.id.tw_button) private ImageButton twButton;
+    @InjectView(R.id.game_container)
+    private FrameLayout gameContainer;
+    @InjectView(R.id.triangle)
+    private ImageView triangle;
+    @InjectView(R.id.drink)
+    private ImageView drinkIcon;
+    @InjectView(R.id.walk)
+    private ImageView walkIcon;
+    @InjectView(R.id.party)
+    private ImageView partyIcon;
+    @InjectView(R.id.glow)
+    private ImageView glow;
+    @InjectView(R.id.go_for)
+    private TextView goForLabel;
+    @InjectView(R.id.splash)
+    private ImageView splash;
+    @InjectView(R.id.preloader)
+    private View preloader;
+    @InjectView(R.id.game_view)
+    private View gameView;
+    @InjectView(R.id.share_text)
+    private TextView shareText;
+    @InjectView(R.id.vk_button)
+    private ImageButton vkButton;
+    @InjectView(R.id.ok_button)
+    private ImageButton okButton;
+    @InjectView(R.id.fb_button)
+    private ImageButton fbButton;
+    @InjectView(R.id.tw_button)
+    private ImageButton twButton;
 
     private ImageView[] icons;
     private GameModel gameModel = new GameModel();
+
+    @Inject @Named("shareLink")
+    private String shareLink;
 
     private Sequencer mainSequencer = new Sequencer(new ActionSequence() {
         public LazyAction executeStep(int step, final Sequencer sequencer) {
@@ -192,7 +222,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
         //fbButton.setOnLongClickListener(new ShareButtonListener(fbService));
         twButton.setOnLongClickListener(new ShareButtonListener(twService));
 
-        icons = new ImageView[] {drinkIcon, walkIcon, partyIcon};
+        icons = new ImageView[]{drinkIcon, walkIcon, partyIcon};
         goForLabel.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/kremlinctt.ttf"));
         shareText.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/myriadpro.ttf"));
 
@@ -238,16 +268,20 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
     private void shareGameResults(SocialNetworkService service, boolean forceAuth) {
         final String message = "Test message for testing test service in test social network of this test world";
-        service.shareText(forceAuth, message, new Action<ErrorInfo>() {
-            public void execute(ErrorInfo error) {
-                if (error.is(SocialNetworkService.CommonError.USER_CANCELLED)) {
-                    return;
-                }
-                Toast.makeText(MainActivity.this,
-                        error.isError() ? R.string.share_error : R.string.share_success,
-                        Toast.LENGTH_LONG).show();
-            }
-        });
+        service.share(new SocialNetworkService.ShareParams().
+                revoke(forceAuth).
+                text(message).
+                link(shareLink).
+                onFinish(new Action<ErrorInfo>() {
+                    public void execute(ErrorInfo error) {
+                        if (error.is(SocialNetworkService.CommonError.USER_CANCELLED)) {
+                            return;
+                        }
+                        Toast.makeText(MainActivity.this,
+                                error.isError() ? R.string.share_error : R.string.share_success,
+                                Toast.LENGTH_LONG).show();
+                    }
+                }));
     }
 
     private float computeRotationAngleInRadians(float degrees) {

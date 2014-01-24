@@ -9,7 +9,6 @@ import com.appctek.anyroshambo.social.auth.OAuthService;
 import com.appctek.anyroshambo.social.auth.OAuthToken;
 import com.appctek.anyroshambo.social.token.Token;
 import com.appctek.anyroshambo.social.token.TokenManager;
-import com.appctek.anyroshambo.util.Action;
 import com.appctek.anyroshambo.util.GenericException;
 import com.appctek.anyroshambo.util.Pair;
 import com.appctek.anyroshambo.util.WebUtils;
@@ -192,12 +191,12 @@ public class TwitterService implements SocialNetworkService {
         }, requestToken);
     }
 
-    public void shareText(boolean revoke, final String text, final Action<ErrorInfo> errorHandler) {
-        doWithToken(revoke, new Task<OAuthToken, ErrorInfo>() {
+    public void share(final ShareParams shareParams) {
+        doWithToken(shareParams.doRevoke(), new Task<OAuthToken, ErrorInfo>() {
             public ErrorInfo execute(final OAuthToken token) {
                 final HttpPost httpPost = new HttpPost("https://api.twitter.com/1.1/statuses/update.json");
                 final List<NameValuePair> requestParams = new ArrayList<NameValuePair>();
-                requestParams.add(new BasicNameValuePair("status", text));
+                requestParams.add(new BasicNameValuePair("status", shareParams.getText()));
                 httpPost.setEntity(WebUtils.createUrlEncodedFormEntity(requestParams));
                 oAuthService.authorize(httpPost, consumerToken, token, new OAuthHeader());
                 try {
@@ -220,7 +219,7 @@ public class TwitterService implements SocialNetworkService {
             }
 
             public void onFinish(ErrorInfo error) {
-                errorHandler.execute(error);
+                shareParams.invokeFinishAction(error);
             }
         });
     }

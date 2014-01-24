@@ -14,5 +14,59 @@ public interface SocialNetworkService {
         AUTH_ERROR
     }
 
-    void shareText(boolean revoke, String text, Action<ErrorInfo> errorHandler);
+    public static class ShareParams {
+
+        private String text;
+        private String link;
+        private boolean revoke = false;
+        private Action<ErrorInfo> finishAction = null;
+
+        public ShareParams() {
+        }
+
+        public ShareParams revoke(boolean revoke) {
+            this.revoke = revoke;
+            return this;
+        }
+
+        public ShareParams onFinish(Action<ErrorInfo> action) {
+            this.finishAction = action;
+            return this;
+        }
+
+        public ShareParams text(String text) {
+            this.text = text;
+            return this;
+        }
+
+        public ShareParams link(String url) {
+            this.link = url;
+            return this;
+        }
+
+        public boolean doRevoke() {
+            return revoke;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public String getLink() {
+            return link;
+        }
+
+        public Action<ErrorInfo> getFinishAction() {
+            return finishAction;
+        }
+
+        public void invokeFinishAction(ErrorInfo errorInfo) {
+            if (finishAction == null) {
+                return;
+            }
+            finishAction.execute(errorInfo);
+        }
+    }
+
+    void share(ShareParams shareParams);
 }

@@ -6,7 +6,6 @@ import android.net.Uri;
 import com.appctek.anyroshambo.social.auth.ErrorInfo;
 import com.appctek.anyroshambo.social.token.Token;
 import com.appctek.anyroshambo.social.token.TokenManager;
-import com.appctek.anyroshambo.util.Action;
 import com.appctek.anyroshambo.util.GenericException;
 import com.appctek.anyroshambo.util.WebUtils;
 import com.appctek.anyroshambo.util.http.HttpExecutor;
@@ -40,6 +39,7 @@ public class VkontakteService implements SocialNetworkService {
     private static final Logger logger = LoggerFactory.getLogger(VkontakteService.class);
     private static final String VK_TOKEN = "vk";
     private static final String API_VERSION = "5.5";
+    private static final String REDIRECT_URI = "https://oauth.vk.com/blank.html";
 
     private final Context context;
     private final TokenManager tokenManager;
@@ -47,7 +47,6 @@ public class VkontakteService implements SocialNetworkService {
     private final HttpExecutor httpExecutor;
 
     private final String appId;
-    private final String redirectUri;
 
 
     @Inject
@@ -55,24 +54,22 @@ public class VkontakteService implements SocialNetworkService {
                             TokenManager tokenManager,
                             TaskManager taskManager,
                             HttpExecutor httpExecutor,
-                            @Named("vkAppId") String appId,
-                            @Named("vkRedirectUri") String redirectUri) {
+                            @Named("vkAppId") String appId) {
         this.context = context;
         this.tokenManager = tokenManager;
         this.httpExecutor = httpExecutor;
         this.taskManager = taskManager;
         this.appId = appId;
-        this.redirectUri = redirectUri;
     }
 
-    public void shareText(boolean revoke, final String text, final Action<ErrorInfo> errorHandler) {
-        doWithToken(revoke, new Task<String, ErrorInfo>() {
+    public void share(final ShareParams shareParams) {
+        doWithToken(shareParams.doRevoke(), new Task<String, ErrorInfo>() {
             public ErrorInfo execute(String token) {
-                return postOnWall(token, text);
+                return postOnWall(token, shareParams.getText());
             }
 
             public void onFinish(ErrorInfo error) {
-                errorHandler.execute(error);
+                shareParams.invokeFinishAction(error);
             }
         });
     }
@@ -113,7 +110,7 @@ public class VkontakteService implements SocialNetworkService {
         final Uri.Builder uriBuilder = Uri.parse("https://oauth.vk.com/authorize").buildUpon().
                 appendQueryParameter("client_id", appId).
                 appendQueryParameter("scope", "wall").
-                appendQueryParameter("redirect_uri", redirectUri).
+                appendQueryParameter("redirect_uri", REDIRECT_URI).
                 appendQueryParameter("display", "mobile").
                 appendQueryParameter("v", API_VERSION).
                 appendQueryParameter("response_type", "token");
@@ -128,7 +125,7 @@ public class VkontakteService implements SocialNetworkService {
         // user_id=1114703
         WebUtils.showWebViewDialog(context, uriBuilder.build().toString(), new WebUtils.UrlHandler() {
             public boolean handleUrl(DialogInterface dialog, String url) {
-                if (!url.startsWith(redirectUri)) {
+                if (!url.startsWith(REDIRECT_URI)) {
                     return false;
                 }
 

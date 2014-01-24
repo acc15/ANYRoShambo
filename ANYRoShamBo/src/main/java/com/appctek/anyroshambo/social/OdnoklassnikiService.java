@@ -6,7 +6,6 @@ import android.net.Uri;
 import com.appctek.anyroshambo.social.auth.ErrorInfo;
 import com.appctek.anyroshambo.social.token.Token;
 import com.appctek.anyroshambo.social.token.TokenManager;
-import com.appctek.anyroshambo.util.Action;
 import com.appctek.anyroshambo.util.GenericException;
 import com.appctek.anyroshambo.util.HexUtils;
 import com.appctek.anyroshambo.util.WebUtils;
@@ -138,21 +137,18 @@ public class OdnoklassnikiService implements SocialNetworkService {
         return HexUtils.md5Hex(stringBuilder.toString());
     }
 
-    public void shareText(boolean revoke, final String text, final Action<ErrorInfo> errorHandler) {
+    public void share(final ShareParams shareParams) {
 
         // http://www.odnoklassniki.ru/oauth/authorize?client_id={clientId}&scope={scope}&response_type={responseType}&redirect_uri={redirectUri}
-        doWithToken(revoke, new Task<String, ErrorInfo>() {
+        doWithToken(shareParams.doRevoke(), new Task<String, ErrorInfo>() {
             public ErrorInfo execute(String token) {
 
                 //http://api.odnoklassniki.ru/fb.do?method=stream.publish
                 //final String apiMethod = "share.addLink";
                 try {
-                    final JSONObject attachment = new JSONObject();
-                    attachment.put("caption", text);
-
                     final TreeMap<String, String> sortedParams = new TreeMap<String, String>();
-                    sortedParams.put("linkUrl", "http://appctek.com/");
-                    sortedParams.put("comment", text);
+                    sortedParams.put("linkUrl", shareParams.getLink());
+                    sortedParams.put("comment", shareParams.getText());
                     sortedParams.put("application_key", publicKey);
 
                     final String signature = calculateSignature(sortedParams, token);
@@ -171,9 +167,6 @@ public class OdnoklassnikiService implements SocialNetworkService {
                         return ErrorInfo.create(Error.SHARE_ADD_LINK).withDetail(RESPONSE_DETAIL, reply);
                     }
 
-                } catch (JSONException e) {
-                    logger.error("Can't fetch json data", e);
-                    return ErrorInfo.create(Error.SHARE_ADD_LINK).withThrowable(e);
                 } catch (GenericException e) {
                     logger.error("Publish to stream failed", e);
                     return ErrorInfo.create(Error.SHARE_ADD_LINK).withThrowable(e);
@@ -182,7 +175,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
             }
 
             public void onFinish(ErrorInfo error) {
-                errorHandler.execute(error);
+                shareParams.invokeFinishAction(error);
             }
         });
 
