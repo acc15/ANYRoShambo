@@ -15,7 +15,7 @@ import java.util.Scanner;
  */
 public class UrlEncodedFormEntityConverter extends EntityConverter<Map<String,String>> {
     @Override
-    protected Map<String,String> parseByteData(String charset, String data) {
+    protected Map<String,String> parseByteData(String data, String charset) {
         final List<NameValuePair> pairs = new ArrayList<NameValuePair>();
         URLEncodedUtils.parse(pairs, new Scanner(data), charset);
         return WebUtils.nameValuePairsToMap(pairs);
