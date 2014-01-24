@@ -152,6 +152,7 @@ public class OdnoklassnikiService implements SocialNetworkService {
         // http://www.odnoklassniki.ru/oauth/authorize?client_id={clientId}&scope={scope}&response_type={responseType}&redirect_uri={redirectUri}
         doWithAuthParams(revoke, new Task<AuthParams, ErrorInfo>() {
             public ErrorInfo execute(AuthParams params) {
+                // TODO refactor to doWithToken... authenticate in another task
                 final ErrorInfo errorInfo = ErrorInfo.success();
                 final Token accessToken = authenticate(params, errorInfo);
                 if (errorInfo.isError()) {

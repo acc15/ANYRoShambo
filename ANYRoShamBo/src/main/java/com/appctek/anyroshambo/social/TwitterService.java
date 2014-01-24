@@ -3,7 +3,6 @@ package com.appctek.anyroshambo.social;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.widget.Toast;
 import com.appctek.anyroshambo.R;
 import com.appctek.anyroshambo.social.auth.ErrorInfo;
@@ -82,10 +81,8 @@ public class TwitterService implements SocialNetworkService {
             }
         }
 
-        new AsyncTask<Object, Object, Pair<ErrorInfo, OAuthToken>>() {
-            @Override
-            protected Pair<ErrorInfo, OAuthToken> doInBackground(Object... params) {
-
+        taskManager.executeAsync(new Task<Object, Pair<ErrorInfo, OAuthToken>>() {
+            public Pair<ErrorInfo, OAuthToken> execute(Object param) {
                 final String url = "https://api.twitter.com/oauth/request_token";
                 final HttpPost request = new HttpPost(url);
                 oAuthService.authorize(request, consumerToken, OAuthToken.EMPTY,
@@ -110,15 +107,13 @@ public class TwitterService implements SocialNetworkService {
                 }
             }
 
-            @Override
-            protected void onPostExecute(final Pair<ErrorInfo, OAuthToken> result) {
+            public void onFinish(Pair<ErrorInfo, OAuthToken> result) {
                 if (result.key.isError()) {
                     task.onFinish(result.key);
                 }
                 showAuthDialog(revoke, result.value, task);
             }
-        }.execute();
-
+        }, null);
     }
 
     private void showAuthDialog(final boolean revoke, final OAuthToken requestToken,
@@ -159,9 +154,8 @@ public class TwitterService implements SocialNetworkService {
 
     private void obtainAccessToken(final OAuthToken requestToken, final String verifier,
                                    final Task<OAuthToken, ErrorInfo> task) {
-        new AsyncTask<Object,Object,Pair<ErrorInfo,OAuthToken>>() {
-            @Override
-            protected Pair<ErrorInfo,OAuthToken> doInBackground(Object... params) {
+        taskManager.executeAsync(new Task<OAuthToken, ErrorInfo>() {
+            public ErrorInfo execute(final OAuthToken requestToken) {
 
                 final HttpPost httpPost = new HttpPost("https://api.twitter.com/oauth/access_token");
 
@@ -178,29 +172,24 @@ public class TwitterService implements SocialNetworkService {
                     final String accessTokenSecret = responseParams.get("oauth_token_secret");
                     if (accessToken == null || accessTokenSecret == null) {
                         logger.error("Access token or access token secret wasn't returned");
-                        return Pair.keyOnly(ErrorInfo.create(ACCESS_TOKEN_MISSING));
+                        return ErrorInfo.create(ACCESS_TOKEN_MISSING);
                     }
 
                     tokenManager.storeToken(TW_TOKEN, new Token(accessToken, Token.NEVER_EXPIRES));
                     tokenManager.storeToken(TW_TOKEN_SECRET, new Token(accessTokenSecret, Token.NEVER_EXPIRES));
 
-                    return Pair.makePair(ErrorInfo.success(), new OAuthToken(accessToken, accessTokenSecret));
+                    return task.execute(new OAuthToken(accessToken, accessTokenSecret));
 
                 } catch (IOException e) {
                     logger.error("Can't obtain access token", e);
-                    return Pair.keyOnly(ErrorInfo.create(AUTH_ERROR).withThrowable(e));
+                    return ErrorInfo.create(AUTH_ERROR).withThrowable(e);
                 }
             }
 
-            @Override
-            protected void onPostExecute(Pair<ErrorInfo, OAuthToken> result) {
-                if (result.key.isError()) {
-                    task.onFinish(result.key);
-                }
-                logger.info("Access token obtained: " + result);
-                taskManager.executeAsync(task, result.value);
+            public void onFinish(ErrorInfo result) {
+                task.onFinish(result);
             }
-        }.execute();
+        }, requestToken);
     }
 
     public void shareText(boolean revoke, String text) {
