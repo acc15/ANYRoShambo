@@ -74,10 +74,7 @@ public class TwitterService implements SocialNetworkService {
     }
 
     private void doWithToken(final boolean revoke, final Task<OAuthToken, ErrorInfo> task) {
-        if (revoke) {
-            tokenManager.revokeToken(TW_TOKEN);
-            tokenManager.revokeToken(TW_TOKEN_SECRET);
-        } else {
+        if (!revoke) {
             final String token = tokenManager.getTokenAsString(TW_TOKEN);
             final String tokenSecret = tokenManager.getTokenAsString(TW_TOKEN_SECRET);
             if (token != null && tokenSecret != null) {
