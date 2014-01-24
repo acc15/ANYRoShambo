@@ -23,8 +23,4 @@ public class TaskManager {
         }.execute(param);
     }
 
-    public <P,R> void execute(final Task<P,R> task, final P param) {
-        task.onFinish(task.execute(param));
-    }
-
 }

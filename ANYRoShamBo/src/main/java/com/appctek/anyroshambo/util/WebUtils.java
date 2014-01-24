@@ -9,8 +9,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import org.apache.http.*;
-import org.apache.http.client.HttpClient;
+import org.apache.http.Header;
+import org.apache.http.HeaderElement;
+import org.apache.http.HttpEntity;
+import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpUriRequest;
@@ -19,7 +21,6 @@ import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
@@ -103,45 +104,6 @@ public class WebUtils {
         } catch (UnsupportedEncodingException e) {
             throw createEncodingEx(e);
         }
-    }
-
-    private static class ResponseData {
-        private String charset;
-        private String data;
-
-        private ResponseData(String charset, String data) {
-            this.charset = charset;
-            this.data = data;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static ResponseData executeRequest(HttpClient httpClient, HttpUriRequest request) throws IOException {
-        final HttpResponse response = httpClient.execute(request);
-        final int statusCode = response.getStatusLine().getStatusCode();
-        if (statusCode != HttpStatus.SC_OK) {
-            throw new IOException("Server responded with error status: " + statusCode);
-        }
-
-        final HttpEntity entity = response.getEntity();
-        final String charset = parseCharset(entity.getContentType());
-        final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        entity.writeTo(byteArrayOutputStream);
-
-        final String decodedString = byteArrayOutputStream.toString(charset);
-        logger.info("Server responded with response: {}", decodedString);
-        return new ResponseData(charset, decodedString);
-    }
-
-    public static String executeRequestString(HttpClient httpClient, HttpUriRequest request) throws IOException {
-        return executeRequest(httpClient, request).data;
-    }
-
-    public static List<NameValuePair> executeRequestParams(HttpClient httpClient, HttpUriRequest request) throws IOException {
-        final ResponseData response = executeRequest(httpClient, request);
-        final List<NameValuePair> params = new ArrayList<NameValuePair>();
-        URLEncodedUtils.parse(params, new Scanner(response.data), response.charset);
-        return params;
     }
 
     public static Uri.Builder appendQueryParameters(Uri.Builder uriBuilder, Map<String,String> params) {

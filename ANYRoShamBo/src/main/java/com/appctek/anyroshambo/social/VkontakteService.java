@@ -5,23 +5,23 @@ import android.content.DialogInterface;
 import android.net.Uri;
 import android.widget.Toast;
 import com.appctek.anyroshambo.R;
-import com.appctek.anyroshambo.social.auth.*;
+import com.appctek.anyroshambo.social.auth.ErrorInfo;
 import com.appctek.anyroshambo.social.task.Task;
 import com.appctek.anyroshambo.social.task.TaskManager;
 import com.appctek.anyroshambo.social.token.Token;
 import com.appctek.anyroshambo.social.token.TokenManager;
-import com.appctek.anyroshambo.util.JSONUtils;
+import com.appctek.anyroshambo.util.GenericException;
 import com.appctek.anyroshambo.util.WebUtils;
+import com.appctek.anyroshambo.util.http.HttpExecutor;
+import com.appctek.anyroshambo.util.http.HttpFormat;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -44,7 +44,7 @@ public class VkontakteService implements SocialNetworkService {
     private final Context context;
     private final TokenManager tokenManager;
     private final TaskManager taskManager;
-    private final HttpClient httpClient;
+    private final HttpExecutor httpExecutor;
 
     private final String appId;
     private final String redirectUri;
@@ -54,21 +54,21 @@ public class VkontakteService implements SocialNetworkService {
     public VkontakteService(Context context,
                             TokenManager tokenManager,
                             TaskManager taskManager,
-                            HttpClient httpClient,
+                            HttpExecutor httpExecutor,
                             @Named("vkAppId") String appId,
                             @Named("vkRedirectUri") String redirectUri) {
         this.context = context;
         this.tokenManager = tokenManager;
-        this.httpClient = httpClient;
+        this.httpExecutor = httpExecutor;
         this.taskManager = taskManager;
         this.appId = appId;
         this.redirectUri = redirectUri;
     }
 
     public void shareText(boolean revoke, final String text) {
-        doWithToken(revoke, new Task<Token, ErrorInfo>() {
-            public ErrorInfo execute(Token param) {
-                return postOnWall(param, text);
+        doWithToken(revoke, new Task<String, ErrorInfo>() {
+            public ErrorInfo execute(String token) {
+                return postOnWall(token, text);
             }
 
             public void onFinish(ErrorInfo error) {
@@ -82,13 +82,13 @@ public class VkontakteService implements SocialNetworkService {
         });
     }
 
-    private ErrorInfo postOnWall(Token token, String message) {
+    private ErrorInfo postOnWall(String token, String message) {
         final String url = Uri.parse("https://api.vk.com/method/wall.post").buildUpon().
                 appendQueryParameter("message", message).
-                appendQueryParameter("access_token", token.getToken()).
+                appendQueryParameter("access_token", token).
                 build().toString();
         try {
-            final JSONObject jsonObject = JSONUtils.parseJSON(WebUtils.executeRequestString(httpClient, new HttpPost(url)));
+            final JSONObject jsonObject = httpExecutor.execute(new HttpPost(url), HttpFormat.<JSONObject>json());
             if (!jsonObject.has("response")) {
                 return ErrorInfo.create(EMPTY_RESPONSE).withDetail(RESPONSE_DETAIL, jsonObject);
             }
@@ -96,17 +96,17 @@ public class VkontakteService implements SocialNetworkService {
             logger.info("Post has been created with id " + postId);
             return ErrorInfo.success();
         } catch (JSONException e) {
-            logger.error("Error occurred while executing JSON POST request", e);
+            logger.error("Can't fetch JSON date from response", e);
             return ErrorInfo.create(POST_ON_WALL_ERROR).withThrowable(e);
-        } catch (IOException e) {
-            logger.error("I/O error occurred", e);
+        } catch (GenericException e) {
+            logger.error("Post on wall failed", e);
             return ErrorInfo.create(POST_ON_WALL_ERROR).withThrowable(e);
         }
     }
 
-    private void doWithToken(final boolean revoke, final Task<Token, ErrorInfo> task) {
+    private void doWithToken(final boolean revoke, final Task<String, ErrorInfo> task) {
         if (!revoke) {
-            final Token token = tokenManager.getToken(VK_TOKEN);
+            final String token = tokenManager.getTokenAsString(VK_TOKEN);
             if (token != null) {
                 taskManager.executeAsync(task, token);
                 return;
@@ -158,7 +158,7 @@ public class VkontakteService implements SocialNetworkService {
                 tokenManager.storeToken(VK_TOKEN, token);
                 dialog.dismiss();
 
-                taskManager.executeAsync(task, token);
+                taskManager.executeAsync(task, token.getToken());
                 return true;
             }
         });
