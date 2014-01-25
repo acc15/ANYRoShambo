@@ -43,6 +43,7 @@ public class FacebookService implements SocialNetworkService {
             public void onComplete(FacebookDialog.PendingCall pendingCall, Bundle data) {
                 if (lastFinishAction != null) {
                     lastFinishAction.execute(ErrorInfo.success());
+                    lastFinishAction = null;
                 }
             }
 
@@ -54,6 +55,7 @@ public class FacebookService implements SocialNetworkService {
                         ? CommonError.USER_CANCELLED
                         : Error.FEED_ERROR).
                         withThrowable(error));
+                lastFinishAction = null;
             }
         });
     }
@@ -80,12 +82,13 @@ public class FacebookService implements SocialNetworkService {
                 if (session.isOpened()) {
 
                     if (FacebookDialog.canPresentShareDialog(activity)) {
-                        new FacebookDialog.ShareDialogBuilder(activity).
+                        final FacebookDialog.PendingCall pendingCall = new FacebookDialog.ShareDialogBuilder(activity).
                                 setName(shareParams.getTitle()).
                                 setLink(shareParams.getLink()).
                                 setDescription(shareParams.getText()).
                                 build().present();
                         lastFinishAction = shareParams.getFinishAction();
+                        uiHelper.trackPendingDialogCall(pendingCall);
                         return;
                     }
 
