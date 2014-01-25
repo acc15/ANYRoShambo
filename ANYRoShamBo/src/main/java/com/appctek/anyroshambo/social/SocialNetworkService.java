@@ -16,6 +16,7 @@ public interface SocialNetworkService {
 
     public static class ShareParams {
 
+        private String title;
         private String text;
         private String link;
         private boolean revoke = false;
@@ -31,6 +32,11 @@ public interface SocialNetworkService {
 
         public ShareParams onFinish(Action<ErrorInfo> action) {
             this.finishAction = action;
+            return this;
+        }
+
+        public ShareParams title(String title) {
+            this.title = title;
             return this;
         }
 
@@ -51,6 +57,8 @@ public interface SocialNetworkService {
         public String getText() {
             return text;
         }
+
+        public String getTitle() { return title; }
 
         public String getLink() {
             return link;

@@ -37,8 +37,6 @@ public class AppModule extends AbstractModule {
         bind(SocialNetworkService.class).annotatedWith(Names.named("twService")).to(TwitterService.class);
         bind(HttpClient.class).to(DefaultHttpClient.class);
 
-        bindConstant().annotatedWith(Names.named("shareLink")).to("http://appctek.com/");
-
         bindConstant().annotatedWith(Names.named("okAppId")).to("216398080");
         bindConstant().annotatedWith(Names.named("okPublicKey")).to("CBAKPGONABABABABA");
         bindConstant().annotatedWith(Names.named("okSecretKey")).to("83B562785858040AF1E5DF41");
@@ -49,8 +47,5 @@ public class AppModule extends AbstractModule {
         bind(OAuthToken.class).annotatedWith(Names.named("twConsumerToken")).toInstance(new OAuthToken(
                 "eNAz8lhCSpXog4F0UbScQA", "KbVJTv5BlHMJlETCARFWwBHlTq53wim7XJocuG5N5So"));
         bindConstant().annotatedWith(Names.named("twRedirectUri")).to("http://appctek.com/anyroshambo");
-
-
-
     }
 }

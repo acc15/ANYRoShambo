@@ -26,6 +26,7 @@ import com.appctek.anyroshambo.util.MediaPlayerUtils;
 import com.appctek.anyroshambo.util.ViewUtils;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
+import roboguice.inject.InjectResource;
 import roboguice.inject.InjectView;
 
 public class MainActivity extends HardwareAcceleratedActivity {
@@ -105,8 +106,11 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private ImageView[] icons;
     private GameModel gameModel = new GameModel();
 
-    @Inject @Named("shareLink")
+    @InjectResource(R.string.share_link)
     private String shareLink;
+
+    @InjectResource(R.string.share_title)
+    private String shareTitle;
 
     private Sequencer mainSequencer = new Sequencer(new ActionSequence() {
         public LazyAction executeStep(int step, final Sequencer sequencer) {
@@ -274,6 +278,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
         final String message = "Test message for testing test service in test social network of this test world";
         service.share(new SocialNetworkService.ShareParams().
                 revoke(forceAuth).
+                title(shareTitle).
                 text(message).
                 link(shareLink).
                 onFinish(new Action<ErrorInfo>() {

@@ -2,10 +2,15 @@ package com.appctek.anyroshambo.social;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.widget.Toast;
+import com.appctek.anyroshambo.roboguice.OnSaveInstanceStateEvent;
+import com.appctek.anyroshambo.social.auth.ErrorInfo;
+import com.appctek.anyroshambo.util.Action;
 import com.facebook.*;
+import com.facebook.widget.FacebookDialog;
 import com.facebook.widget.WebDialog;
 import com.google.inject.Inject;
+import roboguice.activity.event.*;
+import roboguice.event.Observes;
 
 /**
  * @author Vyacheslav Mayorov
@@ -15,37 +20,95 @@ public class FacebookService implements SocialNetworkService {
 
     private Activity activity;
 
+    private UiLifecycleHelper uiHelper;
+
+    private Action<ErrorInfo> lastFinishAction; // state for tracking last share call result
+
+    public static enum Error {
+        FEED_ERROR
+    }
+
     @Inject
     public FacebookService(Activity activity) {
         this.activity = activity;
+        this.uiHelper = new UiLifecycleHelper(activity, null);
+    }
+
+    public void onCreate(@Observes OnCreateEvent createEvent) {
+        uiHelper.onCreate(createEvent.getSavedInstanceState());
+    }
+
+    public void onActivityResult(@Observes OnActivityResultEvent event) {
+        uiHelper.onActivityResult(event.getRequestCode(), event.getResultCode(), event.getData(), new FacebookDialog.Callback() {
+            public void onComplete(FacebookDialog.PendingCall pendingCall, Bundle data) {
+                if (lastFinishAction != null) {
+                    lastFinishAction.execute(ErrorInfo.success());
+                }
+            }
+
+            public void onError(FacebookDialog.PendingCall pendingCall, Exception error, Bundle data) {
+                if (lastFinishAction == null) {
+                    return;
+                }
+                lastFinishAction.execute(ErrorInfo.create(error instanceof FacebookOperationCanceledException
+                        ? CommonError.USER_CANCELLED
+                        : Error.FEED_ERROR).
+                        withThrowable(error));
+            }
+        });
+    }
+
+    public void onResume(@Observes OnResumeEvent event) {
+        uiHelper.onResume();
+    }
+
+    public void onSaveInstanceState(@Observes OnSaveInstanceStateEvent event) {
+        uiHelper.onSaveInstanceState(event.getOutBundle());
+    }
+
+    public void onPause(@Observes OnPauseEvent event) {
+        uiHelper.onPause();
+    }
+
+    public void onDestroy(@Observes OnDestroyEvent event) {
+        uiHelper.onDestroy();
     }
 
     public void share(final ShareParams shareParams) {
         Session.openActiveSession(activity, true, new Session.StatusCallback() {
             public void call(Session session, SessionState state, Exception exception) {
                 if (session.isOpened()) {
+
+                    if (FacebookDialog.canPresentShareDialog(activity)) {
+                        new FacebookDialog.ShareDialogBuilder(activity).
+                                setName(shareParams.getTitle()).
+                                setLink(shareParams.getLink()).
+                                setDescription(shareParams.getText()).
+                                build().present();
+                        lastFinishAction = shareParams.getFinishAction();
+                        return;
+                    }
+
                     final Bundle params = new Bundle();
-                    params.putString("name", "Facebook SDK for Android");
-                    params.putString("caption", "Build great social apps and get more installs.");
-                    params.putString("description", "The Facebook SDK for Android makes it easier and faster to develop Facebook integrated Android apps.");
-                    params.putString("link", "https://developers.facebook.com/android");
-                    params.putString("picture", "https://raw.github.com/fbsamples/ios-3.x-howtos/master/Images/iossdk_logo.png");
+                    params.putString("name", shareParams.getTitle());
+                    params.putString("description", shareParams.getText());
+                    params.putString("link", shareParams.getLink());
                     new WebDialog.FeedDialogBuilder(activity, session, params).
                             setOnCompleteListener(new WebDialog.OnCompleteListener() {
                                 public void onComplete(Bundle values,
                                                        FacebookException error) {
+                                    final ErrorInfo errorInfo;
                                     if (error == null) {
                                         final String postId = values.getString("post_id");
-                                        if (postId != null) {
-                                            Toast.makeText(activity, "Posted story, id: " + postId, Toast.LENGTH_SHORT).show();
-                                        } else {
-                                            Toast.makeText(activity, "Publish cancelled", Toast.LENGTH_SHORT).show();
-                                        }
+                                        errorInfo = postId != null
+                                                ? ErrorInfo.success().withDetail("post_id", postId)
+                                                : ErrorInfo.create(CommonError.USER_CANCELLED);
                                     } else if (error instanceof FacebookOperationCanceledException) {
-                                        Toast.makeText(activity, "Publish cancelled", Toast.LENGTH_SHORT).show();
+                                        errorInfo = ErrorInfo.create(CommonError.USER_CANCELLED).withThrowable(error);
                                     } else {
-                                        Toast.makeText(activity, "Error posting story", Toast.LENGTH_SHORT).show();
+                                        errorInfo = ErrorInfo.create(Error.FEED_ERROR).withThrowable(error);
                                     }
+                                    shareParams.getFinishAction().execute(errorInfo);
                                 }
                             }).build().show();
                 }

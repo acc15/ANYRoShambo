@@ -6,12 +6,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.view.*;
 import android.widget.TextView;
+import com.appctek.anyroshambo.roboguice.EventRoboActivity;
 import com.appctek.anyroshambo.services.AdService;
 import com.appctek.anyroshambo.util.ViewUtils;
 import com.google.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import roboguice.activity.RoboActivity;
 
 import java.lang.reflect.Field;
 
@@ -19,7 +19,7 @@ import java.lang.reflect.Field;
  * @author Vyacheslav Mayorov
  * @since 2013-29-12
  */
-class FullScreenActivity extends RoboActivity {
+class FullScreenActivity extends EventRoboActivity {
 
     private static final Logger logger = LoggerFactory.getLogger(FullScreenActivity.class);
 
