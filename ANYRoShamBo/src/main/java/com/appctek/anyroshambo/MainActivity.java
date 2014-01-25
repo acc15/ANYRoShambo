@@ -19,6 +19,7 @@ import com.appctek.anyroshambo.services.GameService;
 import com.appctek.anyroshambo.services.ShakeDetector;
 import com.appctek.anyroshambo.services.VibrationService;
 import com.appctek.anyroshambo.social.SocialNetworkService;
+import com.appctek.anyroshambo.social.TwitterService;
 import com.appctek.anyroshambo.social.auth.ErrorInfo;
 import com.appctek.anyroshambo.util.Action;
 import com.appctek.anyroshambo.util.MediaPlayerUtils;
@@ -63,6 +64,9 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @Inject
     @Named("okService")
     private SocialNetworkService okService;
+    @Inject
+    @Named("fbService")
+    private SocialNetworkService fbService;
     @Inject
     @Named("twService")
     private SocialNetworkService twService;
@@ -219,7 +223,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
         vkButton.setOnLongClickListener(new ShareButtonListener(vkService));
         okButton.setOnLongClickListener(new ShareButtonListener(okService));
-        //fbButton.setOnLongClickListener(new ShareButtonListener(fbService));
+        fbButton.setOnLongClickListener(new ShareButtonListener(fbService));
         twButton.setOnLongClickListener(new ShareButtonListener(twService));
 
         icons = new ImageView[]{drinkIcon, walkIcon, partyIcon};
@@ -259,7 +263,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     }
 
     public void shareFb(View view) {
-        //shareGameResults(fbService, false);
+        shareGameResults(fbService, false);
     }
 
     public void shareTw(View view) {
@@ -277,9 +281,15 @@ public class MainActivity extends HardwareAcceleratedActivity {
                         if (error.is(SocialNetworkService.CommonError.USER_CANCELLED)) {
                             return;
                         }
-                        Toast.makeText(MainActivity.this,
-                                error.isError() ? R.string.share_error : R.string.share_success,
-                                Toast.LENGTH_LONG).show();
+                        final int messageResId;
+                        if (error.is(TwitterService.Error.DUPLICATE_STATUS_ERROR)) {
+                            messageResId = R.string.share_duplicate;
+                        } else if (error.isError()) {
+                            messageResId = R.string.share_error;
+                        } else {
+                            messageResId = R.string.share_success;
+                        }
+                        Toast.makeText(MainActivity.this, messageResId, Toast.LENGTH_LONG).show();
                     }
                 }));
     }

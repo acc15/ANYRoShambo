@@ -14,6 +14,7 @@
     <string name="social_share_text">Я скачал прикольное приложение ANYRoShamBo! Не знаешь чем заняться в праздники? Супер-выбиратор поможет!</string>
 
     <string name="share_success">Сообщение успешно опубликовано</string>
+    <string name="share_duplicate">Сообщение уже опубликавно</string>
     <string name="share_error">Ошибка при публикации</string>
 
 </resources>

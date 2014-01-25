@@ -38,6 +38,9 @@
     <string name="social_share_text">Look! New Year killer-app!! Don’t know what to do on holydays? Super-chooser will help!</string>
 
     <string name="share_success">Share succeeds</string>
+    <string name="share_duplicate">Already shared</string>
     <string name="share_error">Share failure</string>
+
+    <string name="fb_app_id">184694715072939</string>
 
 </resources>
