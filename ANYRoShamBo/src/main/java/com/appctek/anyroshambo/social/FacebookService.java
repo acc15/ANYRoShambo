@@ -9,6 +9,8 @@ import com.facebook.*;
 import com.facebook.widget.FacebookDialog;
 import com.facebook.widget.WebDialog;
 import com.google.inject.Inject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import roboguice.activity.event.*;
 import roboguice.event.Observes;
 
@@ -18,11 +20,25 @@ import roboguice.event.Observes;
  */
 public class FacebookService implements SocialNetworkService {
 
+    private static final Logger logger = LoggerFactory.getLogger(FacebookService.class);
+
     private Activity activity;
 
     private UiLifecycleHelper uiHelper;
 
     private Action<ErrorInfo> lastFinishAction; // state for tracking last share call result
+
+    private void executeLastFinishAction(ErrorInfo errorInfo) {
+        if (lastFinishAction == null) {
+            return;
+        }
+        try {
+            lastFinishAction.execute(errorInfo);
+        } finally {
+            lastFinishAction = null;
+        }
+    }
+
 
     public static enum Error {
         FEED_ERROR
@@ -41,21 +57,11 @@ public class FacebookService implements SocialNetworkService {
     public void onActivityResult(@Observes OnActivityResultEvent event) {
         uiHelper.onActivityResult(event.getRequestCode(), event.getResultCode(), event.getData(), new FacebookDialog.Callback() {
             public void onComplete(FacebookDialog.PendingCall pendingCall, Bundle data) {
-                if (lastFinishAction != null) {
-                    lastFinishAction.execute(ErrorInfo.success());
-                    lastFinishAction = null;
-                }
+                executeLastFinishAction(ErrorInfo.success());
             }
 
             public void onError(FacebookDialog.PendingCall pendingCall, Exception error, Bundle data) {
-                if (lastFinishAction == null) {
-                    return;
-                }
-                lastFinishAction.execute(ErrorInfo.create(error instanceof FacebookOperationCanceledException
-                        ? CommonError.USER_CANCELLED
-                        : Error.FEED_ERROR).
-                        withThrowable(error));
-                lastFinishAction = null;
+                executeLastFinishAction(createErrorInfoByException(Error.FEED_ERROR, error));
             }
         });
     }
@@ -76,9 +82,23 @@ public class FacebookService implements SocialNetworkService {
         uiHelper.onDestroy();
     }
 
+    private ErrorInfo createErrorInfoByException(Enum<?> defaultErrorCode, Exception ex) {
+        return ErrorInfo.create(ex instanceof FacebookOperationCanceledException
+                ? CommonError.USER_CANCELLED
+                : defaultErrorCode).withThrowable(ex);
+    }
+
     public void share(final ShareParams shareParams) {
         Session.openActiveSession(activity, true, new Session.StatusCallback() {
             public void call(Session session, SessionState state, Exception exception) {
+
+                if (exception != null) {
+                    logger.error("FacebookService error occurred while authenticating", exception);
+                    shareParams.getFinishAction().execute(
+                            createErrorInfoByException(CommonError.AUTH_ERROR, exception));
+                    return;
+                }
+
                 if (session.isOpened()) {
 
                     if (FacebookDialog.canPresentShareDialog(activity)) {
@@ -106,10 +126,8 @@ public class FacebookService implements SocialNetworkService {
                                         errorInfo = postId != null
                                                 ? ErrorInfo.success().withDetail("post_id", postId)
                                                 : ErrorInfo.create(CommonError.USER_CANCELLED);
-                                    } else if (error instanceof FacebookOperationCanceledException) {
-                                        errorInfo = ErrorInfo.create(CommonError.USER_CANCELLED).withThrowable(error);
                                     } else {
-                                        errorInfo = ErrorInfo.create(Error.FEED_ERROR).withThrowable(error);
+                                        errorInfo = createErrorInfoByException(Error.FEED_ERROR, error);
                                     }
                                     shareParams.getFinishAction().execute(errorInfo);
                                 }
