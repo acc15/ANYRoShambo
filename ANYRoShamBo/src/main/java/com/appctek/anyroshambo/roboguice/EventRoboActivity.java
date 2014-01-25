@@ -1,7 +1,6 @@
 package com.appctek.anyroshambo.roboguice;
 
 import android.os.Bundle;
-import com.appctek.anyroshambo.roboguice.OnRestoreInstanceStateEvent;
 import roboguice.activity.RoboActivity;
 
 /**
@@ -12,8 +11,8 @@ public class EventRoboActivity extends RoboActivity {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        // TODO implement..
         super.onSaveInstanceState(outState);
+        eventManager.fire(new OnSaveInstanceStateEvent(outState));
     }
 
     @Override
