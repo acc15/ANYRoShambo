@@ -35,8 +35,8 @@
     <string name="glow_description">glow</string>
     <string name="go_for_description">go_for</string>
 
-    <string name="share_text">Look! New Year killer-app! Don’t know what to do on holidays? Super-chooser will help!</string>
-    <string name="share_action_text">Cool! New year killer-app anyroshambo sugested me to go %s! Join!</string>
+    <string name="share_text">Look! New Year killer-app! Don\&apos;t know what to do on holidays? Super-chooser will help!</string>
+    <string name="share_action_text">Cool! New year killer-app ANYRoShambo suggested me to go %s! Join!</string>
     <string name="share_action_party">party</string>
     <string name="share_action_celebrate">celebrate</string>
     <string name="share_action_walk">for a walk</string>
