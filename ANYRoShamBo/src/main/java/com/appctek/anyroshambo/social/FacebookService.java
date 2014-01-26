@@ -112,7 +112,8 @@ public class FacebookService implements SocialNetworkService {
 
                 if (session.isOpened()) {
 
-                    if (FacebookDialog.canPresentShareDialog(activity)) {
+                    // There i a bug with native share dialog: https://developers.facebook.com/x/bugs/804864539527432/
+                    if (FacebookDialog.canPresentShareDialog(activity, FacebookDialog.ShareDialogFeature.SHARE_DIALOG)) {
                         final FacebookDialog.PendingCall pendingCall = new FacebookDialog.ShareDialogBuilder(activity).
                                 setName(shareParams.getTitle()).
                                 setDescription(shareParams.getText()).
