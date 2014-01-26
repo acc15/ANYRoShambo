@@ -112,7 +112,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private ImageButton twButton;
 
     private ImageView[] icons;
-    private int selectedIcon;
+    private int selectedIcon = -1;
 
     @InjectResource(R.string.share_link)
     private String shareLink;
