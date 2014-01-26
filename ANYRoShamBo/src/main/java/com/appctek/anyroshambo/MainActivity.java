@@ -40,6 +40,12 @@ public class MainActivity extends HardwareAcceleratedActivity {
             R.string.go_party_text
     };
 
+    private static final int[] shareActionIds = new int[] {
+            R.string.share_action_celebrate,
+            R.string.share_action_walk,
+            R.string.share_action_party
+    };
+
     private static final int[] goForAudioIds = new int[]{
             R.raw.prazdnovaty,
             R.raw.gulaty,
@@ -84,7 +90,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private ImageView partyIcon;
     @InjectView(R.id.glow)
     private ImageView glow;
-    @InjectView(R.id.go_for)
+    @InjectView(R.id.go_for_label)
     private TextView goForLabel;
     @InjectView(R.id.splash)
     private ImageView splash;
@@ -92,8 +98,8 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private View preloader;
     @InjectView(R.id.game_view)
     private View gameView;
-    @InjectView(R.id.share_text)
-    private TextView shareText;
+    @InjectView(R.id.share_label)
+    private TextView shareLabel;
     @InjectView(R.id.vk_button)
     private ImageButton vkButton;
     @InjectView(R.id.ok_button)
@@ -111,6 +117,13 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
     @InjectResource(R.string.share_title)
     private String shareTitle;
+
+    @InjectResource(R.string.share_text)
+    private String shareText;
+
+    @InjectResource(R.string.share_action_text)
+    private String shareActionText;
+
 
     private Sequencer mainSequencer = new Sequencer(new ActionSequence() {
         public LazyAction executeStep(int step, final Sequencer sequencer) {
@@ -232,7 +245,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
 
         icons = new ImageView[]{drinkIcon, walkIcon, partyIcon};
         goForLabel.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/kremlinctt.ttf"));
-        shareText.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/myriadpro.ttf"));
+        shareLabel.setTypeface(Typeface.createFromAsset(getAssets(), "fonts/myriadpro.ttf"));
 
         gameContainer.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             public void onGlobalLayout() {
@@ -274,8 +287,16 @@ public class MainActivity extends HardwareAcceleratedActivity {
         shareGameResults(twService, false);
     }
 
+    private String getMessageForShare() {
+        if (gameModel.getSelectedIcon() < 0) {
+            return shareText;
+        }
+        final String action = getString(shareActionIds[gameModel.getSelectedIcon()]);
+        return String.format(shareActionText, action);
+    }
+
     private void shareGameResults(SocialNetworkService service, boolean forceAuth) {
-        final String message = "Test message for testing test service in test social network of this test world";
+        final String message = getMessageForShare();
         service.share(new SocialNetworkService.ShareParams().
                 revoke(forceAuth).
                 title(shareTitle).

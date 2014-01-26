@@ -5,16 +5,20 @@
         Для запуска супер-выбиратора можно встряхнуть устройсто несколько раз или ткнуть пальцем в центр треугольника.
         Следите за обновлениями, скоро мы порадуем Вас новыми интересными и увлекательными играми!</string>
     <string name="info_header">Информация</string>
-    <string name="share_text">Поделиться с друзьями</string>
+    <string name="share_label">Поделиться с друзьями</string>
 
     <string name="go_party_text">Танцевать!</string>
     <string name="go_celebrate_text">Праздновать!</string>
     <string name="go_forawalk_text">Гулять!</string>
 
-    <string name="social_share_text">Я скачал прикольное приложение ANYRoShamBo! Не знаешь чем заняться в праздники? Супер-выбиратор поможет!</string>
+    <string name="share_text">Я скачал прикольное приложение ANYRoShamBo! Не знаешь чем заняться в праздники? Супер-выбиратор поможет!</string>
+    <string name="share_action_text">Смотри! Новогодний супер выбиратор ANYRoShamBo предложил мне %s! Присоединяйся!</string>
+    <string name="share_action_party">танцевать</string>
+    <string name="share_action_celebrate">праздновать</string>
+    <string name="share_action_walk">гулять</string>
 
     <string name="share_success">Сообщение успешно опубликовано</string>
-    <string name="share_duplicate">Сообщение уже опубликавно</string>
+    <string name="share_duplicate">Сообщение уже опубликовано</string>
     <string name="share_error">Ошибка при публикации</string>
 
 </resources>

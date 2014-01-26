@@ -56,8 +56,9 @@ public class FacebookService implements SocialNetworkService {
 
     public void onActivityResult(@Observes OnActivityResultEvent event) {
         uiHelper.onActivityResult(event.getRequestCode(), event.getResultCode(), event.getData(), new FacebookDialog.Callback() {
+
             public void onComplete(FacebookDialog.PendingCall pendingCall, Bundle data) {
-                executeLastFinishAction(ErrorInfo.success());
+                executeLastFinishAction(createErrorInfoByNativeDialogComplete(data));
             }
 
             public void onError(FacebookDialog.PendingCall pendingCall, Exception error, Bundle data) {
@@ -82,6 +83,16 @@ public class FacebookService implements SocialNetworkService {
         uiHelper.onDestroy();
     }
 
+    private ErrorInfo createErrorInfoByNativeDialogComplete(Bundle data) {
+        final String gesture = FacebookDialog.getNativeDialogCompletionGesture(data);
+        final String postId = FacebookDialog.getNativeDialogPostId(data);
+        if (postId != null || "post".equals(gesture)) {
+            return ErrorInfo.success();
+        } else {
+            return ErrorInfo.create(CommonError.USER_CANCELLED);
+        }
+    }
+
     private ErrorInfo createErrorInfoByException(Enum<?> defaultErrorCode, Exception ex) {
         return ErrorInfo.create(ex instanceof FacebookOperationCanceledException
                 ? CommonError.USER_CANCELLED
@@ -104,8 +115,8 @@ public class FacebookService implements SocialNetworkService {
                     if (FacebookDialog.canPresentShareDialog(activity)) {
                         final FacebookDialog.PendingCall pendingCall = new FacebookDialog.ShareDialogBuilder(activity).
                                 setName(shareParams.getTitle()).
-                                setLink(shareParams.getLink()).
                                 setDescription(shareParams.getText()).
+                                setLink(shareParams.getLink()).
                                 build().present();
                         lastFinishAction = shareParams.getFinishAction();
                         uiHelper.trackPendingDialogCall(pendingCall);
@@ -124,7 +135,7 @@ public class FacebookService implements SocialNetworkService {
                                     if (error == null) {
                                         final String postId = values.getString("post_id");
                                         errorInfo = postId != null
-                                                ? ErrorInfo.success().withDetail("post_id", postId)
+                                                ? ErrorInfo.success()
                                                 : ErrorInfo.create(CommonError.USER_CANCELLED);
                                     } else {
                                         errorInfo = createErrorInfoByException(Error.FEED_ERROR, error);

@@ -22,7 +22,7 @@
                  android:scaleType="fitXY"
                  android:onClick="showAbout"/>
 
-    <TextView android:id="@+id/share_text"
+    <TextView android:id="@+id/share_label"
               android:layout_width="wrap_content"
               android:layout_height="wrap_content"
               android:textColor="@color/text_color"
@@ -32,14 +32,14 @@
               android:textSize="@dimen/normal_text_size"
               android:gravity="center"
               android:layout_centerHorizontal="true"
-              android:text="@string/share_text"/>
+              android:text="@string/share_label"/>
 
     <ImageButton android:id="@+id/vk_button"
                  android:layout_width="@dimen/game_button_size"
                  android:layout_height="@dimen/game_button_size"
                  android:contentDescription="@string/vkontakte_button_description"
                  android:src="@drawable/vk_button"
-                 android:layout_below="@id/share_text"
+                 android:layout_below="@id/share_label"
                  android:layout_marginTop="@dimen/game_button_offset"
                  android:scaleType="fitXY"
                  android:background="@null"
@@ -51,7 +51,7 @@
                  android:layout_height="@dimen/game_button_size"
                  android:contentDescription="@string/odnoklassniki_button_description"
                  android:src="@drawable/ok_button"
-                 android:layout_below="@id/share_text"
+                 android:layout_below="@id/share_label"
                  android:layout_marginTop="@dimen/game_button_offset"
                  android:layout_marginLeft="90dp"
                  android:scaleType="fitXY"
@@ -64,7 +64,7 @@
                  android:layout_height="@dimen/game_button_size"
                  android:contentDescription="@string/facebook_button_description"
                  android:src="@drawable/fb_button"
-                 android:layout_below="@id/share_text"
+                 android:layout_below="@id/share_label"
                  android:layout_marginTop="@dimen/game_button_offset"
                  android:layout_marginLeft="180dp"
                  android:scaleType="fitXY"
@@ -76,7 +76,7 @@
                  android:layout_height="@dimen/game_button_size"
                  android:contentDescription="@string/twitter_button_description"
                  android:src="@drawable/tw_button"
-                 android:layout_below="@id/share_text"
+                 android:layout_below="@id/share_label"
                  android:layout_marginTop="@dimen/game_button_offset"
                  android:layout_marginLeft="270dp"
                  android:scaleType="fitXY"
@@ -100,7 +100,7 @@
                android:layout_marginTop="50dp"
                android:contentDescription="@string/glow_description"/>
 
-    <TextView android:id="@+id/go_for"
+    <TextView android:id="@+id/go_for_label"
               android:layout_width="wrap_content"
               android:layout_height="30dp"
               android:layout_centerHorizontal="true"

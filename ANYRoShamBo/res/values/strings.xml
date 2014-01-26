@@ -9,8 +9,8 @@
             Follow us, and we will gladden you with new interesting and exciting games.</string>
     <string name="info_header">Information</string>
     <string name="gamescreen_description">gamescreen</string>
-    <string name="share_text_description">share_text</string>
-    <string name="share_text">Share</string>
+    <string name="share_label_description">share_text</string>
+    <string name="share_label">Share</string>
 
     <string name="go_party_text">Go! Party!</string>
     <string name="go_celebrate_text">Go! Celebrate!</string>
@@ -35,7 +35,11 @@
     <string name="glow_description">glow</string>
     <string name="go_for_description">go_for</string>
 
-    <string name="social_share_text">Look! New Year killer-app!! Don’t know what to do on holydays? Super-chooser will help!</string>
+    <string name="share_text">Look! New Year killer-app! Don’t know what to do on holidays? Super-chooser will help!</string>
+    <string name="share_action_text">Cool! New year killer-app anyroshambo sugested me to go %s! Join!</string>
+    <string name="share_action_party">party</string>
+    <string name="share_action_celebrate">celebrate</string>
+    <string name="share_action_walk">for a walk</string>
 
     <string name="share_success">Share succeeds</string>
     <string name="share_duplicate">Already shared</string>
