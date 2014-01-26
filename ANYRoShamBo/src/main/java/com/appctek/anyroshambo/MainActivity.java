@@ -13,9 +13,7 @@ import com.appctek.anyroshambo.anim.Animator;
 import com.appctek.anyroshambo.anim.LazyAction;
 import com.appctek.anyroshambo.anim.Sequencer;
 import com.appctek.anyroshambo.math.GeometryUtils;
-import com.appctek.anyroshambo.model.GameModel;
 import com.appctek.anyroshambo.services.AnimationFactory;
-import com.appctek.anyroshambo.services.GameService;
 import com.appctek.anyroshambo.services.ShakeDetector;
 import com.appctek.anyroshambo.services.VibrationService;
 import com.appctek.anyroshambo.social.SocialNetworkService;
@@ -23,23 +21,27 @@ import com.appctek.anyroshambo.social.TwitterService;
 import com.appctek.anyroshambo.social.auth.ErrorInfo;
 import com.appctek.anyroshambo.util.Action;
 import com.appctek.anyroshambo.util.MediaPlayerUtils;
+import com.appctek.anyroshambo.util.RandomUtils;
 import com.appctek.anyroshambo.util.ViewUtils;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import roboguice.inject.InjectResource;
 import roboguice.inject.InjectView;
 
+import java.util.Random;
+
 public class MainActivity extends HardwareAcceleratedActivity {
 
     private static final String ANIMATION_POSITION_KEY = "key.animationPosition";
 
     private static final float INITIAL_ANGLE = GeometryUtils.HALF_PI;
+
+    private static final int ICON_COUNT = 3;
     private static final int[] goForResIds = new int[]{
             R.string.go_celebrate_text,
             R.string.go_forawalk_text,
             R.string.go_party_text
     };
-
     private static final int[] shareActionIds = new int[] {
             R.string.share_action_celebrate,
             R.string.share_action_walk,
@@ -59,11 +61,11 @@ public class MainActivity extends HardwareAcceleratedActivity {
     @Inject
     private Animator animator;
     @Inject
-    private GameService gameService;
-    @Inject
     private AnimationFactory animationFactory;
     @Inject
     private MediaPlayer mediaPlayer;
+    @Inject
+    private Random random;
 
     @Inject
     @Named("vkService")
@@ -110,7 +112,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
     private ImageButton twButton;
 
     private ImageView[] icons;
-    private GameModel gameModel = new GameModel();
+    private int selectedIcon;
 
     @InjectResource(R.string.share_link)
     private String shareLink;
@@ -146,6 +148,10 @@ public class MainActivity extends HardwareAcceleratedActivity {
         }
     });
 
+    private float calculateToDegrees() {
+        return GeometryUtils.DEGREES_IN_CIRCLE / ICON_COUNT * selectedIcon;
+    }
+
     private Sequencer gameSequencer = new Sequencer(new ActionSequence() {
         private ViewTreeObserver.OnPreDrawListener preDrawListener;
 
@@ -153,43 +159,46 @@ public class MainActivity extends HardwareAcceleratedActivity {
             switch (step) {
             case 0:
 
-                if (gameModel.getSelectedIcon() >= 0) {
+                if (selectedIcon >= 0) {
                     goForLabel.setText(null);
                     glow.startAnimation(animationFactory.createGlowAnimationOut());
-                    icons[gameModel.getSelectedIcon()].startAnimation(animationFactory.createIconScaleOut());
+                    icons[selectedIcon].startAnimation(animationFactory.createIconScaleOut());
                 }
 
                 vibrationService.feedback();
-                // TODO gameModel.selectedIcon should be filled only after final animation
-                gameService.initGame(gameModel);
 
-                MediaPlayerUtils.play(MainActivity.this, mediaPlayer, R.raw.ruletka);
+                final float fromDegrees = calculateToDegrees();
+                selectedIcon = random.nextInt(ICON_COUNT);
 
-                final Animation rotateAnimation = animationFactory.createRotate(gameModel);
+                final int rotationCount = RandomUtils.nextPositiveOrNegative(random, 8, 10);
+                final float toDegrees = rotationCount * GeometryUtils.DEGREES_IN_CIRCLE + calculateToDegrees();
+
+                final Animation rotateAnimation = animationFactory.createRotate(fromDegrees, toDegrees);
                 this.preDrawListener = new ViewTreeObserver.OnPreDrawListener() {
                     public boolean onPreDraw() {
                         final float interpolation = animator.computeInterpolation(rotateAnimation);
-                        final float degrees = GeometryUtils.interpolate(interpolation,
-                                gameModel.getFromDegrees(), gameModel.getToDegrees()) % GeometryUtils.DEGREES_IN_CIRCLE;
+                        final float degrees = GeometryUtils.interpolate(interpolation, fromDegrees, toDegrees) %
+                                GeometryUtils.DEGREES_IN_CIRCLE;
                         setIconPositions(computeRotationAngleInRadians(degrees));
                         return true;
                     }
                 };
                 triangle.getViewTreeObserver().addOnPreDrawListener(preDrawListener);
+                MediaPlayerUtils.play(MainActivity.this, mediaPlayer, R.raw.ruletka);
                 return animator.animate(triangle).with(rotateAnimation).build();
 
             case 1:
                 triangle.getViewTreeObserver().removeOnPreDrawListener(preDrawListener);
                 this.preDrawListener = null;
 
-                setIconPositions(computeRotationAngleInRadians(gameModel.getToDegrees()));
+                setIconPositions(computeRotationAngleInRadians(calculateToDegrees()));
                 glow.startAnimation(animationFactory.createGlowAnimationIn());
-                return animator.animate(icons[gameModel.getSelectedIcon()]).
+                return animator.animate(icons[selectedIcon]).
                         with(animationFactory.createIconScaleIn()).build();
 
             case 2:
-                MediaPlayerUtils.play(MainActivity.this, mediaPlayer, goForAudioIds[gameModel.getSelectedIcon()]);
-                goForLabel.setText(goForResIds[gameModel.getSelectedIcon()]);
+                MediaPlayerUtils.play(MainActivity.this, mediaPlayer, goForAudioIds[selectedIcon]);
+                goForLabel.setText(goForResIds[selectedIcon]);
                 return animator.animate(goForLabel).with(animationFactory.createGoForAnimationIn()).build();
 
             case 3:
@@ -289,10 +298,10 @@ public class MainActivity extends HardwareAcceleratedActivity {
     }
 
     private String getMessageForShare() {
-        if (gameModel.getSelectedIcon() < 0) {
+        if (selectedIcon < 0 || gameSequencer.isRunning()) {
             return shareText;
         }
-        final String action = getString(shareActionIds[gameModel.getSelectedIcon()]);
+        final String action = getString(shareActionIds[selectedIcon]);
         return String.format(shareActionText, action);
     }
 

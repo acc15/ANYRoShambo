@@ -28,4 +28,18 @@ public class RandomUtils {
         return stringBuilder.toString();
     }
 
+    public static int nextPositiveOrNegative(Random random, int min, int max) {
+        final int values = max - min + 1;
+        final int randomValue = random.nextInt(values*2);
+        return randomValue < values ? min + randomValue : -(min + randomValue - values);
+    }
+
+    public static long nextLong(Random random, long min, long max) {
+        final long randomValue = random.nextLong();
+        return min + Math.abs(randomValue) % (max-min+1);
+    }
+
+    public static float nextFloat(Random random, float min, float max) {
+        return min + random.nextFloat() * (max - min);
+    }
 }

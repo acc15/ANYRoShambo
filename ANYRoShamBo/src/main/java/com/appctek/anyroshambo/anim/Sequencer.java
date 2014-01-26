@@ -45,6 +45,10 @@ public class Sequencer implements LazyAction {
         lazyAction.run();
     }
 
+    public boolean isRunning() {
+        return step >= 0;
+    }
+
     public int getStep() {
         return step;
     }

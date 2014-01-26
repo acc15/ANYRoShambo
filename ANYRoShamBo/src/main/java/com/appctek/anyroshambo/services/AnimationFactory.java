@@ -2,7 +2,6 @@ package com.appctek.anyroshambo.services;
 
 import android.view.animation.*;
 import com.appctek.anyroshambo.math.GeometryUtils;
-import com.appctek.anyroshambo.model.GameModel;
 
 /**
  * @author Vyacheslav Mayorov
@@ -18,12 +17,12 @@ public class AnimationFactory {
         return animation;
     }
 
-    public Animation createRotate(GameModel gameModel) {
-        final RotateAnimation rotateAnimation = new RotateAnimation(gameModel.getFromDegrees(), gameModel.getToDegrees(),
+    public Animation createRotate(float fromDegrees, float toDegrees) {
+        final RotateAnimation rotateAnimation = new RotateAnimation(fromDegrees, toDegrees,
                 RotateAnimation.RELATIVE_TO_SELF, GeometryUtils.HALF,
                 RotateAnimation.RELATIVE_TO_SELF, GeometryUtils.TWO_DIV_THREE);
-        rotateAnimation.setInterpolator(new DecelerateInterpolator(gameModel.getDecelerateFactor()));
-        rotateAnimation.setDuration(gameModel.getDuration());
+        rotateAnimation.setInterpolator(new DecelerateInterpolator());
+        rotateAnimation.setDuration(10000);
         return enableFillAfter(rotateAnimation);
     }
 
