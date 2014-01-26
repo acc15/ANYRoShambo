@@ -160,6 +160,7 @@ public class MainActivity extends HardwareAcceleratedActivity {
                 }
 
                 vibrationService.feedback();
+                // TODO gameModel.selectedIcon should be filled only after final animation
                 gameService.initGame(gameModel);
 
                 MediaPlayerUtils.play(MainActivity.this, mediaPlayer, R.raw.ruletka);
